@@ -1,5 +1,7 @@
 # Restocker :package:
 
+# THIS HAS BEEN ARCHIVED AND IS NO LONGER UNDER DEVELOPMENT.
+
 #### Restocks items on the list automatically (if checked)
 ### Will only add items by name that are cached by the client (the item you add must be/have been in your bags/bank during this play session).  
 **Supports adding ANY item by itemID**
