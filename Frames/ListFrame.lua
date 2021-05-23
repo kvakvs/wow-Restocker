@@ -1,21 +1,22 @@
+---@type RestockerAddon
 local _, RS = ...;
 
 function RS:addListFrame()
 
   local frame = CreateFrame("Frame", nil, RS.hiddenFrame)
-  frame.index = #RS.framepool+1
+  frame.index = #RS.framepool + 1
   frame:SetSize(RS.addon.scrollChild:GetWidth(), 20);
   if #RS.framepool == 0 then
     frame:SetPoint("TOP", RS.addon.scrollChild, "TOP")
   else
     frame:SetPoint("TOP", RS.framepool[#RS.framepool], "BOTTOM")
   end
-  RS.addon.scrollChild:SetHeight(#RS.framepool*20)
+  RS.addon.scrollChild:SetHeight(#RS.framepool * 20)
   -- ITEM TEXT
   local text = frame:CreateFontString(nil, "OVERLAY");
   text:SetFontObject("GameFontHighlight");
   text:SetPoint("LEFT", frame, "LEFT");
-  frame.text = text
+  frame.text   = text
 
   -- BUTTON
   local delBtn = CreateFrame("Button", nil, frame, "UIPanelCloseButton");
@@ -23,8 +24,7 @@ function RS:addListFrame()
   delBtn:SetSize(30, 30);
   delBtn:SetScript("OnClick", function(self)
     local parent = self:GetParent();
-    local text = parent.text:GetText();
-
+    local text   = parent.text:GetText();
 
     for i, item in ipairs(Restocker.profiles[Restocker.currentProfile]) do
       if item.itemName == text then
@@ -38,13 +38,13 @@ function RS:addListFrame()
 
   -- EDITBOX
   local editBox = CreateFrame("EditBox", nil, frame, "InputBoxTemplate");
-  editBox:SetSize(40,20)
+  editBox:SetSize(40, 20)
   editBox:SetPoint("RIGHT", delBtn, "LEFT", 3, 0);
   editBox:SetAutoFocus(false);
   editBox:SetScript("OnEnterPressed", function(self)
     local amount = self:GetText()
     local parent = self:GetParent()
-    local text = parent.text:GetText()
+    local text   = parent.text:GetText()
 
     if amount == "" then
       amount = 0;
@@ -66,7 +66,7 @@ function RS:addListFrame()
   editBox:SetScript("OnKeyUp", function(self)
     local amount = self:GetText()
     local parent = self:GetParent()
-    local item = parent.text:GetText()
+    local item   = parent.text:GetText()
 
     if amount == "" then
       amount = 0;
@@ -87,7 +87,6 @@ function RS:addListFrame()
   tinsert(RS.framepool, frame)
   return frame
 end
-
 
 function RS:addListFrames()
   for _, item in ipairs(Restocker.profiles[Restocker.currentProfile]) do

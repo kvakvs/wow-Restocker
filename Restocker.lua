@@ -1,28 +1,20 @@
+---@type RestockerAddon
 local _, RS = ...
 
-RS.currentlyRestocking = false
-RS.itemsRestocked = {}
-RS.restockedItems = false
-RS.framepool = {}
-RS.hiddenFrame = CreateFrame("Frame", nil, UIParent):Hide()
-
-
-local list = {}
+local list  = {}
 
 RS.defaults = {
   prefix = "|cff8d63ffRestocker|r ",
-  color = "8d63ff",
-  slash = "|cff8d63ff/rs|r "
+  color  = "8d63ff",
+  slash  = "|cff8d63ff/rs|r "
 }
 
 function RS:Print(...)
   DEFAULT_CHAT_FRAME:AddMessage(RS.addonName .. "- " .. tostringall(...))
 end
 
-
 RS.slashPrefix = "|cff8d63ff/restocker|r "
-RS.addonName = "|cff8d63ffRestocker|r "
-
+RS.addonName   = "|cff8d63ffRestocker|r "
 
 function RS:Show()
   local menu = RS.addon or RS:CreateMenu();
@@ -30,24 +22,22 @@ function RS:Show()
   return RS:Update()
 end
 
-
 function RS:Hide()
-  return RS.addon:Hide()
+  local menu = RS.addon or RS:CreateMenu();
+  return menu:Hide()
 end
 
 function RS:Toggle()
   return RS.addon:SetShown(not RS.addon:IsShown()) or false
 end
 
-
-
 RS.commands = {
-  show = RS.defaults.slash .. "show - Show the addon",
+  show    = RS.defaults.slash .. "show - Show the addon",
   profile = {
-    add = RS.defaults.slash .. "profile add [name] - Adds a profile with [name]",
+    add    = RS.defaults.slash .. "profile add [name] - Adds a profile with [name]",
     delete = RS.defaults.slash .. "profile delete [name] - Deletes profile with [name]",
     rename = RS.defaults.slash .. "profile rename [name] - Renames current profile to [name]",
-    copy = RS.defaults.slash .. "profile copy [name] - Copies profile [name] into current profile.",
+    copy   = RS.defaults.slash .. "profile copy [name] - Copies profile [name] into current profile.",
     config = RS.defaults.slash .. "config - Opens the interface options menu."
   }
 }
@@ -57,21 +47,20 @@ RS.commands = {
 ]]
 function RS:SlashCommand(args)
   local command, rest = strsplit(" ", args, 2)
-  command = command:lower()
+  command             = command:lower()
 
   if command == "show" then
     RS:Show()
 
   elseif command == "profile" then
     if rest == "" or rest == nil then
-      for _,v in pairs(RS.commands.profile) do
+      for _, v in pairs(RS.commands.profile) do
         RS:Print(v)
       end
       return
     end
 
     local subcommand, name = strsplit(" ", rest, 2)
-
 
     if subcommand == "add" then
       RS:AddProfile(name)
@@ -123,12 +112,12 @@ function RS:Update()
   end
 
   if Restocker.sortListAlphabetically then
-    table.sort(list, function(a,b)
+    table.sort(list, function(a, b)
       return a.itemName < b.itemName
     end)
 
   elseif Restocker.sortListNumerically then
-    table.sort(list, function(a,b)
+    table.sort(list, function(a, b)
       return a.amount > b.amount
     end)
   end
@@ -150,7 +139,9 @@ function RS:Update()
 
   local height = 0
   for _, f in ipairs(RS.framepool) do
-    if f.isInUse then height = height+15 end
+    if f.isInUse then
+      height = height + 15
+    end
   end
   RS.addon.scrollChild:SetHeight(height)
 end
@@ -174,10 +165,10 @@ end
   ADD PROFILE
 ]]
 function RS:AddProfile(newProfile)
-  Restocker.currentProfile = newProfile
+  Restocker.currentProfile       = newProfile
   Restocker.profiles[newProfile] = {}
 
-  local menu = RS.addon or RS:CreateMenu()
+  local menu                     = RS.addon or RS:CreateMenu()
   menu:Show()
   RS:Update()
 
@@ -196,20 +187,19 @@ function RS:DeleteProfile(profile)
   if currentProfile == profile then
     if #Restocker.profiles > 1 then
       Restocker.profiles[currentProfile] = nil
-      Restocker.currentProfile = Restocker.profiles[1]
+      Restocker.currentProfile           = Restocker.profiles[1]
     else
       Restocker.profiles[currentProfile] = nil
-      Restocker.currentProfile = "default"
-      Restocker.profiles.default = {}
+      Restocker.currentProfile           = "default"
+      Restocker.profiles.default         = {}
     end
 
   else
     Restocker.profiles[profile] = nil
   end
 
-
   UIDropDownMenu_SetText(RS.optionsPanel.deleteProfileMenu, "")
-  local menu = RS.addon or RS:CreateMenu()
+  local menu                    = RS.addon or RS:CreateMenu()
   RS.profileSelectedForDeletion = ""
   UIDropDownMenu_SetText(RS.addon.profileDropDownMenu, Restocker.currentProfile)
 
@@ -219,13 +209,12 @@ end
   RENAME PROFILE
 ]]
 function RS:RenameCurrentProfile(newName)
-  local currentProfile = Restocker.currentProfile
+  local currentProfile               = Restocker.currentProfile
 
-  Restocker.profiles[newName] = Restocker.profiles[currentProfile]
+  Restocker.profiles[newName]        = Restocker.profiles[currentProfile]
   Restocker.profiles[currentProfile] = nil
 
-  Restocker.currentProfile = newName
-
+  Restocker.currentProfile           = newName
 
   UIDropDownMenu_SetText(RS.addon.profileDropDownMenu, Restocker.currentProfile)
 end
@@ -240,7 +229,7 @@ function RS:ChangeProfile(newProfile)
   UIDropDownMenu_SetText(RS.addon.profileDropDownMenu, Restocker.currentProfile)
   --print(RS.defaults.prefix .. "current profile: ".. Restocker.currentProfile)
   RS:Update()
-  
+
   if RS.bankIsOpen then
     RS:BANKFRAME_OPENED(true)
   end
@@ -255,27 +244,65 @@ end
   COPY PROFILE
 ]]
 function RS:CopyProfile(profileToCopy)
-  local copyProfile = CopyTable(Restocker.profiles[profileToCopy])
+  local copyProfile                            = CopyTable(Restocker.profiles[profileToCopy])
   Restocker.profiles[Restocker.currentProfile] = copyProfile
   RS:Update()
 end
 
-
-
 function RS:loadSettings()
 
-  if Restocker == nil then Restocker = {} end
-  if Restocker.autoBuy == nil then Restocker.autoBuy = true end
-  if Restocker.restockFromBank == nil then Restocker.restockFromBank = true end
+  if Restocker.autoBuy == nil then
+    Restocker.autoBuy = true
+  end
+  if Restocker.restockFromBank == nil then
+    Restocker.restockFromBank = true
+  end
 
-  if Restocker.profiles == nil then Restocker.profiles = {} end
-  if Restocker.profiles.default == nil then Restocker.profiles.default = {} end
-  if Restocker.currentProfile == nil then Restocker.currentProfile = "default" end
+  if Restocker.profiles == nil then
+    Restocker.profiles = {}
+  end
+  if Restocker.profiles.default == nil then
+    Restocker.profiles.default = {}
+  end
+  if Restocker.currentProfile == nil then
+    Restocker.currentProfile = "default"
+  end
 
-  if Restocker.framePos == nil then Restocker.framePos = {} end
-  
-  if Restocker.autoOpenAtBank == nil then Restocker.autoOpenAtBank = false end
-  if Restocker.autoOpenAtMerchant == nil then Restocker.autoOpenAtMerchant = false end
-  if Restocker.loginMessage == nil then Restocker.loginMessage = true end
+  if Restocker.framePos == nil then
+    Restocker.framePos = {}
+  end
+
+  if Restocker.autoOpenAtBank == nil then
+    Restocker.autoOpenAtBank = false
+  end
+  if Restocker.autoOpenAtMerchant == nil then
+    Restocker.autoOpenAtMerchant = false
+  end
+  if Restocker.loginMessage == nil then
+    Restocker.loginMessage = true
+  end
 
 end
+
+---Print a text with "Restocker: " prefix in the game chat window
+---@param t string
+function RS.Print(t)
+  local name = "Restocker"
+  DEFAULT_CHAT_FRAME:AddMessage("|c80808080" .. name .. "|r: " .. t)
+end
+
+local function Init()
+  RS.currentlyRestocking = false
+  RS.itemsRestocked      = {}
+  RS.restockedItems      = false
+  RS.framepool           = {}
+  RS.hiddenFrame         = CreateFrame("Frame", nil, UIParent):Hide()
+
+  Restocker              = Restocker or {}
+  RS:loadSettings()
+
+  RS.addon               = RS.addon or RS:CreateMenu()
+  RS.Print("Loaded")
+end
+
+Init()

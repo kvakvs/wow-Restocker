@@ -1,6 +1,7 @@
-# Restocker :package:
+# Restocker TBC 
 
-# THIS HAS BEEN ARCHIVED AND IS NO LONGER UNDER DEVELOPMENT.
+Revived a discontinued project for TBC. Old name: Auto Restocker by 
+rainfordays @github / ChiliFajita @curseforge.
 
 #### Restocks items on the list automatically (if checked)
 ### Will only add items by name that are cached by the client (the item you add must be/have been in your bags/bank during this play session).  
