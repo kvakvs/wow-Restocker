@@ -250,7 +250,6 @@ function RS:CopyProfile(profileToCopy)
 end
 
 function RS:loadSettings()
-
   if Restocker.autoBuy == nil then
     Restocker.autoBuy = true
   end
@@ -281,7 +280,6 @@ function RS:loadSettings()
   if Restocker.loginMessage == nil then
     Restocker.loginMessage = true
   end
-
 end
 
 ---Print a text with "Restocker: " prefix in the game chat window
@@ -300,9 +298,6 @@ local function Init()
 
   Restocker              = Restocker or {}
   RS:loadSettings()
-
-  RS.addon               = RS.addon or RS:CreateMenu()
-  RS.Print("Loaded")
 end
 
 Init()

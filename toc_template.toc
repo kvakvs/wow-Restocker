@@ -1,0 +1,24 @@
+#
+# Do not edit - this file is generated from TOC_TEMPLATE.TOC
+#
+## Interface: ${UI_VERSION}
+## Title: ${ADDON_TITLE}
+## Author: kvakvs; original author RainForDays
+## Notes: Restock items automatically
+## Version: ${VERSION}
+## DefaultState: enabled
+## SavedVariablesPerCharacter: Restocker
+
+Classes\RestockerClass.lua
+Poisons.lua
+Events.lua
+Frames\MainFrame.lua
+Frames\ListFrame.lua
+Frames\OptionsPanel.lua
+Helpers\Bank.lua
+
+Restocker.lua
+
+#
+# Do not edit - this file is generated from TOC_TEMPLATE.TOC
+#

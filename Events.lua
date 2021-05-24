@@ -1,5 +1,5 @@
 ---@type RestockerAddon
-local _, RS             = ...;
+local TOC, RS             = ...;
 RS.loaded               = false
 RS.itemWaitTable        = {}
 RS.bankIsOpen           = false
@@ -32,13 +32,8 @@ EventFrame:SetScript("OnEvent", function(self, event, ...)
 end)
 
 function EventFrame:ADDON_LOADED(name)
-  if name ~= "Restocker" then
-    return
-  end
-
-
   -- NEW RESTOCKER
-  --RS:loadSettings()
+  RS:loadSettings()
 
   for profile, _ in pairs(Restocker.profiles) do
     for _, item in ipairs(Restocker.profiles[profile]) do
@@ -60,8 +55,8 @@ function EventFrame:ADDON_LOADED(name)
   end
 
   RS:CreateOptionsMenu()
-  --RS:Show()
-  --RS:Hide()
+  RS:Show()
+  RS:Hide()
   RS.loaded = true
 end
 
@@ -70,7 +65,7 @@ function EventFrame:PLAYER_ENTERING_WORLD(login, reloadui)
     return
   end
   if (login or reloadui) and Restocker.loginMessage then
-    print(RS.addonName .. "loaded")
+    RS.Print("Loaded")
   end
 end
 

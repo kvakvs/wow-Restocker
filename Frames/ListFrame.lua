@@ -63,23 +63,24 @@ function RS:addListFrame()
     end
 
   end);
-  editBox:SetScript("OnKeyUp", function(self)
-    local amount = self:GetText()
-    local parent = self:GetParent()
-    local item   = parent.text:GetText()
+  editBox:SetScript("OnKeyUp",
+      function(self)
+        local amount = self:GetText()
+        local parent = self:GetParent()
+        local item   = parent.text:GetText()
 
-    if amount == "" then
-      amount = 0;
-    end
+        if amount == "" then
+          amount = 0;
+        end
 
-    self:SetText(tonumber(amount));
+        --self:SetText(tonumber(amount));
 
-    for _, item in ipairs(Restocker.profiles[Restocker.currentProfile]) do
-      if item.itemName == text then
-        item.amount = tonumber(amount)
-      end
-    end
-  end)
+        for _, item in ipairs(Restocker.profiles[Restocker.currentProfile]) do
+          if item.itemName == text then
+            item.amount = tonumber(amount)
+          end
+        end
+      end)
   frame.editBox = editBox
   frame.isInUse = true
   frame:Show()

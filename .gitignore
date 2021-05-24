@@ -1,0 +1,8 @@
+﻿/.idea
+*.bat
+
+# Addons serving as inspiration
+/_TBC_BlizzardInterfaceCode
+
+RestockerClassic.toc
+RestockerTBC.toc
