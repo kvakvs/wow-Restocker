@@ -157,7 +157,7 @@ function EventFrame:MERCHANT_SHOW()
 
 
   if boughtSomething then
-    RS:Print("finished restocking from vendor.")
+    RS.Print("Finished restocking from vendor")
   end
 
 end

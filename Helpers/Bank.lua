@@ -247,7 +247,7 @@ local function bankTransfer()
       and RS.didBankStuff
       and RS.minorChange == false then
     RS.currentlyRestocking = false
-    RS:Print("Finished restocking from bank.")
+    RS.Print("Finished restocking from bank")
   end
 end
 

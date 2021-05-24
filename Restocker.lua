@@ -55,7 +55,7 @@ function RS:SlashCommand(args)
   elseif command == "profile" then
     if rest == "" or rest == nil then
       for _, v in pairs(RS.commands.profile) do
-        RS:Print(v)
+        RS.Print(v)
       end
       return
     end
@@ -80,10 +80,10 @@ function RS:SlashCommand(args)
     for _, v in pairs(RS.commands) do
       if type(v) == "table" then
         for _, vv in pairs(v) do
-          RS:Print(vv)
+          RS.Print(vv)
         end
       else
-        RS:Print(v)
+        RS.Print(v)
       end
     end
     return
