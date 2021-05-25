@@ -31,7 +31,11 @@ EventFrame:SetScript("OnEvent", function(self, event, ...)
   return self[event] and self[event](self, ...)
 end)
 
-function EventFrame:ADDON_LOADED(name)
+function EventFrame:ADDON_LOADED(addonName)
+  if addonName ~= "RestockerClassic" and addonName ~= "RestockerTBC" then
+    return
+  end
+
   -- NEW RESTOCKER
   RS:loadSettings()
 
@@ -54,7 +58,7 @@ function EventFrame:ADDON_LOADED(name)
     RS:SlashCommand(msg)
   end
 
-  RS:CreateOptionsMenu()
+  RS:CreateOptionsMenu(addonName)
   RS:Show()
   RS:Hide()
   RS.loaded = true

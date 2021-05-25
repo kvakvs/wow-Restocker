@@ -4,10 +4,11 @@ local _, RS                   = ...
 RS.profileSelectedForDeletion = ""
 
 
--- INTERFACE OPTIONS PANEL
-function RS:CreateOptionsMenu()
+---INTERFACE OPTIONS PANEL
+---@param name string Addon name
+function RS:CreateOptionsMenu(name)
   local optionsPanel = CreateFrame("Frame", "RestockerOptions", UIParent)
-  optionsPanel.name  = "Restocker"
+  optionsPanel.name  = name
 
   local text         = optionsPanel:CreateFontString(nil, "OVERLAY")
   text:SetFontObject("GameFontNormalLarge")
