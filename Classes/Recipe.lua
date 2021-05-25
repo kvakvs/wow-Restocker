@@ -1,21 +1,17 @@
 ---@type RestockerAddon
-local _, RS                 = ...;
+local _, RS         = ...;
 
 ---@class RsRecipe
 ---@field item RsItem
----@field reagent1 RsItem
----@field reagent2 RsItem
----@field reagent3 RsItem
+---@field ingredients table<RsItem>
 
 RS.RsRecipe         = {}
 RS.RsRecipe.__index = RS.RsRecipe
 
 ---@return RsRecipe
 function RS.RsRecipe:Create(item, reagent1, reagent2, reagent3)
-  local fields = { item     = item,
-                   reagent1 = reagent1,
-                   reagent2 = reagent2,
-                   reagent3 = reagent3 }
+  local fields = { item        = item,
+                   ingredients = { reagent1, reagent2, reagent3 } }
 
   setmetatable(fields, RS.RsRecipe)
 

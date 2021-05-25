@@ -24,6 +24,7 @@ Frames\OptionsPanel.lua
 
 Helpers\Bank.lua
 Helpers\Cache.lua
+Helpers\Inspect.lua
 
 Restocker.lua
 

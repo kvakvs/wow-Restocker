@@ -102,13 +102,16 @@ function EventFrame:MERCHANT_SHOW()
   end -- If vendor reopened within 1 second then return (only activate addon once per second)
 
   lastTimeRestocked     = GetTime()
-  local boughtSomething = false
+  local numPurchases = 0
+
   if Restocker.autoOpenAtMerchant then
     RS:Show()
   end
 
   local craftingPurchaseOrder = RS.CraftingPurchaseOrder() or {}
-  local purchaseOrders        = {} ---@type table<string, RsBuyItem>
+
+  ---@type table<string, RsBuyItem>
+  local purchaseOrders        = {}
 
   local restockList           = Restocker.profiles[Restocker.currentProfile]
 
@@ -118,29 +121,29 @@ function EventFrame:MERCHANT_SHOW()
     local toBuy     = item.amount - haveInBag
 
     if toBuy > 0 then
-      if not purchaseOrders[item.itemName] then
-        purchaseOrders[item.itemName] = RS.RsBuyItem.Create({
+      if not purchaseOrders[item.itemName] then -- add new
+        purchaseOrders[item.itemName] = RS.RsBuyItem:Create({
           numNeeded = toBuy,
           itemName  = item.itemName,
           itemID    = item.itemID,
           itemLink  = item.itemLink,
         })
-      else
+      else -- update amount, add more
         local purchase     = purchaseOrders[item.itemName]
         purchase.numNeeded = purchase.numNeeded + toBuy
       end
     end
   end
 
-  -- Insert poison reagents into purchase orders, or add
-  for poisonReagentName, toBuy in pairs(craftingPurchaseOrder) do
-    if not purchaseOrders[poisonReagentName] then
-      purchaseOrders[poisonReagentName] = RS.RsBuyItem.Create({
+  -- Insert craft reagents for missing items into purchase orders, or add
+  for ingredientName, toBuy in pairs(craftingPurchaseOrder) do
+    if not purchaseOrders[ingredientName] then
+      purchaseOrders[ingredientName] = RS.RsBuyItem:Create({
         numNeeded = toBuy,
-        itemName  = poisonReagentName,
+        itemName  = ingredientName,
       })
     else
-      local purchase     = purchaseOrders[poisonReagentName]
+      local purchase     = purchaseOrders[ingredientName]
       purchase.numNeeded = purchase.numNeeded + toBuy
     end
   end
@@ -154,21 +157,23 @@ function EventFrame:MERCHANT_SHOW()
     local itemName, _, _, _, merchantAvailable = GetMerchantItemInfo(i)
     local itemLink                             = GetMerchantItemLink(i)
 
-    if purchaseOrders[itemName] then
-      local buyItem                             = purchaseOrders[itemName]
-      local _, _, _, _, _, _, _, itemStackCount = GetItemInfo(itemLink)
+    -- is item from merchant in our purchase order?
+    local buyItem                              = purchaseOrders[itemName]
+
+    if buyItem then
+      local itemInfo = RS.GetItemInfo(itemLink)
 
       if buyItem.numNeeded > merchantAvailable and merchantAvailable > 0 then
         BuyMerchantItem(i, merchantAvailable)
-        boughtSomething = true
+        numPurchases = numPurchases + 1
       else
-        for n = buyItem.numNeeded, 1, -itemStackCount do
-          if n > itemStackCount then
-            BuyMerchantItem(i, itemStackCount)
-            boughtSomething = true
+        for n = buyItem.numNeeded, 1, -itemInfo.itemStackCount do
+          if n > itemInfo.itemStackCount then
+            BuyMerchantItem(i, itemInfo.itemStackCount)
+            numPurchases = numPurchases + 1
           else
             BuyMerchantItem(i, n)
-            boughtSomething = true
+            numPurchases = numPurchases + 1
           end
         end -- forloop
       end
@@ -176,8 +181,8 @@ function EventFrame:MERCHANT_SHOW()
   end -- for loop GetMerchantNumItems()
 
 
-  if boughtSomething then
-    RS.Print("Finished restocking (" .. #purchaseOrders .. " various items purchased)")
+  if numPurchases > 0 then
+    RS.Print("Finished restocking (" .. numPurchases .. " purchase orders done)")
   end
 
 end

@@ -104,8 +104,11 @@ local function PutSplitItemIntoBags(item, amountOnMouse)
     for slot = 1, GetContainerNumSlots(bag) do
       local _, itemCount, locked, _, _, _, _, _, _, itemID = GetContainerItemInfo(bag, slot)
       if itemID and not locked then
-        local itemName, _, _, _, _, _, _, itemStackCount = GetItemInfo(itemID)
-        if itemName == item.itemName and itemCount + amountOnMouse <= itemStackCount then
+        --local itemName, _, _, _, _, _, _, itemStackCount = GetItemInfo(itemID)
+        local itemInfo = RS.GetItemInfo(itemID)
+        if itemInfo ~= nil
+            and itemInfo.itemName == item.itemName
+            and itemCount + amountOnMouse <= itemStackCount then
           PickupContainerItem(bag, slot)
         end
       end
@@ -206,7 +209,8 @@ local function bankTransfer()
 
         if itemID and not locked then
           local inRestockList = IsItemInRestockList(itemName)
-          local itemStackSize = select(8, GetItemInfo(itemName))
+          --local itemStackSize = select(8, GetItemInfo(itemName))
+          local itemInfo = RS.GetItemInfo(itemName)
 
           if inRestockList then
             local item       = currentProfile[GetRestockItemIndex(itemName)]
@@ -215,7 +219,7 @@ local function bankTransfer()
             local difference = restockNum - numInBags
 
             if difference > 0 and itemCount > difference then
-              if mod(difference + numInBags, itemStackSize) == 0 then
+              if mod(difference + numInBags, itemInfo.itemStackCount) == 0 then
                 -- if the amount we need creates a full stack in the inventory we simply have to
                 -- pick up the item and place it on the incomplete stack in our inventory
                 -- if we split stacks here we get an error saying "couldn't split those items."

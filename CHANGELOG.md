@@ -1,3 +1,7 @@
+## Restocker TBC 2021.5.3
+
+- Support for multiple languages, now rogue poisons and restocking in general will work in any language.
+
 ## Restocker TBC 2021.5.2
 
 - TBC: Rogue poisons have became cheaper, reagent cost update

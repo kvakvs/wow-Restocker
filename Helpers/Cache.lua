@@ -26,7 +26,6 @@ function RS.GetItemInfo(arg)
     return rs_gii_cache[arg]
   end
 
-  RS.Dbg("GII call on " .. tostring(arg))
   local itemName, itemLink, itemRarity, itemLevel, itemMinLevel, itemType
   , itemSubType, itemStackCount, itemEquipLoc, itemTexture, itemSellPrice = GetItemInfo(arg)
   if itemName == nil then

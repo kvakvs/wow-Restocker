@@ -10,9 +10,8 @@ local _, RS       = ...;
 RS.RsBuyItem         = {}
 RS.RsBuyItem.__index = RS.RsBuyItem
 
----@param id number
----@param englishName string
----@return RsItem
+---@param fields table
+---@return RsBuyItem
 function RS.RsBuyItem:Create(fields)
   fields = fields or {}
   setmetatable(fields, RS.RsBuyItem)

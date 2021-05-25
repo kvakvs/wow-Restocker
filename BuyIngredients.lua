@@ -26,33 +26,37 @@ local function rs_add_craftable_recipe(recipe)
     postpone()
     return
   end
+  recipe.item.localizedName = itemVal.itemName -- update localizedName
 
-  local reagent1    = recipe.reagent1[1]
-  local reagent1Val = RS.GetItemInfo(reagent1.id) --- @type GIICacheItem
-  if not reagent1Val then
+  local ing1                = recipe.ingredients[1][1]
+  local ing1Val             = RS.GetItemInfo(ing1.id) --- @type GIICacheItem
+  if not ing1Val then
     postpone()
     return
   end
+  ing1.localizedName = ing1Val.itemName -- update localizedName
 
-  local reagent2Val --- @type GIICacheItem
-  local reagent3Val --- @type GIICacheItem
+  local ing2Val --- @type GIICacheItem
+  local ing3Val --- @type GIICacheItem
 
-  if recipe.reagent2 then
-    local reagent2 = recipe.reagent2[1]
-    reagent2Val    = RS.GetItemInfo(reagent2.id)
-    if not reagent2Val then
+  if recipe.ingredients[2] then
+    local ing2 = recipe.ingredients[2][1]
+    ing2Val    = RS.GetItemInfo(ing2.id)
+    if not ing2Val then
       postpone()
       return
     end
+    ing2.localizedName = ing2Val.itemName -- update localizedName
   end
 
-  if recipe.reagent3 then
-    local reagent3 = recipe.reagent3[1]
-    reagent3Val    = RS.GetItemInfo(reagent3.id)
-    if not reagent3Val then
+  if recipe.ingredients[3] then
+    local ing3 = recipe.ingredients[3][1]
+    ing3Val    = RS.GetItemInfo(ing3.id)
+    if not ing3Val then
       postpone()
       return
     end
+    ing3.localizedName = ing3Val.itemName -- update localizedName
   end
 
   RS.Dbg("Added craft recipe for item " .. recipe.item.id)
@@ -167,7 +171,7 @@ end
 
 --- Check if any of the items user wants to restock are on our crafting autobuy list
 function RS.CraftingPurchaseOrder()
-  local purchaseOrder = {}
+  local purchaseOrder = {} ---@type table<string, number> Maps localized item name to buy count
 
   -- Check auto-buy reagents table
   for _, item in ipairs(Restocker.profiles[Restocker.currentProfile]) do
@@ -177,9 +181,8 @@ function RS.CraftingPurchaseOrder()
       local haveCrafted          = GetItemCount(item.itemID, true)
       local inBags               = GetItemCount(item.itemID, false)
       local craftedMissing       = craftedRestockAmount - haveCrafted
-      local minDifference
-
       local inBank               = haveCrafted - inBags
+      local minDifference
 
       if inBank == 0 then
         minDifference = 1
@@ -188,11 +191,19 @@ function RS.CraftingPurchaseOrder()
       end
 
       if craftedMissing >= minDifference and craftedMissing > 0 then
-        for ingredient, amount in pairs(RS.buyIngredients[craftedName]) do
-          local amountToGet         = amount * craftedMissing
-          purchaseOrder[ingredient] = purchaseOrder[ingredient] and purchaseOrder[ingredient] + amountToGet or amountToGet
-        end
-      end
+        local recipe = RS.buyIngredients[craftedName]
+
+        ---@type table<RsItem|number> each element in ingredients is {RsItem, Count :: number}
+        for _, ingredient in pairs(recipe.ingredients) do
+          if ingredient then
+            local amountToGet      = ingredient[2] * craftedMissing
+            local locName          = ingredient[1].localizedName
+            local purchase         = purchaseOrder[locName]
+
+            purchaseOrder[locName] = purchase and purchase + amountToGet or amountToGet
+          end -- if ingredient
+        end -- each ingredient
+      end -- if need to buy missing reagents/ingredients
     end
   end
 

@@ -3,6 +3,8 @@ local _, RS       = ...;
 
 ---@class RsItem
 ---@field id number
+---@field englishName string Name as it appears in English
+---@field localizedName string Name in current client language
 
 RS.RsItem         = {}
 RS.RsItem.__index = RS.RsItem

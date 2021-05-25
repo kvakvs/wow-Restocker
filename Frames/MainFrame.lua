@@ -253,15 +253,16 @@ function RS:addItem(text)
     text = tonumber(text)
   end
 
-  local itemName, itemLink = GetItemInfo(text)
+  --local itemName, itemLink = GetItemInfo(text)
+  local itemInfo = RS.GetItemInfo(text)
   local itemID
-  if itemLink == nil then
+  if itemInfo == nil then
     RS.addItemWait[text] = true
     return
-  elseif itemLink ~= nil then
-    itemID = tonumber(string.match(itemLink, "item:(%d+)"))
+  else
+    itemID = tonumber(string.match(itemInfo.itemLink, "item:(%d+)"))
     for _, item in ipairs(currentProfile) do
-      if item.itemName:lower() == itemName:lower() then
+      if item.itemName:lower() == itemInfo.itemName:lower() then
         return
       end
     end
@@ -269,10 +270,11 @@ function RS:addItem(text)
 
   local T    = {}
 
-  T.itemName = itemName
-  T.itemLink = itemLink
+  T.itemName = itemInfo.itemName
+  T.itemLink = itemInfo.itemLink
   T.itemID   = itemID
   T.amount   = 1
+
   tinsert(Restocker.profiles[Restocker.currentProfile], T)
 
   RS:Update()
