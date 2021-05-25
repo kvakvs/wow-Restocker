@@ -1,4 +1,8 @@
-## Restocker TBC 2021.5.0
+## Restocker TBC 2021.5.2
+
+- TBC: Rogue poisons have became cheaper, reagent cost update
+
+## Restocker TBC 2021.5.0-1
 
 - Initial import of code and UI version bump.
 

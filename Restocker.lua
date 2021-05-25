@@ -9,12 +9,25 @@ RS.defaults = {
   slash  = "|cff8d63ff/rs|r "
 }
 
+RS.BAG_ICON = "Interface\\ICONS\\INV_Misc_Bag_10_Green" -- bag icon for add tooltip
+
 function RS:Print(...)
   DEFAULT_CHAT_FRAME:AddMessage(RS.addonName .. "- " .. tostringall(...))
 end
 
 RS.slashPrefix = "|cff8d63ff/restocker|r "
 RS.addonName   = "|cff8d63ffRestocker|r "
+
+local function rs_is_tbc()
+  local function get_version()
+    return select(4, GetBuildInfo())
+  end
+
+  local ui_ver = get_version()
+  return ui_ver >= 20000 and ui_ver <= 29999
+end
+
+RS.TBC = rs_is_tbc()
 
 function RS:Show()
   local menu = RS.addon or RS:CreateMenu();
@@ -298,6 +311,17 @@ local function Init()
 
   Restocker              = Restocker or {}
   RS:loadSettings()
+
+  RS.SetupPoisons()
+end
+
+RS.ICON_FORMAT = "|T%s:0:0:0:0:64:64:4:60:4:60|t"
+
+---Creates a string which will display a picture in a FontString
+---@param texture string - path to UI texture file (for example can come from
+---  GetContainerItemInfo(bag, slot) or spell info etc
+function RS.FormatTexture(texture)
+  return string.format(RS.ICON_FORMAT, texture)
 end
 
 Init()

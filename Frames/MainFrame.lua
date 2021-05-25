@@ -47,9 +47,9 @@ function RS:CreateMenu()
   --[[
     SCROLL CHILD
   ]]
-  local scrollChild  = CreateFrame("Frame", nil, ScrollFrame)
-  scrollChild.width  = scrollFrame:GetWidth()
-  scrollChild.height = scrollFrame:GetHeight()
+  local scrollChild      = CreateFrame("Frame", nil, ScrollFrame)
+  scrollChild.width      = scrollFrame:GetWidth()
+  scrollChild.height     = scrollFrame:GetHeight()
   scrollChild:SetWidth(scrollChild.width)
   scrollChild:SetHeight(scrollChild.height - 10)
   addonFrame.scrollChild = scrollChild
@@ -105,12 +105,9 @@ function RS:CreateMenu()
   editBox:SetSize(addonFrame.addGrp:GetWidth() - addBtn:GetWidth() - 5, 25);
   editBox:SetScript("OnEnterPressed", function(self)
     local text = self:GetText()
-
     RS:addItem(text)
-
     self:SetText("")
     self:ClearFocus()
-
   end)
   editBox:SetScript("OnMouseUp", function(self, button)
     if button == "LeftButton" then
@@ -127,6 +124,15 @@ function RS:CreateMenu()
       RS:addItem(info2)
       ClearCursor()
     end
+  end)
+  editBox:SetScript("OnEnter", function(self)
+    GameTooltip:SetOwner(self, "ANCHOR_TOP")
+    GameTooltip:SetText(RS.FormatTexture(RS.BAG_ICON) .. " Add an item")
+    GameTooltip:AddLine("Drop an item from your bag, or type a numeric item ID")
+    GameTooltip:Show()
+  end)
+  editBox:SetScript("OnLeave", function(self, motion)
+    GameTooltip:Hide()
   end)
 
   addonFrame.editBox = editBox
@@ -217,7 +223,7 @@ function RS:CreateMenu()
     end
   end
 
-  addonFrame.profileDropDownMenu = Restocker_ProfileDropDownMenu
+  addonFrame.profileDropDownMenu           = Restocker_ProfileDropDownMenu
 
   tinsert(UISpecialFrames, "RestockerMainFrame")
   addonFrame:Hide()

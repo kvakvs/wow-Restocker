@@ -1,100 +1,87 @@
 ---@type RestockerAddon
 local _, RS = ...;
 
-RS.poisons  = {
+--- From 2 choices return TBC if BOM.TBC is true, otherwise return classic
+local function tbc_or_classic(tbc, classic)
+  if RS.TBC then
+    return tbc
+  end
+  return classic
+end
+
+function RS.SetupPoisons()
+  RS.poisons    = {}
+
+  local Maiden  = "Maiden's Anguish"
+  local DODeter = "Dust of Deterioration"
+  local DODecay = "Dust of Decay"
+  local EOAgony = "Essence of Agony"
+  local EOPain  = "Essence of Pain"
+  local DWeed   = "Deathweed"
+
   -- INSTANT POISONS
-  ["Instant Poison VI"]       = {
-    ["Dust of Deterioration"] = 4,
-    ["Crystal Vial"]          = 1
-  },
-  ["Instant Poison V"]        = {
-    ["Dust of Deterioration"] = 3,
-    ["Crystal Vial"]          = 1
-  },
-  ["Instant Poison IV"]       = {
-    ["Dust of Deterioration"] = 2,
-    ["Crystal Vial"]          = 1
-  },
-  ["Instant Poison III"]      = {
-    ["Dust of Deterioration"] = 1,
-    ["Leaded Vial"]           = 1
-  },
-  ["Instant Poison II"]       = {
-    ["Dust of Decay"] = 3,
-    ["Leaded Vial"]   = 1
-  },
-  ["Instant Poison"]          = {
-    ["Dust of Decay"] = 1,
-    ["Empty Vial"]    = 1
-  },
+  if RS.TBC then
+    RS.poisons["Instant Poison VII"] = { [Maiden] = 1, ["Crystal Vial"] = 1 }
+  end
+
+  RS.poisons["Instant Poison VI"]   = { [DODeter] = tbc_or_classic(2, 4), ["Crystal Vial"] = 1 }
+  RS.poisons["Instant Poison V"]    = { [DODeter] = tbc_or_classic(2, 3), ["Crystal Vial"] = 1 }
+  RS.poisons["Instant Poison IV"]   = { [DODeter] = tbc_or_classic(1, 2), ["Crystal Vial"] = 1 }
+  RS.poisons["Instant Poison III"]  = { [DODeter] = tbc_or_classic(2, 1), ["Leaded Vial"] = 1 }
+  RS.poisons["Instant Poison II"]   = { [DODecay] = tbc_or_classic(1, 3), ["Leaded Vial"] = 1 }
+  RS.poisons["Instant Poison"]      = { [DODecay] = 1, ["Empty Vial"] = 1 }
+
   -- CRIPPLING POISONS
-  ["Crippling Poison II"]     = {
-    ["Essence of Agony"] = 3,
-    ["Crystal Vial"]     = 1
-  },
-  ["Crippling Poison"]        = {
-    ["Essence of Pain"] = 1,
-    ["Empty Vial"]      = 1
-  },
+  RS.poisons["Crippling Poison II"] = { [EOAgony] = tbc_or_classic(1, 3), ["Crystal Vial"] = 1 }
+  RS.poisons["Crippling Poison"]    = { [EOPain] = 1, ["Empty Vial"] = 1 }
+
   -- DEADLY POISONS
-  ["Deadly Poison V"]         = {
-    ["Deathweed"]    = 7,
-    ["Crystal Vial"] = 1
-  },
-  ["Deadly Poison IV"]        = {
-    ["Deathweed"]    = 5,
-    ["Crystal Vial"] = 1
-  },
-  ["Deadly Poison III"]       = {
-    ["Deathweed"]    = 3,
-    ["Crystal Vial"] = 1
-  },
-  ["Deadly Poison II"]        = {
-    ["Deathweed"]   = 2,
-    ["Leaded Vial"] = 1
-  },
-  ["Deadly Poison"]           = {
-    ["Deathweed"]   = 1,
-    ["Leaded Vial"] = 1
-  },
+  if RS.TBC then
+    RS.poisons["Deadly Poison VII"] = { [Maiden] = 1, ["Crystal Vial"] = 1 }
+    RS.poisons["Deadly Poison VI"]  = { [Maiden] = 1, ["Crystal Vial"] = 1 }
+  end
+  RS.poisons["Deadly Poison V"]         = { [DWeed] = tbc_or_classic(2, 7), ["Crystal Vial"] = 1 }
+  RS.poisons["Deadly Poison IV"]        = { [DWeed] = tbc_or_classic(2, 5), ["Crystal Vial"] = 1 }
+  RS.poisons["Deadly Poison III"]       = { [DWeed] = tbc_or_classic(1, 3), ["Crystal Vial"] = 1 }
+  RS.poisons["Deadly Poison II"]        = { [DWeed] = 2, ["Leaded Vial"] = 1 }
+  RS.poisons["Deadly Poison"]           = { [DWeed] = 1, ["Leaded Vial"] = 1 }
+
   -- MIND-NUMBING POISONS
-  ["Mind-numbing Poison III"] = {
-    ["Dust of Deterioration"] = 2,
-    ["Essence of Agony"]      = 2,
-    ["Crystal Vial"]          = 1
-  },
-  ["Mind-numbing Poison II"]  = {
-    ["Dust of Decay"]   = 4,
-    ["Essence of Pain"] = 4,
-    ["Leaded Vial"]     = 1
-  },
-  ["Mind-numbing Poison"]     = {
-    ["Dust of Decay"]   = 1,
-    ["Essence of Pain"] = 1,
-    ["Empty Vial"]      = 1
-  },
+  RS.poisons["Mind-numbing Poison III"] = tbc_or_classic(
+      { [EOAgony] = 1, ["Crystal Vial"] = 1 },
+      { [DODeter] = 2, [EOAgony] = 2, ["Crystal Vial"] = 1 })
+  RS.poisons["Mind-numbing Poison II"]  = tbc_or_classic(
+      { [EOAgony] = 1, ["Leaded Vial"] = 1 },
+      { [DODecay] = 4, [EOPain] = 4, ["Leaded Vial"] = 1 }
+  )
+  RS.poisons["Mind-numbing Poison"]     = tbc_or_classic(
+      { [DODecay] = 1, ["Empty Vial"] = 1 },
+      { [DODecay] = 1, [EOPain] = 1, ["Empty Vial"] = 1 }
+  )
+
   -- WOUND POISONS
-  ["Wound Poison IV"]         = {
-    ["Essence of Agony"] = 2,
-    ["Deathweed"]        = 2,
-    ["Crystal Vial"]     = 1
-  },
-  ["Wound Poison III"]        = {
-    ["Essence of Agony"] = 1,
-    ["Deathweed"]        = 2,
-    ["Crystal Vial"]     = 1
-  },
-  ["Wound Poison II"]         = {
-    ["Essence of Pain"] = 1,
-    ["Deathweed"]       = 2,
-    ["Leaded Vial"]     = 1
-  },
-  ["Wound Poison"]            = {
-    ["Essence of Pain"] = 1,
-    ["Deathweed"]       = 1,
-    ["Leaded Vial"]     = 1
+  if RS.TBC then
+    RS.poisons["Wound Poison V"] = { [EOAgony] = 2, ["Crystal Vial"] = 1 }
+  end
+  RS.poisons["Wound Poison IV"]  = {
+    [EOAgony]        = tbc_or_classic(1, 2),
+    [DWeed]          = tbc_or_classic(1, 2),
+    ["Crystal Vial"] = 1
   }
-}
+  RS.poisons["Wound Poison III"] = tbc_or_classic(
+      { [EOAgony] = 1, ["Crystal Vial"] = 1 },
+      { [EOAgony] = 1, [DWeed] = 2, ["Crystal Vial"] = 1 }
+  )
+  RS.poisons["Wound Poison II"]  = { [EOPain] = 1, [DWeed] = tbc_or_classic(1, 2), ["Leaded Vial"] = 1 }
+  RS.poisons["Wound Poison"]     = tbc_or_classic(
+      { [EOPain] = 1, ["Leaded Vial"] = 1 },
+      { [EOPain] = 1, [DWeed] = 1, ["Leaded Vial"] = 1 })
+
+  -- ANESTHETIC POISON
+  if RS.TBC then
+    RS.poisons["Anesthetic Poison"] = { ["Maiden's Anguish"] = 1, [DWeed] = 1, ["Crystal Vial"] = 1 }
+  end
+end
 
 function RS:getPoisonReagents()
   if select(2, UnitClass("PLAYER")) ~= "ROGUE" then
