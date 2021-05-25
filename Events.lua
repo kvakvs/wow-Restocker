@@ -1,7 +1,7 @@
 ---@type RestockerAddon
-local TOC, RS             = ...;
+local TOC, RS           = ...;
 RS.loaded               = false
-RS.itemWaitTable        = {}
+RS.addItemWait          = {}
 RS.bankIsOpen           = false
 RS.merchantIsOpen       = false
 
@@ -16,7 +16,7 @@ local function count(T)
 end
 
 local EventFrame = CreateFrame("Frame");
-RS.EventFrame = EventFrame
+RS.EventFrame    = EventFrame
 
 EventFrame:RegisterEvent("ADDON_LOADED");
 EventFrame:RegisterEvent("MERCHANT_SHOW");
@@ -27,6 +27,7 @@ EventFrame:RegisterEvent("GET_ITEM_INFO_RECEIVED");
 EventFrame:RegisterEvent("PLAYER_LOGOUT");
 EventFrame:RegisterEvent("PLAYER_ENTERING_WORLD");
 EventFrame:RegisterEvent("UI_ERROR_MESSAGE");
+
 EventFrame:SetScript("OnEvent", function(self, event, ...)
   return self[event] and self[event](self, ...)
 end)
@@ -58,9 +59,15 @@ function EventFrame:ADDON_LOADED(addonName)
     RS:SlashCommand(msg)
   end
 
+  -- Craftable recipes (rogue poisons, etc)
+  RS.SetupAutobuyIngredients()
+
+  -- Options tabs
   RS:CreateOptionsMenu(addonName)
+
   RS:Show()
   RS:Hide()
+
   RS.loaded = true
 end
 
@@ -75,19 +82,24 @@ end
 
 function EventFrame:MERCHANT_SHOW()
   RS.buying = true
+
   if not Restocker.autoBuy then
     return
   end -- If not autobuying then return
+
   if IsShiftKeyDown() then
     return
   end -- If shiftkey is down return
+
   RS.merchantIsOpen = true
+
   if count(Restocker.profiles[Restocker.currentProfile]) == 0 then
     return
   end -- If profile is emtpy then return
+
   if GetTime() - lastTimeRestocked < 1 then
     return
-  end -- If vendor repoened within 1 second then return (only activate addon once per second)
+  end -- If vendor reopened within 1 second then return (only activate addon once per second)
 
   lastTimeRestocked     = GetTime()
   local boughtSomething = false
@@ -95,58 +107,62 @@ function EventFrame:MERCHANT_SHOW()
     RS:Show()
   end
 
-  local _, class             = UnitClass("PLAYER")
-  local poisonReagentsNeeded = class == "ROGUE" and RS:getPoisonReagents() or {}
-  local buyTable             = {}
+  local craftingPurchaseOrder = RS.CraftingPurchaseOrder() or {}
+  local purchaseOrders        = {} ---@type table<string, RsBuyItem>
 
-  local restockList          = Restocker.profiles[Restocker.currentProfile]
+  local restockList           = Restocker.profiles[Restocker.currentProfile]
 
-  -- BUILD THE TABLE USED FOR BUYING ITEMS
+  -- Build the Purchase Orders table used for buying items
   for _, item in ipairs(restockList) do
-    local numInBags = GetItemCount(item.itemName, false)
-    local numNeeded = item.amount - numInBags
-    if numNeeded > 0 then
-      if not buyTable[item.itemName] then
-        buyTable[item.itemName]              = {}
-        buyTable[item.itemName]["numNeeded"] = numNeeded
-        buyTable[item.itemName]["itemName"]  = item.itemName
-        buyTable[item.itemName]["itemID"]    = item.itemID
-        buyTable[item.itemName]["itemLink"]  = item.itemLink
+    local haveInBag = GetItemCount(item.itemName, false)
+    local toBuy     = item.amount - haveInBag
+
+    if toBuy > 0 then
+      if not purchaseOrders[item.itemName] then
+        purchaseOrders[item.itemName] = RS.RsBuyItem.Create({
+          numNeeded = toBuy,
+          itemName  = item.itemName,
+          itemID    = item.itemID,
+          itemLink  = item.itemLink,
+        })
       else
-        buyTable[item.itemName]["numNeeded"] = buyTable[item.itemName]["numNeeded"] + numNeeded
+        local purchase     = purchaseOrders[item.itemName]
+        purchase.numNeeded = purchase.numNeeded + toBuy
       end
     end
   end
 
-  -- INSERT POISON REAGENTS INTO BUYTABLE
-  for reagent, amount in pairs(poisonReagentsNeeded) do
-    if not buyTable[reagent] then
-      buyTable[reagent]              = {}
-      buyTable[reagent]["numNeeded"] = amount
-      buyTable[reagent]["itemName"]  = reagent
+  -- Insert poison reagents into purchase orders, or add
+  for poisonReagentName, toBuy in pairs(craftingPurchaseOrder) do
+    if not purchaseOrders[poisonReagentName] then
+      purchaseOrders[poisonReagentName] = RS.RsBuyItem.Create({
+        numNeeded = toBuy,
+        itemName  = poisonReagentName,
+      })
     else
-      buyTable[reagent]["numNeeded"] = buyTable[reagent]["numNeeded"] + amount
+      local purchase     = purchaseOrders[poisonReagentName]
+      purchase.numNeeded = purchase.numNeeded + toBuy
     end
   end
 
-
-  -- LOOP THROUGH VENDOR ITEMS
+  -- Loop through vendor items
   for i = 0, GetMerchantNumItems() do
     if not RS.buying then
       return
     end
-    local itemName, _, _, _, numAvailable = GetMerchantItemInfo(i)
-    local itemLink                        = GetMerchantItemLink(i)
 
-    if buyTable[itemName] then
-      local item                                = buyTable[itemName]
+    local itemName, _, _, _, merchantAvailable = GetMerchantItemInfo(i)
+    local itemLink                             = GetMerchantItemLink(i)
+
+    if purchaseOrders[itemName] then
+      local buyItem                             = purchaseOrders[itemName]
       local _, _, _, _, _, _, _, itemStackCount = GetItemInfo(itemLink)
 
-      if item.numNeeded > numAvailable and numAvailable > 0 then
-        BuyMerchantItem(i, numAvailable)
+      if buyItem.numNeeded > merchantAvailable and merchantAvailable > 0 then
+        BuyMerchantItem(i, merchantAvailable)
         boughtSomething = true
       else
-        for n = item.numNeeded, 1, -itemStackCount do
+        for n = buyItem.numNeeded, 1, -itemStackCount do
           if n > itemStackCount then
             BuyMerchantItem(i, itemStackCount)
             boughtSomething = true
@@ -161,7 +177,7 @@ function EventFrame:MERCHANT_SHOW()
 
 
   if boughtSomething then
-    RS.Print("Finished restocking from vendor")
+    RS.Print("Finished restocking (" .. #purchaseOrders .. " various items purchased)")
   end
 
 end
@@ -215,8 +231,15 @@ function EventFrame:GET_ITEM_INFO_RECEIVED(itemID, success)
   if success == nil then
     return
   end
-  if RS.itemWaitTable[itemID] then
-    RS.itemWaitTable[itemID] = nil
+
+  -- If this was an autobuy item setup item request
+  if #RS.buyIngredientsWait > 0 then
+    RS.RetryWaitRecipes()
+  end
+
+  -- If this was an item add request for an unknown item
+  if RS.addItemWait[itemID] then
+    RS.addItemWait[itemID] = nil
     RS:addItem(itemID)
   end
 end

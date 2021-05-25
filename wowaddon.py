@@ -10,7 +10,7 @@ import subprocess
 import sys
 import zipfile
 
-VERSION = '2021.5.2'  # year.month.build_num
+VERSION = '2021.5.3-DEBUG'  # year.month.build_num
 
 UI_VERSION_CLASSIC = '11307'  # patch 1.13.7
 BOM_NAME_CLASSIC = 'RestockerClassic'  # Directory and zip name
@@ -21,7 +21,7 @@ BOM_NAME_CLASSIC_TBC = 'RestockerTBC'  # Directory and zip name
 BOM_TITLE_CLASSIC_TBC = "Restocker TBC"  # Title field in TOC
 
 COPY_DIRS = ['Frames', 'Helpers', 'Classes']
-COPY_FILES = ['Events.lua', 'Poisons.lua', 'Restocker.lua']
+COPY_FILES = ['Events.lua', 'BuyIngredients.lua', 'Restocker.lua']
 
 
 class BuildTool:

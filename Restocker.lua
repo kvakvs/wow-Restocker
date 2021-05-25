@@ -3,6 +3,10 @@ local _, RS = ...
 
 local list  = {}
 
+---@type RestockerConf
+Restocker   = Restocker or {}
+RS_ADDON = RS
+
 RS.defaults = {
   prefix = "|cff8d63ffRestocker|r ",
   color  = "8d63ff",
@@ -302,17 +306,19 @@ function RS.Print(t)
   DEFAULT_CHAT_FRAME:AddMessage("|c80808080" .. name .. "|r: " .. t)
 end
 
+function RS.Dbg(t)
+  local name = "RsDbg"
+  DEFAULT_CHAT_FRAME:AddMessage("|cffbb3333" .. name .. "|r: " .. t)
+end
+
+--- This is executed before addon initialization is finished
 local function Init()
   RS.currentlyRestocking = false
   RS.itemsRestocked      = {}
   RS.restockedItems      = false
   RS.framepool           = {}
   RS.hiddenFrame         = CreateFrame("Frame", nil, UIParent):Hide()
-
-  Restocker              = Restocker or {}
   RS:loadSettings()
-
-  RS.SetupPoisons()
 end
 
 RS.ICON_FORMAT = "|T%s:0:0:0:0:64:64:4:60:4:60|t"

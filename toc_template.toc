@@ -10,12 +10,20 @@
 ## SavedVariablesPerCharacter: Restocker
 
 Classes\RestockerClass.lua
-Poisons.lua
+Classes\Item.lua
+Classes\BuyItem.lua
+Classes\RestockerConf.lua
+Classes\Recipe.lua
+
+BuyIngredients.lua
 Events.lua
+
 Frames\MainFrame.lua
 Frames\ListFrame.lua
 Frames\OptionsPanel.lua
+
 Helpers\Bank.lua
+Helpers\Cache.lua
 
 Restocker.lua
 

@@ -256,7 +256,7 @@ function RS:addItem(text)
   local itemName, itemLink = GetItemInfo(text)
   local itemID
   if itemLink == nil then
-    RS.itemWaitTable[text] = true
+    RS.addItemWait[text] = true
     return
   elseif itemLink ~= nil then
     itemID = tonumber(string.match(itemLink, "item:(%d+)"))
