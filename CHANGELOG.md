@@ -1,3 +1,7 @@
+## Restocker TBC 2021.6.1
+
+- Updated bank bag count for TBC, fixed restocking from bank bug
+
 ## Restocker TBC 2021.5.3
 
 - Support for multiple languages, now rogue poisons and restocking in general will work in any language.

@@ -1,12 +1,13 @@
 ---@type RestockerAddon
-local _, RS              = ...;
+local _, RS = ...;
 
-RS.didBankStuff          = false
-RS.justSplit             = false
-RS.splitLoc              = {}
+RS.didBankStuff = false
+RS.justSplit = false
+RS.splitLoc = {}
 
-local BANK_BAGS          = { -1, 5, 6, 7, 8, 9, 10 }
-local BANK_BAGS_REVERSED = { 10, 9, 8, 7, 6, 5, -1 }
+local BANK_BAGS -- set up in RS.SetupBankConstants
+local BANK_BAGS_REVERSED -- set up in RS.SetupBankConstants
+
 if REAGENTBANK_CONTAINER then
   tinsert(BANK_BAGS, REAGENTBANK_CONTAINER)
   tinsert(BANK_BAGS_REVERSED, REAGENTBANK_CONTAINER)
@@ -14,7 +15,20 @@ end
 
 local GetContainerItemInfo = _G.GetContainerItemInfo
 
-local function count(T)
+---Called once on Addon creation. Sets up constants for bank bags
+function RS.SetupBankConstants()
+  -- -1 bank container, 0 backpack, 1234 bags, 5-10 or 5-11 is TBC bank
+  if RS.TBC then
+    BANK_BAGS = { BANK_CONTAINER, 5, 6, 7, 8, 9, 10, 11 }
+    BANK_BAGS_REVERSED = { 11, 10, 9, 8, 7, 6, 5, BANK_CONTAINER }
+  else
+    BANK_BAGS = { BANK_CONTAINER, 5, 6, 7, 8, 9, 10 }
+    BANK_BAGS_REVERSED = { 10, 9, 8, 7, 6, 5, BANK_CONTAINER }
+  end
+end
+
+local function rsCount(T)
+  -- unused?
   local i = 0
   for _, _ in pairs(T) do
     i = i + 1
@@ -22,7 +36,7 @@ local function count(T)
   return i
 end
 
-local function somethingLocked()
+local function rsIsSomethingLocked()
   for bag = BACKPACK_CONTAINER, NUM_BAG_SLOTS do
     for slot = 1, GetContainerNumSlots(bag) do
       local _, _, locked = GetContainerItemInfo(bag, slot)
@@ -44,7 +58,7 @@ local function somethingLocked()
   return false
 end
 
-local function IsItemInRestockList(item)
+local function rsIsItemInRestockList(item)
   local type
   if tonumber(item) then
     type = "itemID"
@@ -62,7 +76,7 @@ local function IsItemInRestockList(item)
   return false
 end
 
-local function GetRestockItemIndex(item)
+local function rsGetRestockItemIndex(item)
   local type
   if tonumber(item) then
     type = "itemID"
@@ -80,12 +94,12 @@ local function GetRestockItemIndex(item)
   return nil
 end
 
-local function GetItemsInBags()
+local function rsGetItemsInBags()
   local T = {}
   for bag = BACKPACK_CONTAINER, NUM_BAG_SLOTS do
     for slot = 1, GetContainerNumSlots(bag) do
       local _, itemCount, locked, _, _, _, itemLink, _, _, itemID = GetContainerItemInfo(bag, slot)
-      local itemName                                              = itemLink and string.match(itemLink, "%[(.*)%]")
+      local itemName = itemLink and string.match(itemLink, "%[(.*)%]")
       if itemID then
         T[itemName] = T[itemName] and T[itemName] + itemCount or itemCount
       end
@@ -94,12 +108,16 @@ local function GetItemsInBags()
   return T
 end
 
-local function PutSplitItemIntoBags(item, amountOnMouse)
+---@param item RsItem
+---@param amountOnMouse number
+local function rsPutSplitItemIntoBags(item, amountOnMouse)
   if not CursorHasItem() then
     return
   end
   C_NewItems.ClearAll()
 
+  -- for all bags: backpack, 1,2,3,4
+  -- Try find an incomplete stack that will fit the items we're moving
   for bag = BACKPACK_CONTAINER, NUM_BAG_SLOTS do
     for slot = 1, GetContainerNumSlots(bag) do
       local _, itemCount, locked, _, _, _, _, _, _, itemID = GetContainerItemInfo(bag, slot)
@@ -108,18 +126,21 @@ local function PutSplitItemIntoBags(item, amountOnMouse)
         local itemInfo = RS.GetItemInfo(itemID)
         if itemInfo ~= nil
             and itemInfo.itemName == item.itemName
-            and itemCount + amountOnMouse <= itemStackCount then
+            and itemCount + amountOnMouse <= itemInfo.itemStackCount then
           PickupContainerItem(bag, slot)
         end
       end
     end
   end
 
+  -- for all bags: backpack, 1,2,3,4
+  -- Try find a free bag slot
   for bag = BACKPACK_CONTAINER, NUM_BAG_SLOTS do
     local numberOfFreeSlots, bagType = GetContainerNumFreeSlots(bag)
     if numberOfFreeSlots > 0 then
       local currentBag = bag + 19
-      if currentBag == 19 then
+
+      if bag == BACKPACK_CONTAINER then
         PutItemInBackpack()
         return
       else
@@ -130,124 +151,154 @@ local function PutSplitItemIntoBags(item, amountOnMouse)
   end
 end
 
-local function bankTransfer()
-  local itemsInBags       = GetItemsInBags()
-
-  local currentProfile    = Restocker.profiles[Restocker.currentProfile]
-  local rightClickedItem  = false
-  local hasSplitItems     = false
-  local transferredToBank = false
-
-  --
-  --  INVENTORY
-  --
+--- If have more items than restock count, unload to bank
+---@param state BankRestockCoroState
+local function coroUnloadToBank(state)
+  -- for all bags: backpack, 1,2,3,4 in reverse order
   for bag = NUM_BAG_SLOTS, BACKPACK_CONTAINER, -1 do
     for slot = GetContainerNumSlots(bag), 1, -1 do
       local _, itemCount, locked, _, _, _, itemLink, _, _, itemID = GetContainerItemInfo(bag, slot)
-      local itemName                                              = itemLink and string.match(itemLink, "%[(.*)%]")
+
+      local itemName = itemLink and string.match(itemLink, "%[(.*)%]")
       if itemID then
-        local inRestockList = IsItemInRestockList(itemName)
+        local inRestockList = rsIsItemInRestockList(itemName)
 
         if not locked and inRestockList then
-          local item       = currentProfile[GetRestockItemIndex(itemName)]
-          local numInBags  = itemsInBags[item.itemName] or 0
+          local item = state.currentProfile[rsGetRestockItemIndex(itemName)]
+          local numInBags = state.itemsInBags[item.itemName] or 0
           local restockNum = item.amount
           local difference = restockNum - numInBags
 
           if difference < 0 then
             UseContainerItem(bag, slot)
-            itemsInBags[item.itemName] = itemsInBags[item.itemName] and itemsInBags[item.itemName] - itemCount
-            rightClickedItem           = true
-            transferredToBank          = true
-            RS.didBankStuff            = true
-            --coroutine.yield()
+            state.itemsInBags[item.itemName] = state.itemsInBags[item.itemName]
+                and state.itemsInBags[item.itemName] - itemCount
+            state.rightClickedItem = true
+            state.transferredToBank = true
+
+            RS.didBankStuff = true
+            coroutine.yield()
           end
         end
       end -- if item we should get and its not locked
     end -- for slot
   end -- for bag
+end
 
-
-  --
-  --  BANK
-  --
-  -- full stacks
-  if not transferredToBank then
-    for _, bag in ipairs(BANK_BAGS_REVERSED) do
-      for slot = GetContainerNumSlots(bag), 1, -1 do
-        local _, itemCount, locked, _, _, _, itemLink, _, _, itemID = GetContainerItemInfo(bag, slot)
-        local itemName                                              = itemLink and string.match(itemLink, "%[(.*)%]")
-        if itemID and not locked then
-          local inRestockList = IsItemInRestockList(itemName)
-
-          if not locked and inRestockList then
-            local item       = currentProfile[GetRestockItemIndex(itemName)]
-            local numInBags  = itemsInBags[item.itemName] or 0
-            local restockNum = item.amount
-            local difference = restockNum - numInBags
-
-            if difference > 0 and itemCount <= difference then
-              UseContainerItem(bag, slot)
-              itemsInBags[item.itemName] = itemsInBags[item.itemName] and itemsInBags[item.itemName] + itemCount or itemCount
-              rightClickedItem           = true
-              RS.didBankStuff            = true
-              --coroutine.yield()
-            end
-          end
-        end -- if item we should get and its not locked
-      end -- for slot
-    end -- for bag
+---If have too few restock items, and the bank has them
+---@param state BankRestockCoroState
+local function coroLoadFromBank(state)
+  if state.transferredToBank then
+    return
   end
 
+  -- full stacks
+  for _, bag in ipairs(BANK_BAGS_REVERSED) do
+    for slot = GetContainerNumSlots(bag), 1, -1 do
+      local _, itemCount, locked, _, _, _, itemLink, _, _, itemID = GetContainerItemInfo(bag, slot)
+      local itemName = itemLink and string.match(itemLink, "%[(.*)%]")
+
+      if itemID and not locked then
+        local inRestockList = rsIsItemInRestockList(itemName)
+
+        if not locked and inRestockList then
+          local item = state.currentProfile[rsGetRestockItemIndex(itemName)]
+          local numInBags = state.itemsInBags[item.itemName] or 0
+          local restockNum = item.amount
+          local difference = restockNum - numInBags
+
+          if difference > 0 and itemCount <= difference then
+            UseContainerItem(bag, slot)
+
+            state.itemsInBags[item.itemName] = state.itemsInBags[item.itemName]
+                and state.itemsInBags[item.itemName] + itemCount or itemCount
+            state.rightClickedItem = true
+
+            RS.didBankStuff = true
+            coroutine.yield()
+          end
+        end
+      end -- if item we should get and its not locked
+    end -- for slot
+  end -- for bag
+end
+
+---@param state BankRestockCoroState
+local function coroSplitStacks(state)
+  if state.rightClickedItem then
+    return
+  end
 
   -- split stacks
-  if not rightClickedItem then
-    for _, bag in ipairs(BANK_BAGS_REVERSED) do
-      for slot = GetContainerNumSlots(bag), 1, -1 do
-        local _, itemCount, locked, _, _, _, itemLink, _, _, itemID = GetContainerItemInfo(bag, slot)
-        local itemName                                              = itemLink and string.match(itemLink, "%[(.*)%]")
+  for _, bag in ipairs(BANK_BAGS_REVERSED) do
+    for slot = GetContainerNumSlots(bag), 1, -1 do
+      local _, itemCount, locked, _, _, _, itemLink, _, _, itemID = GetContainerItemInfo(bag, slot)
+      local itemName = itemLink and string.match(itemLink, "%[(.*)%]")
 
-        if itemID and not locked then
-          local inRestockList = IsItemInRestockList(itemName)
-          --local itemStackSize = select(8, GetItemInfo(itemName))
-          local itemInfo = RS.GetItemInfo(itemName)
+      if itemID and not locked then
+        local inRestockList = rsIsItemInRestockList(itemName)
+        --local itemStackSize = select(8, GetItemInfo(itemName))
+        local itemInfo = RS.GetItemInfo(itemName)
 
-          if inRestockList then
-            local item       = currentProfile[GetRestockItemIndex(itemName)]
-            local numInBags  = itemsInBags[item.itemName] or 0
-            local restockNum = item.amount
-            local difference = restockNum - numInBags
+        if inRestockList then
+          local item = state.currentProfile[rsGetRestockItemIndex(itemName)]
+          local haveInBag = state.itemsInBags[item.itemName] or 0
+          local needToHave = item.amount
 
-            if difference > 0 and itemCount > difference then
-              if mod(difference + numInBags, itemInfo.itemStackCount) == 0 then
-                -- if the amount we need creates a full stack in the inventory we simply have to
-                -- pick up the item and place it on the incomplete stack in our inventory
-                -- if we split stacks here we get an error saying "couldn't split those items."
-                PickupContainerItem(bag, slot)
-              else
-                -- if the amount of items we need doesn't create a full stack then we split
-                -- the stack in the bank and merge it with the one in our inventory.
-                SplitContainerItem(bag, slot, difference)
-              end
+          -- This will split one stack or move full stack to bags
+          local to_split = mod(needToHave - haveInBag, itemInfo.itemStackCount)
 
-              PutSplitItemIntoBags(item, difference)
-
-              RS.didBankStuff            = true
-              itemsInBags[item.itemName] = itemsInBags[item.itemName] and itemsInBags[item.itemName] + difference or difference
-              hasSplitItems              = true
-              --coroutine.yield()
+          if to_split > 0 and itemCount > to_split then
+            if to_split == 0 then
+              -- if the amount we need creates a full stack in the inventory we simply have to
+              -- pick up the item and place it on the incomplete stack in our inventory
+              -- if we split stacks here we get an error saying "couldn't split those items."
+              PickupContainerItem(bag, slot)
+            else
+              -- if the amount of items we need doesn't create a full stack then we split
+              -- the stack in the bank and merge it with the one in our inventory.
+              SplitContainerItem(bag, slot, to_split)
             end
+
+            rsPutSplitItemIntoBags(item, to_split)
+
+            RS.didBankStuff = true
+            state.itemsInBags[item.itemName] = state.itemsInBags[item.itemName]
+                and state.itemsInBags[item.itemName] + to_split or to_split
+
+            state.hasSplitItems = true
+            coroutine.yield()
           end
-        end -- if item we should get and its not locked
-      end -- for slot
-    end -- for bag
-  end -- not right clicked an item
+        end
+      end -- if item we should get and its not locked
+    end -- for slot
+  end -- for bag
+end
 
+---@class BankRestockCoroState
+---@field itemsInBags table<string, number> How many items in bags, name is key, count is value
+---@field currentProfile string
+---@field rightClickedItem boolean
+---@field hasSplitItems boolean
+---@field transferredToBank boolean
 
+--- Coroutine function to unload extra goods into bank and load goods from bank
+local function coroutineBankLoadUnload()
+  local state = { ---@type BankRestockCoroState
+                  itemsInBags       = rsGetItemsInBags(),
+                  currentProfile    = Restocker.profiles[Restocker.currentProfile],
+                  rightClickedItem  = false,
+                  hasSplitItems     = false,
+                  transferredToBank = false,
+  }
 
-  if rightClickedItem == false
-      and transferredToBank == false
-      and hasSplitItems == false
+  coroUnloadToBank(state)
+  coroLoadFromBank(state)
+  coroSplitStacks(state)
+
+  if not state.rightClickedItem
+      and not state.transferredToBank
+      and not state.hasSplitItems
       and RS.didBankStuff
       and RS.minorChange == false then
     RS.currentlyRestocking = false
@@ -255,23 +306,23 @@ local function bankTransfer()
   end
 end
 
-restockerCoroutine      = coroutine.create(bankTransfer)
+restockerCoroutine = coroutine.create(coroutineBankLoadUnload)
 
 
 --
 -- OnUpdate frame
 --
 
-RS.onUpdateFrame        = CreateFrame("Frame")
+RS.onUpdateFrame = CreateFrame("Frame")
 local ONUPDATE_INTERVAL = 0.1
-local timer             = 0
+local timer = 0
 
 RS.onUpdateFrame:SetScript("OnUpdate", function(self, elapsed)
   timer = timer + elapsed
   if timer >= ONUPDATE_INTERVAL then
     timer = 0
     if RS.currentlyRestocking then
-      if somethingLocked() and not CursorHasItem() then
+      if rsIsSomethingLocked() and not CursorHasItem() then
         return
       end
       if coroutine.status(restockerCoroutine) == "running" then
@@ -280,7 +331,7 @@ RS.onUpdateFrame:SetScript("OnUpdate", function(self, elapsed)
 
       local resume = coroutine.resume(restockerCoroutine)
       if resume == false then
-        restockerCoroutine = coroutine.create(bankTransfer)
+        restockerCoroutine = coroutine.create(coroutineBankLoadUnload)
       end
     end
   end

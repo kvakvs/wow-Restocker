@@ -22,7 +22,7 @@ end
 RS.slashPrefix = "|cff8d63ff/restocker|r "
 RS.addonName   = "|cff8d63ffRestocker|r "
 
-local function rs_is_tbc()
+function RS.IsTBC()
   local function get_version()
     return select(4, GetBuildInfo())
   end
@@ -31,7 +31,7 @@ local function rs_is_tbc()
   return ui_ver >= 20000 and ui_ver <= 29999
 end
 
-RS.TBC = rs_is_tbc()
+RS.TBC = RS.IsTBC()
 
 function RS:Show()
   local menu = RS.addon or RS:CreateMenu();
@@ -319,6 +319,7 @@ local function Init()
   RS.framepool           = {}
   RS.hiddenFrame         = CreateFrame("Frame", nil, UIParent):Hide()
   RS:loadSettings()
+  RS.SetupBankConstants()
 end
 
 RS.ICON_FORMAT = "|T%s:0:0:0:0:64:64:4:60:4:60|t"
