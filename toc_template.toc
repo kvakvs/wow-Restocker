@@ -15,8 +15,8 @@ Classes\BuyItem.lua
 Classes\RestockerConf.lua
 Classes\Recipe.lua
 
-BuyIngredients.lua
-Events.lua
+Src\BuyIngredients.lua
+Src\Events.lua
 
 Frames\MainFrame.lua
 Frames\ListFrame.lua
@@ -26,7 +26,7 @@ Helpers\Bank.lua
 Helpers\Cache.lua
 Helpers\Inspect.lua
 
-Restocker.lua
+Src\Restocker.lua
 
 #
 # Do not edit - this file is generated from TOC_TEMPLATE.TOC

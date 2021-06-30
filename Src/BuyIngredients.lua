@@ -59,7 +59,7 @@ local function rs_add_craftable_recipe(recipe)
     ing3.localizedName = ing3Val.itemName -- update localizedName
   end
 
-  RS.Dbg("Added craft recipe for item " .. recipe.item.id)
+  --RS.Dbg("Added craft recipe for item " .. recipe.item.id)
   RS.buyIngredients[itemVal.itemName]   = recipe -- added with localized name key
   RS.buyIngredientsWait[recipe.item.id] = nil -- delete the waiting one
 end
