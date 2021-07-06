@@ -228,15 +228,15 @@ function RS:CreateMenu()
   tinsert(UISpecialFrames, "RestockerMainFrame")
   addonFrame:Hide()
 
-  RS.addon = addonFrame
-  return RS.addon
+  RS.MainFrame = addonFrame
+  return RS.MainFrame
 end
 
 
 -- Handle shiftclicks of items
 local origChatEdit_InsertLink = ChatEdit_InsertLink;
 ChatEdit_InsertLink           = function(link)
-  if RS.addon.editBox:IsVisible() and RS.addon.editBox:HasFocus() then
+  if RS.MainFrame.editBox:IsVisible() and RS.MainFrame.editBox:HasFocus() then
     return RS:addItem(link)
   end
   return origChatEdit_InsertLink(link);

@@ -184,7 +184,6 @@ function EventFrame:MERCHANT_SHOW()
   if numPurchases > 0 then
     RS.Print("Finished restocking (" .. numPurchases .. " purchase orders done)")
   end
-
 end
 
 function EventFrame:MERCHANT_CLOSED()
@@ -193,13 +192,9 @@ function EventFrame:MERCHANT_CLOSED()
 end
 
 function EventFrame:BANKFRAME_OPENED(isMinor)
-  if IsShiftKeyDown() then
-    return
-  end
-  if not Restocker.restockFromBank then
-    return
-  end
-  if Restocker.profiles[Restocker.currentProfile] == nil then
+  if IsShiftKeyDown()
+      or not Restocker.restockFromBank
+      or Restocker.profiles[Restocker.currentProfile] == nil then
     return
   end
 
@@ -257,7 +252,7 @@ function EventFrame:PLAYER_LOGOUT()
   RS:Show()
   RS:Hide()
 
-  local point, relativeTo, relativePoint, xOfs, yOfs = RS.addon:GetPoint(RS.addon:GetNumPoints())
+  local point, relativeTo, relativePoint, xOfs, yOfs = RS.MainFrame:GetPoint(RS.MainFrame:GetNumPoints())
 
   Restocker.framePos.point                           = point
   Restocker.framePos.relativePoint                   = relativePoint

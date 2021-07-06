@@ -34,18 +34,18 @@ end
 RS.TBC = RS.IsTBC()
 
 function RS:Show()
-  local menu = RS.addon or RS:CreateMenu();
+  local menu = RS.MainFrame or RS:CreateMenu();
   menu:Show()
   return RS:Update()
 end
 
 function RS:Hide()
-  local menu = RS.addon or RS:CreateMenu();
+  local menu = RS.MainFrame or RS:CreateMenu();
   return menu:Hide()
 end
 
 function RS:Toggle()
-  return RS.addon:SetShown(not RS.addon:IsShown()) or false
+  return RS.MainFrame:SetShown(not RS.MainFrame:IsShown()) or false
 end
 
 RS.commands = {
@@ -147,7 +147,7 @@ function RS:Update()
 
   for _, item in ipairs(list) do
     local f = RS:GetFirstEmpty()
-    f:SetParent(RS.addon.scrollChild)
+    f:SetParent(RS.MainFrame.scrollChild)
     f.isInUse = true
     f.editBox:SetText(item.amount)
     f.text:SetText(item.itemName)
@@ -160,7 +160,7 @@ function RS:Update()
       height = height + 15
     end
   end
-  RS.addon.scrollChild:SetHeight(height)
+  RS.MainFrame.scrollChild:SetHeight(height)
 end
 
 
@@ -185,11 +185,11 @@ function RS:AddProfile(newProfile)
   Restocker.currentProfile       = newProfile
   Restocker.profiles[newProfile] = {}
 
-  local menu                     = RS.addon or RS:CreateMenu()
+  local menu                     = RS.MainFrame or RS:CreateMenu()
   menu:Show()
   RS:Update()
 
-  UIDropDownMenu_SetText(RS.addon.profileDropDownMenu, Restocker.currentProfile)
+  UIDropDownMenu_SetText(RS.MainFrame.profileDropDownMenu, Restocker.currentProfile)
 
 
 end
@@ -216,9 +216,9 @@ function RS:DeleteProfile(profile)
   end
 
   UIDropDownMenu_SetText(RS.optionsPanel.deleteProfileMenu, "")
-  local menu                    = RS.addon or RS:CreateMenu()
+  local menu                    = RS.MainFrame or RS:CreateMenu()
   RS.profileSelectedForDeletion = ""
-  UIDropDownMenu_SetText(RS.addon.profileDropDownMenu, Restocker.currentProfile)
+  UIDropDownMenu_SetText(RS.MainFrame.profileDropDownMenu, Restocker.currentProfile)
 
 end
 
@@ -233,7 +233,7 @@ function RS:RenameCurrentProfile(newName)
 
   Restocker.currentProfile           = newName
 
-  UIDropDownMenu_SetText(RS.addon.profileDropDownMenu, Restocker.currentProfile)
+  UIDropDownMenu_SetText(RS.MainFrame.profileDropDownMenu, Restocker.currentProfile)
 end
 
 
@@ -243,7 +243,7 @@ end
 function RS:ChangeProfile(newProfile)
   Restocker.currentProfile = newProfile
 
-  UIDropDownMenu_SetText(RS.addon.profileDropDownMenu, Restocker.currentProfile)
+  UIDropDownMenu_SetText(RS.MainFrame.profileDropDownMenu, Restocker.currentProfile)
   --print(RS.defaults.prefix .. "current profile: ".. Restocker.currentProfile)
   RS:Update()
 

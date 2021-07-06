@@ -5,13 +5,13 @@ function RS:addListFrame()
 
   local frame = CreateFrame("Frame", nil, RS.hiddenFrame)
   frame.index = #RS.framepool + 1
-  frame:SetSize(RS.addon.scrollChild:GetWidth(), 20);
+  frame:SetSize(RS.MainFrame.scrollChild:GetWidth(), 20);
   if #RS.framepool == 0 then
-    frame:SetPoint("TOP", RS.addon.scrollChild, "TOP")
+    frame:SetPoint("TOP", RS.MainFrame.scrollChild, "TOP")
   else
     frame:SetPoint("TOP", RS.framepool[#RS.framepool], "BOTTOM")
   end
-  RS.addon.scrollChild:SetHeight(#RS.framepool * 20)
+  RS.MainFrame.scrollChild:SetHeight(#RS.framepool * 20)
   -- ITEM TEXT
   local text = frame:CreateFontString(nil, "OVERLAY");
   text:SetFontObject("GameFontHighlight");

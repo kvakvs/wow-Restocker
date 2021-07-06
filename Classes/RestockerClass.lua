@@ -2,7 +2,7 @@
 local _, RS = ...;
 
 ---@class RestockerAddon
----@field addon table Main frame of the addon
+---@field MainFrame table Main frame of the addon
 ---@field EventFrame table Hidden frame for addon events
 ---@field loaded boolean
 ---@field bankIsOpen boolean
