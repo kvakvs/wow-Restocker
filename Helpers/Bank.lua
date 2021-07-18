@@ -13,7 +13,7 @@ if REAGENTBANK_CONTAINER then
   tinsert(BANK_BAGS_REVERSED, REAGENTBANK_CONTAINER)
 end
 
-local GetContainerItemInfo = _G.GetContainerItemInfo
+--local GetContainerItemInfo = _G.GetContainerItemInfo
 
 ---Called once on Addon creation. Sets up constants for bank bags
 function RS.SetupBankConstants()
@@ -166,35 +166,85 @@ local function rsPutSplitItemIntoBags(item, amountOnMouse)
   end
 end
 
---- If have more items than restock count, unload to bank
+---If need to move items out of bag
+---And small stacks below stacksize are found, move entire small stacks
 ---@param state BankRestockCoroState
-local function coroSendToBank(state)
+local function coroSendPartialStacksToBank(state)
   -- for all bags: backpack, 1,2,3,4 in reverse order
+  -- First see if there are incomplete stacks which entirely can move
   for bag = NUM_BAG_SLOTS, BACKPACK_CONTAINER, -1 do
     for slot = GetContainerNumSlots(bag), 1, -1 do
-      local _, itemCount, locked, _, _, _, itemLink, _, _, itemId = GetContainerItemInfo(bag, slot)
+      local _icon, slotCount, slotLocked, _, _, _, slotItemLink, _, _, slotItemId = GetContainerItemInfo(bag, slot)
+      local itemName = slotItemLink and string.match(slotItemLink, "%[(.*)%]")
+      -- local itemInfo = RS.GetItemInfo(itemName)
+      local itemStackCount = 20
 
-      local itemName = itemLink and string.match(itemLink, "%[(.*)%]")
-      if itemId then
-        local inRestockList = rsIsItemInRestockList(itemName)
+      if not slotLocked
+          and state.task[itemName] ~= nil -- this item is in task list
+          and state.task[itemName] < 0 -- negative - move from bag to bank
+          and (itemStackCount and slotCount < itemStackCount) -- and less than full stack
+          and slotCount <= math.abs(state.task[itemName]) -- and not too much
+      then
+        UseContainerItem(bag, slot)
+        state.task[itemName] = state.task[itemName] + slotCount
+        RS.Dbg(string.format("Moved incomplete stack of %s (%d) from bag",
+            itemName, slotCount))
+      end -- if item we should get and its not locked
+    end -- for slot
+  end -- for bag
+end
 
-        if not locked and inRestockList then
-          local item = state.currentProfile[rsGetRestockItemIndex(itemName)]
-          local numInBags = state.itemsInBags[item.itemName] or 0
-          local restockNum = item.amount
-          local difference = restockNum - numInBags
+---If need to move items out of bag
+---And full stacks are found, move entire full stacks
+---@param state BankRestockCoroState
+local function coroSendFullStacksToBank(state)
+  -- for all bags: backpack, 1,2,3,4 in reverse order
+  -- First see if there are incomplete stacks which entirely can move
+  for bag = NUM_BAG_SLOTS, BACKPACK_CONTAINER, -1 do
+    for slot = GetContainerNumSlots(bag), 1, -1 do
+      local _icon, slotCount, slotLocked, _, _, _, slotItemLink, _, _, slotItemId = GetContainerItemInfo(bag, slot)
+      local itemName = slotItemLink and string.match(slotItemLink, "%[(.*)%]")
+      -- local itemInfo = RS.GetItemInfo(itemName)
+      local itemStackCount = 20
 
-          if difference < 0 then
-            UseContainerItem(bag, slot)
-            state.itemsInBags[item.itemName] = state.itemsInBags[item.itemName]
-                and state.itemsInBags[item.itemName] - itemCount
-            state.rightClickedItem = true
-            state.transferredToBank = true
+      if not slotLocked
+          and state.task[itemName] ~= nil -- this item is in task list
+          and state.task[itemName] < 0 -- negative - move from bag to bank
+          and (itemStackCount and slotCount == itemStackCount) -- is full stack
+          and slotCount <= math.abs(state.task[itemName]) -- and not too much
+      then
+        UseContainerItem(bag, slot)
+        state.task[itemName] = state.task[itemName] + slotCount
+        RS.Dbg(string.format("Moved incomplete stack of %s (%d) from bag",
+            itemName, slotCount))
+      end -- if item we should get and its not locked
+    end -- for slot
+  end -- for bag
+end
 
-            RS.didBankStuff = true
-            --coroutine.yield()
-          end
-        end
+---If need to move items out of bag
+---Split stacks to give desired amount and move it.
+---@param state BankRestockCoroState
+local function coroSplitStacksToBank(state)
+  -- for all bags: backpack, 1,2,3,4 in reverse order
+  -- First see if there are incomplete stacks which entirely can move
+  for bag = NUM_BAG_SLOTS, BACKPACK_CONTAINER, -1 do
+    for slot = GetContainerNumSlots(bag), 1, -1 do
+      local _icon, slotCount, slotLocked, _, _, _, slotItemLink, _, _, slotItemId = GetContainerItemInfo(bag, slot)
+      local itemName = slotItemLink and string.match(slotItemLink, "%[(.*)%]")
+      -- local itemInfo = RS.GetItemInfo(itemName)
+      local itemStackCount = 20
+
+      if not slotLocked
+          and state.task[itemName] ~= nil -- this item is in task list
+          and state.task[itemName] < 0 -- negative - move from bag to bank
+          and (itemStackCount and slotCount == itemStackCount) -- is full stack
+          and slotCount <= math.abs(state.task[itemName]) -- and not too much
+      then
+        UseContainerItem(bag, slot)
+        state.task[itemName] = state.task[itemName] + slotCount
+        RS.Dbg(string.format("Moved incomplete stack of %s (%d) from bag",
+            itemName, slotCount))
       end -- if item we should get and its not locked
     end -- for slot
   end -- for bag
@@ -297,13 +347,13 @@ end
 ---@field rightClickedItem boolean
 ---@field hasSplitItems boolean
 ---@field transferredToBank boolean
+---@field task table<string, number> What item, and how many to move (negative = move to bank)
 
 ---Go through the bags and see what's too much in our bag and must be sent to bank
 ---The values will be stored in dictionary with negative quantities
 ---(i.e. remove from backpack)
 ---@param state BankRestockCoroState
----@return table<string, number> What item, and how many (negative = move to bank)
-local function rsCountItemsToMove(state)
+local function rsCountMoveItems(state)
   local task = {}
 
   for i, rs in pairs(state.currentProfile) do
@@ -339,10 +389,16 @@ local function coroutineBankLoadUnload()
                   rightClickedItem  = false,
                   hasSplitItems     = false,
                   transferredToBank = false,
-  }
+                  task              = {} }
 
-  local task = rsCountItemsToMove(state)
-  --coroSendToBank(state)
+  state.task = rsCountMoveItems(state)
+
+  -- Now try move small partial stacks first by using them
+  coroSendPartialStacksToBank(state)
+  -- Then try move full stacks by using them
+  coroSendFullStacksToBank(state)
+  -- Then try split and move stack fragments
+  coroSplitStacksToBank(state)
   --coroTakeFromBank(state)
   --coroSplitStacks(state)
 
