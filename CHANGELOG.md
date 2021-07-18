@@ -1,3 +1,7 @@
+## Restocker TBC 2021.7.2
+
+- Reworked bag move code to eliminate an endless item-clickery loop
+
 ## Restocker TBC 2021.6.1
 
 - Updated bank bag count for TBC, fixed restocking from bank bug

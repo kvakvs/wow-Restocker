@@ -108,6 +108,21 @@ local function rsGetItemsInBags()
   return result
 end
 
+local function rsGetItemsInBank()
+  local result = {}
+  for _, bag in ipairs(BANK_BAGS_REVERSED) do
+    for slot = 1, GetContainerNumSlots(bag) do
+      local _, itemCount, locked, _, _, _, itemLink, _, _, itemID = GetContainerItemInfo(bag, slot)
+      local itemName = itemLink and string.match(itemLink, "%[(.*)%]")
+      if itemID then
+        result[itemName] = result[itemName] and result[itemName] + itemCount or itemCount
+      end
+    end
+  end
+
+  return result
+end
+
 ---@param item RsItem
 ---@param amountOnMouse number
 local function rsPutSplitItemIntoBags(item, amountOnMouse)
@@ -277,24 +292,59 @@ end
 
 ---@class BankRestockCoroState
 ---@field itemsInBags table<string, number> How many items in bags, name is key, count is value
----@field currentProfile string
+---@field itemsInBank table<string, number> How many items in bank, name is key, count is value
+---@field currentProfile table
 ---@field rightClickedItem boolean
 ---@field hasSplitItems boolean
 ---@field transferredToBank boolean
 
---- Coroutine function to unload extra goods into bank and load goods from bank
+---Go through the bags and see what's too much in our bag and must be sent to bank
+---The values will be stored in dictionary with negative quantities
+---(i.e. remove from backpack)
+---@param state BankRestockCoroState
+---@return table<string, number> What item, and how many (negative = move to bank)
+local function rsCountItemsToMove(state)
+  local task = {}
+
+  for i, rs in pairs(state.currentProfile) do
+    local haveInBackpack = state.itemsInBags[rs.itemName] or 0
+    local haveInBank = state.itemsInBank[rs.itemName] or 0
+
+    --If have more than in restocker config, move excess to bank
+    if rs.amount < haveInBackpack then
+      -- Negative for take from bag, positive for take from bank
+      task[rs.itemName] = rs.amount - haveInBackpack
+      RS.Dbg(string.format("To bank %s=%d", rs.itemName, task[rs.itemName]))
+    else
+      -- if need more than have in backpack BUT have in bank
+      if rs.amount > haveInBackpack and haveInBank > 0 then
+        -- Negative for take from bag, positive for take from bank
+        task[rs.itemName] = math.min(
+            rs.amount - haveInBackpack, -- don't move more than we need
+            haveInBank) -- but not more than have in bank
+        RS.Dbg(string.format("From bank %s=%d", rs.itemName, task[rs.itemName]))
+      end
+    end
+  end -- for all items in restock list
+
+  return task
+end
+
+---Coroutine function to unload extra goods into bank and load goods from bank
 local function coroutineBankLoadUnload()
   local state = { ---@type BankRestockCoroState
                   itemsInBags       = rsGetItemsInBags(),
+                  itemsInBank       = rsGetItemsInBank(),
                   currentProfile    = Restocker.profiles[Restocker.currentProfile],
                   rightClickedItem  = false,
                   hasSplitItems     = false,
                   transferredToBank = false,
   }
 
-  coroSendToBank(state)
-  coroTakeFromBank(state)
-  coroSplitStacks(state)
+  local task = rsCountItemsToMove(state)
+  --coroSendToBank(state)
+  --coroTakeFromBank(state)
+  --coroSplitStacks(state)
 
   if not state.rightClickedItem
       and not state.transferredToBank
