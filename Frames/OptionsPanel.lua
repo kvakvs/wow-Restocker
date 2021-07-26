@@ -1,6 +1,8 @@
 ---@type RestockerAddon
 local _, RS                   = ...
 
+local L = RS.L;
+
 RS.profileSelectedForDeletion = ""
 
 
@@ -27,7 +29,7 @@ function RS:CreateOptionsMenu(name)
   local loginMessageText    = loginMessage:CreateFontString(nil, "OVERLAY")
   loginMessageText:SetFontObject("GameFontNormal")
   loginMessageText:SetPoint("LEFT", loginMessage, "RIGHT", 3, 0)
-  loginMessageText:SetText("Display login message")
+  loginMessageText:SetText(L["Display login message"])
   optionsPanel.loginMessageText = loginMessageText
 
   local autoOpenAtMerchant      = CreateFrame("CheckButton", nil, optionsPanel, "UICheckButtonTemplate")
@@ -42,7 +44,7 @@ function RS:CreateOptionsMenu(name)
   local autoOpenAtMerchantText    = autoOpenAtMerchant:CreateFontString(nil, "OVERLAY")
   autoOpenAtMerchantText:SetFontObject("GameFontNormal")
   autoOpenAtMerchantText:SetPoint("LEFT", autoOpenAtMerchant, "RIGHT", 3, 0)
-  autoOpenAtMerchantText:SetText("Open window at vendor")
+  autoOpenAtMerchantText:SetText(L["Open window at vendor"])
   optionsPanel.autoOpenAtMerchantText = autoOpenAtMerchantText
 
   local autoOpenAtBank                = CreateFrame("CheckButton", nil, optionsPanel, "UICheckButtonTemplate")
@@ -57,7 +59,7 @@ function RS:CreateOptionsMenu(name)
   local autoOpenAtBankText    = autoOpenAtBank:CreateFontString(nil, "OVERLAY")
   autoOpenAtBankText:SetFontObject("GameFontNormal")
   autoOpenAtBankText:SetPoint("LEFT", autoOpenAtBank, "RIGHT", 3, 0)
-  autoOpenAtBankText:SetText("Open window at bank")
+  autoOpenAtBankText:SetText(L["Open window at bank"])
   optionsPanel.autoOpenAtBankText = autoOpenAtBankText
 
   local sortListAlphabetically    = CreateFrame("CheckButton", nil, optionsPanel, "UICheckButtonTemplate")
@@ -77,7 +79,7 @@ function RS:CreateOptionsMenu(name)
   local sortListAlphabeticallyText    = sortListAlphabetically:CreateFontString(nil, "OVERLAY")
   sortListAlphabeticallyText:SetFontObject("GameFontNormal")
   sortListAlphabeticallyText:SetPoint("LEFT", sortListAlphabetically, "RIGHT", 3, 0)
-  sortListAlphabeticallyText:SetText("Sort list alphabetically")
+  sortListAlphabeticallyText:SetText(L["Sort list alphabetically"])
   optionsPanel.sortListAlphabeticallyText = sortListAlphabeticallyText
 
   local sortListNumerically               = CreateFrame("CheckButton", nil, optionsPanel, "UICheckButtonTemplate")
@@ -97,7 +99,7 @@ function RS:CreateOptionsMenu(name)
   local sortListNumericallyText    = sortListNumerically:CreateFontString(nil, "OVERLAY")
   sortListNumericallyText:SetFontObject("GameFontNormal")
   sortListNumericallyText:SetPoint("LEFT", sortListNumerically, "RIGHT", 3, 0)
-  sortListNumericallyText:SetText("Sort list by amount")
+  sortListNumericallyText:SetText(L["Sort list by amount"])
   optionsPanel.sortListNumericallyText = sortListNumericallyText
 
 
@@ -106,7 +108,7 @@ function RS:CreateOptionsMenu(name)
   local profilesHeader                 = optionsPanel:CreateFontString(nil, "OVERLAY")
   profilesHeader:SetPoint("TOPLEFT", sortListNumerically, "BOTTOMLEFT", -10, -20)
   profilesHeader:SetFontObject("GameFontNormalLarge")
-  profilesHeader:SetText("Profiles")
+  profilesHeader:SetText(L["Profiles"])
 
   local addProfileEditBox = CreateFrame("EditBox", nil, optionsPanel, "InputBoxTemplate")
   addProfileEditBox:SetSize(124, 20)
@@ -117,7 +119,7 @@ function RS:CreateOptionsMenu(name)
   local addProfileButton         = CreateFrame("Button", nil, optionsPanel, "GameMenuButtonTemplate")
   addProfileButton:SetPoint("LEFT", addProfileEditBox, "RIGHT")
   addProfileButton:SetSize(95, 28);
-  addProfileButton:SetText("Add profile");
+  addProfileButton:SetText(L["Add profile"]);
   addProfileButton:SetNormalFontObject("GameFontNormal");
   addProfileButton:SetHighlightFontObject("GameFontHighlight");
   addProfileButton:SetScript("OnClick", function(self, button, down)
@@ -156,7 +158,7 @@ function RS:CreateOptionsMenu(name)
   local deleteProfileButton      = CreateFrame("Button", nil, optionsPanel, "GameMenuButtonTemplate")
   deleteProfileButton:SetPoint("LEFT", deleteProfileMenu, "RIGHT", 108, 3)
   deleteProfileButton:SetSize(95, 28);
-  deleteProfileButton:SetText("Delete profile");
+  deleteProfileButton:SetText(L["Delete profile"]);
   deleteProfileButton:SetNormalFontObject("GameFontNormal");
   deleteProfileButton:SetHighlightFontObject("GameFontHighlight");
   deleteProfileButton:SetScript("OnClick", function(self, button, down)

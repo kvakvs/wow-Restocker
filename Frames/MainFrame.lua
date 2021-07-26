@@ -1,8 +1,22 @@
 ---@type RestockerAddon
 local _, RS    = ...;
 
+local L = RS.L;
+
 RS.hiddenFrame = CreateFrame("Frame", nil, UIParent)
 RS.hiddenFrame:Hide()
+
+local function AddCursorItem()
+  local infoType, info1, info2 = GetCursorInfo()
+  if infoType == "item" then
+    RS:addItem(info2)
+    ClearCursor()
+  elseif infoType == "merchant" then
+    local info2 = GetMerchantItemLink(info1)
+    RS:addItem(info2)
+    ClearCursor()
+  end
+end
 
 function RS:CreateMenu()
   --[[
@@ -23,6 +37,12 @@ function RS:CreateMenu()
   addonFrame:RegisterForDrag("LeftButton")
   addonFrame:SetScript("OnDragStart", addonFrame.StartMoving)
   addonFrame:SetScript("OnDragStop", addonFrame.StopMovingOrSizing)
+  addonFrame:SetScript("OnReceiveDrag", AddCursorItem)
+  addonFrame:SetScript("OnMouseUp", function(self, button)
+    if button == "LeftButton" then
+      AddCursorItem();
+    end
+  end)
 
   --[[
     INSET
@@ -84,7 +104,7 @@ function RS:CreateMenu()
   local addBtn      = CreateFrame("Button", nil, addonFrame.addGrp, "GameMenuButtonTemplate");
   addBtn:SetPoint("BOTTOMRIGHT", addonFrame.addGrp, "BOTTOMRIGHT");
   addBtn:SetSize(60, 25);
-  addBtn:SetText("Add");
+  addBtn:SetText(L["Add"]);
   addBtn:SetNormalFontObject("GameFontNormal");
   addBtn:SetHighlightFontObject("GameFontHighlight");
   addBtn:SetScript("OnClick", function(self, button, down)
@@ -111,24 +131,14 @@ function RS:CreateMenu()
   end)
   editBox:SetScript("OnMouseUp", function(self, button)
     if button == "LeftButton" then
-      local infoType, _, info2 = GetCursorInfo()
-      if infoType == "item" then
-        RS:addItem(info2)
-        ClearCursor()
-      end
+      AddCursorItem();
     end
   end)
-  editBox:SetScript("OnReceiveDrag", function(self)
-    local infoType, _, info2 = GetCursorInfo()
-    if infoType == "item" then
-      RS:addItem(info2)
-      ClearCursor()
-    end
-  end)
+  editBox:SetScript("OnReceiveDrag", AddCursorItem)
   editBox:SetScript("OnEnter", function(self)
     GameTooltip:SetOwner(self, "ANCHOR_TOP")
-    GameTooltip:SetText(RS.FormatTexture(RS.BAG_ICON) .. " Add an item")
-    GameTooltip:AddLine("Drop an item from your bag, or type a numeric item ID")
+    GameTooltip:SetText(RS.FormatTexture(RS.BAG_ICON) .. " " .. L["Add an item"])
+    GameTooltip:AddLine(L["Drop an item from your bag, or type a numeric item ID"])
     GameTooltip:Show()
   end)
   editBox:SetScript("OnLeave", function(self, motion)
@@ -160,7 +170,7 @@ function RS:CreateMenu()
   local checkboxText  = addonFrame:CreateFontString(nil, "OVERLAY");
   checkboxText:SetFontObject("GameFontHighlight");
   checkboxText:SetPoint("LEFT", checkbox, "RIGHT", 1, 1);
-  checkboxText:SetText("Auto buy items");
+  checkboxText:SetText(L["Auto buy items"]);
   addonFrame.checkboxText = checkboxText
   -- // AUTOBUY
 
@@ -182,7 +192,7 @@ function RS:CreateMenu()
   local checkboxBankText  = addonFrame:CreateFontString(nil, "OVERLAY");
   checkboxBankText:SetFontObject("GameFontHighlight");
   checkboxBankText:SetPoint("LEFT", checkboxBank, "RIGHT", 1, 1);
-  checkboxBankText:SetText("Restock from bank");
+  checkboxBankText:SetText(L["Restock from bank"]);
   addonFrame.checkboxBank = checkboxBankText
   -- // AUTOBUY
 
@@ -197,7 +207,7 @@ function RS:CreateMenu()
   local profileText       = addonFrame:CreateFontString(nil, "OVERLAY")
   profileText:SetPoint("BOTTOMLEFT", addonFrame, "BOTTOMLEFT", 10, 12)
   profileText:SetFontObject("GameFontNormal")
-  profileText:SetText("Profile:")
+  profileText:SetText(L["Profile"] .. ":")
 
   local Restocker_ProfileDropDownMenu = CreateFrame("Frame", "Restocker_ProfileDropDownMenu", addonFrame, "UIDropDownMenuTemplate")
   Restocker_ProfileDropDownMenu:SetPoint("LEFT", profileText, "LEFT", 80, 0)

@@ -41,6 +41,7 @@ function RS:addListFrame()
   editBox:SetSize(40, 20)
   editBox:SetPoint("RIGHT", delBtn, "LEFT", 3, 0);
   editBox:SetAutoFocus(false);
+  editBox:SetNumeric(true);
   editBox:SetScript("OnEnterPressed", function(self)
     local amount = self:GetText()
     local parent = self:GetParent()
@@ -62,6 +63,10 @@ function RS:addListFrame()
       RS:BANKFRAME_OPENED(true)
     end
 
+  end);
+  editBox:SetScript("OnEscapePressed", function(self)
+    self:SetText(Restocker.profiles[Restocker.currentProfile][self:GetParent().index].amount);
+    editBox:ClearFocus()
   end);
   editBox:SetScript("OnKeyUp",
       function(self)

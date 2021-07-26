@@ -20,7 +20,7 @@ local rs_gii_cache = {}
 ---Calls GetItemInfo and saves the results, or not (if nil was returned)
 ---@param arg number|string
 ---@return GIICacheItem|nil
-function RS.GetItemInfo(arg)
+function RS.GetItemInfo(arg, copyto)
   if rs_gii_cache[arg] ~= nil then
     --print("Cached item response for ", arg)
     return rs_gii_cache[arg]
@@ -47,5 +47,8 @@ function RS.GetItemInfo(arg)
   }
   --print("Added to cache item info for ", arg)
   rs_gii_cache[arg] = cache_item
+  if copyto then
+    rs_gii_cache[copyto] = cache_item
+  end
   return cache_item
 end
