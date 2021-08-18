@@ -1,6 +1,8 @@
-## Restocker TBC 2021.7.2
+## Restocker TBC 2021.8.1
 
-- Reworked bag move code to eliminate an endless item-clickery loop
+- Bank restocking bug fixed. Requires 1 free player bag slot to move into split bank stacks. Requires 1 free bank slot to move into
+  split player bag stacks. Full stacks can be moved without splitting and no extra bag slot is required. For example: Moving 1 item
+  into stack of 19 requires a free extra bag slot.
 
 ## Restocker TBC 2021.6.1
 
