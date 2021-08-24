@@ -246,17 +246,16 @@ end
 ---@field itemsInBags table<string, number> How many items in bags, name is key, count is value
 ---@field itemsInBank table<string, number> How many items in bank, name is key, count is value
 ---@field currentProfile table
----@field rightClickedItem boolean
----@field hasSplitItems boolean
----@field transferredToBank boolean
 ---@field task table<string, number> What item, and how many to move (negative = move to bank)
 
 ---Go through the bags and see what's too much in our bag and must be sent to bank
 ---The values will be stored in dictionary with negative quantities
 ---(i.e. remove from backpack)
 ---@param state BankRestockCoroState
+---@return number, table<string, number> Count of items to move and table of item names to move
 local function rsCountMoveItems(state)
   local task = {}
+  local moveCount = 0
 
   for i, rs in pairs(state.currentProfile) do
     local haveInBackpack = state.itemsInBags[rs.itemName] or 0
@@ -266,6 +265,7 @@ local function rsCountMoveItems(state)
     if rs.amount < haveInBackpack then
       -- Negative for take from bag, positive for take from bank
       task[rs.itemName] = rs.amount - haveInBackpack
+      moveCount = moveCount + math.abs(task[rs.itemName])
     else
       -- if have in bank
       if rs.amount > haveInBackpack and haveInBank > 0 then
@@ -273,39 +273,79 @@ local function rsCountMoveItems(state)
         task[rs.itemName] = math.min(
             rs.amount - haveInBackpack, -- don't move more than we need
             haveInBank) -- but not more than have in bank
+        moveCount = moveCount + math.abs(task[rs.itemName])
       end
     end
   end -- for all items in restock list
 
-  return task
+  return moveCount, task
 end
 
----Coroutine function to unload extra goods into bank and load goods from bank
-local function coroutineBankLoadUnload()
-  local state = { ---@type BankRestockCoroState
-                  itemsInBags       = rsGetItemsInBags(),
-                  itemsInBank       = rsGetItemsInBank(),
-                  currentProfile    = Restocker.profiles[Restocker.currentProfile],
-                  rightClickedItem  = false,
-                  hasSplitItems     = false,
-                  transferredToBank = false,
-                  task              = {} }
+local function rsCheckSpace(bags)
+  for _, bag in ipairs(bags) do
+    local numberOfFreeSlots, _bagType = GetContainerNumFreeSlots(bag)
+    if numberOfFreeSlots > 0 then
+      return true
+    end
+  end
+  return false
+end
 
-  state.task = rsCountMoveItems(state)
-  coroBankExchange(state)
-
-  if not state.rightClickedItem
-      and not state.transferredToBank
-      and not state.hasSplitItems
-      and RS.didBankStuff
-      and RS.minorChange == false then
-    RS.currentlyRestocking = false
-    RS.Print("Finished restocking from bank")
+---@return string "ok", "bank" - bank is full, "bag" - bag is full, "both" - both bank and bag are full
+local function rsCheckBankBagSpace()
+  local bankFree = rsCheckSpace(BANK_BAGS)
+  local bagFree = rsCheckSpace(PLAYER_BAGS)
+  if bagFree then
+    if bankFree then
+      return "ok"
+    else
+      return "bank"
+    end
+  else
+    if bankFree then
+      return "bag"
+    else
+      return "both"
+    end
   end
 end
 
-RS.xxx = coroutineBankLoadUnload -- for debugging restocking coroutin
-restockerCoroutine = coroutine.create(coroutineBankLoadUnload)
+---Coroutine function to unload extra goods into bank and load goods from bank
+local function coroutineBank()
+  local state = { ---@type BankRestockCoroState
+                  itemsInBags    = rsGetItemsInBags(),
+                  itemsInBank    = rsGetItemsInBank(),
+                  currentProfile = Restocker.profiles[Restocker.currentProfile],
+                  task           = {} }
+  local moveCount = 0
+  moveCount, state.task = rsCountMoveItems(state)
+
+  if moveCount < 1 then
+    RS.currentlyRestocking = false
+    RS.Print("Finished restocking from bank")
+    return
+  end
+
+  local bagCheck = rsCheckBankBagSpace()
+  if bagCheck == "both" then
+    RS.currentlyRestocking = false
+    RS.Print("Both bag and bank are full, need 1 free slot to begin")
+    return
+  elseif bagCheck == "bank" then
+    RS.currentlyRestocking = false
+    RS.Print("Bank is full, need 1 free slot to begin")
+    return
+  elseif bagCheck == "bag" then
+    RS.currentlyRestocking = false
+    RS.Print("Bag is full, need 1 free slot to begin")
+    return
+  end
+
+  coroBankExchange(state)
+end
+
+RS.xxx = coroutineBank -- for debugging restocking coroutine
+restockerCoroutine = coroutine.create(coroutineBank)
 
 
 --
@@ -334,7 +374,7 @@ RS.onUpdateFrame:SetScript("OnUpdate", function(self, elapsed)
       local resume = coroutine.resume(restockerCoroutine)
 
       if resume == false then
-        restockerCoroutine = coroutine.create(coroutineBankLoadUnload)
+        restockerCoroutine = coroutine.create(coroutineBank)
       end
     end
   end

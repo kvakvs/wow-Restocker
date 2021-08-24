@@ -1,3 +1,8 @@
+## Restocker TBC 2021.8.2
+
+- Fix: Bank restocking only does 1 pass and stops, allowing you to use bank normally.
+- Fix: Bank restocking in and out will check the bag space before operations. Requires 1 free slot in both bank and character bag.
+
 ## Restocker TBC 2021.8.1
 
 - Bank restocking bug fixed. Requires 1 free player bag slot to move into split bank stacks. Requires 1 free bank slot to move into
