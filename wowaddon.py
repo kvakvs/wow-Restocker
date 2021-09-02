@@ -10,13 +10,13 @@ import subprocess
 import sys
 import zipfile
 
-VERSION = '2021.8.2'  # year.month.build_num
+VERSION = '2021.9.1'  # year.month.build_num
 
 UI_VERSION_CLASSIC = '11307'  # patch 1.13.7
 BOM_NAME_CLASSIC = 'RestockerClassic'  # Directory and zip name
 BOM_TITLE_CLASSIC = "Restocker Classic"  # Title field in TOC
 
-UI_VERSION_CLASSIC_TBC = '20501'  # patch 2.5.1
+UI_VERSION_CLASSIC_TBC = '20502'  # patch 2.5.2
 BOM_NAME_CLASSIC_TBC = 'RestockerTBC'  # Directory and zip name
 BOM_TITLE_CLASSIC_TBC = "Restocker TBC"  # Title field in TOC
 
