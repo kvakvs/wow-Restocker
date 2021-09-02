@@ -171,128 +171,110 @@ local function rsSplitSwapCursorItem(dropItem, srcBags)
   end
 end
 
----Try move full stacks in or out of bank, if not possible, then try move 1 item at a time.
 ---@param state BankRestockCoroState
-local function coroBagToBankExchange(state)
-  ---------------------------------------------------------------------------
-  -- For all items to be moved, scan the bags and find smallest stacks first
-  -- This loop does not split stacks and tries to move what's already there
-  ---------------------------------------------------------------------------
-  for moveName, moveAmount in ipairs(state.task) do
-    if moveAmount > 0 then
-
-      -- For all bank bags and all bank bag slots
-      for _, bag in ipairs(PLAYER_BAGS) do
-        for slot = GetContainerNumSlots(bag), 1, -1 do
-          local _icon, slotCount, slotLocked, _, _, _, slotItemLink, _, _, _slotItemId = GetContainerItemInfo(bag, slot)
-          local itemName = slotItemLink and string.match(slotItemLink, "%[(.*)%]")
-
-          if not slotLocked
-              and itemName == moveName
-              and slotCount < math.abs(moveAmount) then
-            UseContainerItem(bag, slot)
-            state.task[itemName] = state.task[itemName] + slotCount -- deduct
-          end
-        end
-      end
-    end
-  end
-
-  ----------------------------------------------------
-  -- for all bags: backpack, 1,2,3,4 in reverse order
-  -- Split excess items and click them to move to the bank
-  ----------------------------------------------------
-  for _, bag in ipairs(PLAYER_BAGS_REVERSED) do
+---@param moveName string
+---@param moveAmount number Negative for take from bag, positive for take from bank
+local function rsToBank(state, moveName, moveAmount)
+  -- For all bank bags and all bank bag slots
+  for _, bag in ipairs(PLAYER_BAGS) do
     for slot = GetContainerNumSlots(bag), 1, -1 do
       local _icon, slotCount, slotLocked, _, _, _, slotItemLink, _, _, slotItemId = GetContainerItemInfo(bag, slot)
       local itemName = slotItemLink and string.match(slotItemLink, "%[(.*)%]")
 
-      -- negative - move from bag to bank
-      if state.task[itemName] and not slotLocked and state.task[itemName] < 0
+      if slotLocked then
+        return true -- can't do nothing now, something is locked, try in 0.1 sec
+      end
+
+      -- Found something to move and its smaller than what we need to move
+      if itemName == moveName
+          and slotCount <= moveAmount
       then
-        local needToMove = math.abs(state.task[itemName])
+        UseContainerItem(bag, slot)
+        state.task[itemName] = state.task[itemName] + slotCount -- deduct
+        return true -- moved one
+      end
 
-        if slotCount <= needToMove then
-          -- If slot does not contain more than the task, take entire slot
-          UseContainerItem(bag, slot)
-          state.task[itemName] = state.task[itemName] + slotCount -- add
-          return
+      -- Found something to move, but its bigger than how many we need to move
+      if itemName == moveName
+          and slotCount > moveAmount
+      then
+        local itemInfo = RS.GetItemInfo(slotItemId)
 
-        else
-          local itemInfo = RS.GetItemInfo(slotItemId)
+        SplitContainerItem(bag, slot, moveAmount)
+        --rsPutSplitItemIntoBags(itemInfo, 1, PLAYER_BAGS, BANK_BAGS)
+        rsSplitSwapCursorItem(itemInfo, PLAYER_BAGS)
 
-          SplitContainerItem(bag, slot, needToMove)
-          --rsPutSplitItemIntoBags(itemInfo, 1, PLAYER_BAGS, BANK_BAGS)
-          rsSplitSwapCursorItem(itemInfo, PLAYER_BAGS)
+        state.task[itemName] = state.task[itemName] + moveAmount -- add
+        return true -- DONE one step
+      end
+    end
+  end
+  return false -- did not move
+end
 
-          state.task[itemName] = state.task[itemName] + needToMove -- add
-        end
-      end -- if we move to bank
-    end -- for slot
-  end -- for player bags
+---Try move full stacks in or out of bank, if not possible, then try move 1 item at a time.
+---@param state BankRestockCoroState
+local function coroBagToBankExchange(state)
+  for moveName, moveAmount in pairs(state.task) do
+    -- Negative for take from bag, positive for take from bank
+    if moveAmount < 0 then
+      if rsToBank(state, moveName, math.abs(moveAmount)) then
+        return -- DONE one step
+      end
+    end
+  end
+end
+
+---@param state BankRestockCoroState
+---@param moveName string
+---@param moveAmount number Negative for take from bag, positive for take from bank
+local function rsFromBank(state, moveName, moveAmount)
+  -- For all bank bags and all bank bag slots
+  for _, bag in ipairs(BANK_BAGS) do
+    for slot = GetContainerNumSlots(bag), 1, -1 do
+      local _icon, slotCount, slotLocked, _, _, _, slotItemLink, _, _, slotItemId = GetContainerItemInfo(bag, slot)
+      local itemName = slotItemLink and string.match(slotItemLink, "%[(.*)%]")
+
+      if slotLocked then
+        return true -- can't do nothing now, something is locked, try in 0.1 sec
+      end
+
+      if itemName == moveName
+          and slotCount <= moveAmount
+      then
+        UseContainerItem(bag, slot)
+        state.task[itemName] = state.task[itemName] - slotCount -- deduct
+        return true -- DONE one step
+      end
+
+      if itemName == moveName
+          and slotCount > moveAmount
+      then
+        local itemInfo = RS.GetItemInfo(slotItemId)
+
+        SplitContainerItem(bag, slot, moveAmount)
+        --rsPutSplitItemIntoBags(itemInfo, 1, BANK_BAGS, PLAYER_BAGS)
+        rsSplitSwapCursorItem(itemInfo, BANK_BAGS)
+
+        state.task[itemName] = state.task[itemName] - moveAmount -- deduct
+        return true -- DONE one step
+      end
+    end
+  end
+  return false -- did not move
 end
 
 ---Try move full stacks out of bank, if not possible, then try move 1 item at a time.
 ---@param state BankRestockCoroState
 local function coroBankToBagExchange(state)
-  ---------------------------------------------------------------------------
-  -- For all items to be moved, scan the bags and find smallest stacks first
-  -- This loop does not split stacks and tries to move what's already there
-  ---------------------------------------------------------------------------
-  for moveName, moveAmount in ipairs(state.task) do
+  for moveName, moveAmount in pairs(state.task) do
+    -- Negative for take from bag, positive for take from bank
     if moveAmount > 0 then
-
-      -- For all bank bags and all bank bag slots
-      for _, bag in ipairs(BANK_BAGS) do
-        for slot = GetContainerNumSlots(bag), 1, -1 do
-          local _icon, slotCount, slotLocked, _, _, _, slotItemLink, _, _, _slotItemId = GetContainerItemInfo(bag, slot)
-          local itemName = slotItemLink and string.match(slotItemLink, "%[(.*)%]")
-
-          if not slotLocked
-              and itemName == moveName
-              and slotCount < moveAmount then
-            UseContainerItem(bag, slot)
-            state.task[itemName] = state.task[itemName] - slotCount -- deduct
-          end
-        end
+      if rsFromBank(state, moveName, moveAmount) then
+        return
       end
     end
   end
-
-  ----------------------------------------------------
-  -- For all bank bags, move needed items back to bags
-  -- * Split needed items and click them to move to the bag
-  ----------------------------------------------------
-  for _, bag in ipairs(BANK_BAGS_REVERSED) do
-    for slot = GetContainerNumSlots(bag), 1, -1 do
-      local _icon, slotCount, slotLocked, _, _, _, slotItemLink, _, _, slotItemId = GetContainerItemInfo(bag, slot)
-      local itemName = slotItemLink and string.match(slotItemLink, "%[(.*)%]")
-
-      -- positive - take from bank
-      if state.task[itemName] and not slotLocked and state.task[itemName] > 0
-      then
-        local needToMove = state.task[itemName]
-
-        if slotCount <= needToMove then
-          -- If slot does not contain more than the task, take entire slot
-          UseContainerItem(bag, slot)
-          state.task[itemName] = state.task[itemName] - slotCount -- deduct
-          return
-
-        else
-          -- Move 1 item at a time
-          local itemInfo = RS.GetItemInfo(slotItemId)
-
-          -- Take 1 drop 1
-          SplitContainerItem(bag, slot, needToMove)
-          --rsPutSplitItemIntoBags(itemInfo, 1, BANK_BAGS, PLAYER_BAGS)
-          rsSplitSwapCursorItem(itemInfo, BANK_BAGS)
-
-          state.task[itemName] = state.task[itemName] - needToMove -- deduct
-        end
-      end
-    end -- for slot
-  end -- for bank bags
 end
 
 ---@class BankRestockCoroState
@@ -365,17 +347,25 @@ end
 
 ---Coroutine function to unload extra goods into bank and load goods from bank
 local function coroutineBank()
-  local state = { ---@type BankRestockCoroState
-                  itemsInBags    = rsGetItemsInBags(),
-                  itemsInBank    = rsGetItemsInBank(),
-                  currentProfile = Restocker.profiles[Restocker.currentProfile],
-                  task           = {} }
+  if not RS.bankIsOpen then
+    RS.currentlyRestocking = false
+    RS.Print("Bank is not open")
+    return
+  end
+
+  ---@type BankRestockCoroState
+  local state = {
+    itemsInBags    = rsGetItemsInBags(),
+    itemsInBank    = rsGetItemsInBank(),
+    currentProfile = Restocker.profiles[Restocker.currentProfile],
+    task           = {}
+  }
   local moveCount = 0
   moveCount, state.task = rsCountMoveItems(state)
 
   if moveCount < 1 then
     RS.currentlyRestocking = false
-    RS.Print("Finished restocking from bank")
+    RS.Print("Finished restocking")
     return
   end
 
@@ -398,7 +388,15 @@ local function coroutineBank()
   coroBankToBagExchange(state)
 end
 
-RS.xxx = coroutineBank -- for debugging restocking coroutine
+---For debugging restocking coroutine do the scriptErrors once, then run xxx() like so
+---/console scriptErrors 1
+---/run RS_ADDON.xxx()
+local function testCoroutineBank()
+  RS.currentlyRestocking = true
+  coroutineBank()
+end
+
+RS.xxx = testCoroutineBank
 restockerCoroutine = coroutine.create(coroutineBank)
 
 
