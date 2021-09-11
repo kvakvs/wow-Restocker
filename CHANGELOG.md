@@ -1,3 +1,9 @@
+## Restocker TBC 2021.9.2
+
+- A new editbox added to require vendor NPC reaction (neutral, friendly, honored or exalted) to restock each item. Empty value does
+  not check the vendor reaction, number 4 requires neutral faction, 5 - friendly, 6 - honored, 7 - revered and 8 requires exalted
+  standing with the vendor.
+
 ## Restocker TBC 2021.9.1
 
 - UI version update for TBC Phase 2

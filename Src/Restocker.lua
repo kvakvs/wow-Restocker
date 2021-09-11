@@ -1,7 +1,7 @@
 ---@type RestockerAddon
 local _, RS = ...
 
-local list  = {}
+local list  = {} ---@type table<number, RsRestockItem>
 
 ---@type RestockerConf
 Restocker   = Restocker or {}
@@ -149,7 +149,8 @@ function RS:Update()
     local f = RS:GetFirstEmpty()
     f:SetParent(RS.MainFrame.scrollChild)
     f.isInUse = true
-    f.editBox:SetText(item.amount)
+    f.editBox:SetText(tostring(item.amount or 0))
+    f.reactionBox:SetText(tostring(item.reaction or 0))
     f.text:SetText(item.itemName)
     f:Show()
   end
@@ -181,9 +182,10 @@ end
 --[[
   ADD PROFILE
 ]]
+---@param newProfile string
 function RS:AddProfile(newProfile)
-  Restocker.currentProfile       = newProfile
-  Restocker.profiles[newProfile] = {}
+  Restocker.currentProfile       = newProfile ---@type string
+  Restocker.profiles[newProfile] = {} ---@type RsRestockItem
 
   local menu                     = RS.MainFrame or RS:CreateMenu()
   menu:Show()
@@ -256,6 +258,10 @@ function RS:ChangeProfile(newProfile)
   end
 end
 
+---@class RsRestockItem
+---@field amount number
+---@field reaction number
+---@field itemName string
 
 --[[
   COPY PROFILE
@@ -275,13 +281,15 @@ function RS:loadSettings()
   end
 
   if Restocker.profiles == nil then
+    ---@type table<string, table<string, RsRestockItem>>
     Restocker.profiles = {}
   end
   if Restocker.profiles.default == nil then
+    ---@type table<string, RsRestockItem>
     Restocker.profiles.default = {}
   end
   if Restocker.currentProfile == nil then
-    Restocker.currentProfile = "default"
+    Restocker.currentProfile = "default" ---@type string
   end
 
   if Restocker.framePos == nil then

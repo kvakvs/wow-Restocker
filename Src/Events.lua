@@ -1,9 +1,9 @@
 ---@type RestockerAddon
-local TOC, RS           = ...;
-RS.loaded               = false
-RS.addItemWait          = {}
-RS.bankIsOpen           = false
-RS.merchantIsOpen       = false
+local TOC, RS = ...;
+RS.loaded = false
+RS.addItemWait = {}
+RS.bankIsOpen = false
+RS.merchantIsOpen = false
 
 local lastTimeRestocked = GetTime()
 
@@ -16,7 +16,7 @@ local function count(T)
 end
 
 local EventFrame = CreateFrame("Frame");
-RS.EventFrame    = EventFrame
+RS.EventFrame = EventFrame
 
 EventFrame:RegisterEvent("ADDON_LOADED");
 EventFrame:RegisterEvent("MERCHANT_SHOW");
@@ -53,8 +53,8 @@ function EventFrame:ADDON_LOADED(addonName)
   f:SetScript("OnMouseDown", f.StartMoving);
   f:SetScript("OnMouseUp", f.StopMovingOrSizing);
 
-  SLASH_RESTOCKER1       = "/restocker";
-  SLASH_RESTOCKER2       = "/rs";
+  SLASH_RESTOCKER1 = "/restocker";
+  SLASH_RESTOCKER2 = "/rs";
   SlashCmdList.RESTOCKER = function(msg)
     RS:SlashCommand(msg)
   end
@@ -101,7 +101,7 @@ function EventFrame:MERCHANT_SHOW()
     return
   end -- If vendor reopened within 1 second then return (only activate addon once per second)
 
-  lastTimeRestocked     = GetTime()
+  lastTimeRestocked = GetTime()
   local numPurchases = 0
 
   if Restocker.autoOpenAtMerchant then
@@ -111,28 +111,39 @@ function EventFrame:MERCHANT_SHOW()
   local craftingPurchaseOrder = RS.CraftingPurchaseOrder() or {}
 
   ---@type table<string, RsBuyItem>
-  local purchaseOrders        = {}
+  local purchaseOrders = {}
 
-  local restockList           = Restocker.profiles[Restocker.currentProfile]
+  ---@type table<number, RsBuyItem>
+  local restockList = Restocker.profiles[Restocker.currentProfile]
+  local vendorReaction = UnitReaction("target", "player") or 0
 
   -- Build the Purchase Orders table used for buying items
   for _, item in ipairs(restockList) do
     local haveInBag = GetItemCount(item.itemName, false)
-    local toBuy     = item.amount - haveInBag
+    local amount = item.amount or 0
+    local requiredReaction = item.reaction or 0
 
-    if toBuy > 0 then
-      if not purchaseOrders[item.itemName] then -- add new
-        purchaseOrders[item.itemName] = RS.RsBuyItem:Create({
-          numNeeded = toBuy,
-          itemName  = item.itemName,
-          itemID    = item.itemID,
-          itemLink  = item.itemLink,
-        })
-      else -- update amount, add more
-        local purchase     = purchaseOrders[item.itemName]
-        purchase.numNeeded = purchase.numNeeded + toBuy
-      end
-    end
+    if requiredReaction > vendorReaction then
+      RS.Print(string.format("Not buying: %s (too low reputation)", item.itemName))
+    elseif amount > 0 then
+      local toBuy = amount - haveInBag
+
+      if toBuy > 0 then
+        if not purchaseOrders[item.itemName] then
+          -- add new
+          purchaseOrders[item.itemName] = RS.RsBuyItem:Create({
+            numNeeded = toBuy,
+            itemName  = item.itemName,
+            itemID    = item.itemID,
+            itemLink  = item.itemLink,
+          })
+        else
+          -- update amount, add more
+          local purchase = purchaseOrders[item.itemName]
+          purchase.numNeeded = purchase.numNeeded + toBuy
+        end
+      end -- if tobuy > 0
+    end -- if amount
   end
 
   -- Insert craft reagents for missing items into purchase orders, or add
@@ -143,7 +154,7 @@ function EventFrame:MERCHANT_SHOW()
         itemName  = ingredientName,
       })
     else
-      local purchase     = purchaseOrders[ingredientName]
+      local purchase = purchaseOrders[ingredientName]
       purchase.numNeeded = purchase.numNeeded + toBuy
     end
   end
@@ -155,10 +166,10 @@ function EventFrame:MERCHANT_SHOW()
     end
 
     local itemName, _, _, _, merchantAvailable = GetMerchantItemInfo(i)
-    local itemLink                             = GetMerchantItemLink(i)
+    local itemLink = GetMerchantItemLink(i)
 
     -- is item from merchant in our purchase order?
-    local buyItem                              = purchaseOrders[itemName]
+    local buyItem = purchaseOrders[itemName]
 
     if buyItem then
       local itemInfo = RS.GetItemInfo(itemLink)
@@ -207,8 +218,8 @@ function EventFrame:BANKFRAME_OPENED(isMinor)
   else
     RS.minorChange = false
   end
-  RS.didBankStuff        = false
-  RS.bankIsOpen          = true
+  RS.didBankStuff = false
+  RS.bankIsOpen = true
   RS.currentlyRestocking = true
   RS.onUpdateFrame:Show()
 end
@@ -222,7 +233,7 @@ function RS:MERCHANT_SHOW()
 end
 
 function EventFrame:BANKFRAME_CLOSED()
-  RS.bankIsOpen          = false
+  RS.bankIsOpen = false
   RS.currentlyRestocking = false
   RS:Hide()
 end
@@ -254,16 +265,16 @@ function EventFrame:PLAYER_LOGOUT()
 
   local point, relativeTo, relativePoint, xOfs, yOfs = RS.MainFrame:GetPoint(RS.MainFrame:GetNumPoints())
 
-  Restocker.framePos.point                           = point
-  Restocker.framePos.relativePoint                   = relativePoint
-  Restocker.framePos.xOfs                            = xOfs
-  Restocker.framePos.yOfs                            = yOfs
+  Restocker.framePos.point = point
+  Restocker.framePos.relativePoint = relativePoint
+  Restocker.framePos.xOfs = xOfs
+  Restocker.framePos.yOfs = yOfs
 end
 
 function EventFrame:UI_ERROR_MESSAGE(id, message)
   if id == 2 or id == 3 then
     -- catch inventory / bank full error messages
     RS.currentlyRestocking = false
-    RS.buying              = false
+    RS.buying = false
   end
 end
