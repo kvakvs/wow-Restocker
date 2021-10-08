@@ -124,7 +124,7 @@ function EventFrame:MERCHANT_SHOW()
     local requiredReaction = item.reaction or 0
 
     if requiredReaction > vendorReaction then
-      RS.Print(string.format("Not buying: %s (too low reputation)", item.itemName))
+      -- (spammy) RS.Print(string.format("Not buying: %s (too low reputation)", item.itemName))
     elseif amount > 0 then
       local toBuy = amount - haveInBag
 

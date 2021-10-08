@@ -405,13 +405,17 @@ restockerCoroutine = coroutine.create(coroutineBank)
 --
 
 RS.onUpdateFrame = CreateFrame("Frame")
-local ONUPDATE_INTERVAL = 0.1
 local rsUpdateTimer = 0
 
 RS.onUpdateFrame:SetScript("OnUpdate", function(self, elapsed)
   rsUpdateTimer = rsUpdateTimer + elapsed
 
-  if rsUpdateTimer >= ONUPDATE_INTERVAL then
+  -- Ping x 3 defines the click frequency. But never go faster than 140 ms
+  local _down, _up, pingHome, pingWorld = GetNetStats();
+  local maxPing = math.max(pingHome, pingWorld)
+  local updateInterval = math.max(0.140, (maxPing * 3) / 1000)
+
+  if rsUpdateTimer >= updateInterval then
     rsUpdateTimer = 0
 
     if RS.currentlyRestocking then

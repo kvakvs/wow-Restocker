@@ -1,3 +1,8 @@
+## Restocker TBC 2021.10.1
+
+- Interval between bank clicks is now calculated based on ping to server (ping x3 but no faster than 140 ms which is 7 times per
+  second).
+
 ## Restocker TBC 2021.9.2
 
 - A new editbox added to require vendor NPC reaction (neutral, friendly, honored or exalted) to restock each item. Empty value does
