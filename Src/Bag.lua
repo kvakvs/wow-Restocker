@@ -1,7 +1,10 @@
 ---@type RestockerAddon
 local TOC, RS = ...;
+
 ---@class RsBagModule
 local bagModule = RsModule.DeclareModule("Bag") ---@type RsBagModule
+
+local itemModule = RsModule.Import("Item") ---@type RsItemModule
 
 bagModule.BACKPACK_CONTAINER = 0
 bagModule.BANK_CONTAINER = -1
@@ -133,40 +136,56 @@ function bagModule:CheckSpace(bags)
   return false
 end
 
+---From bags list, retrieve items which are not locked and match itemName
+---@param bags table<number, number> List of bags from bagModule.* constants
+---@param itemName string
+---@return table<number, RsContainerItemInfo>
+function bagModule:GetItemCandidates(bags, itemName)
+  local itemCandidates = {} ---@type table<number, RsContainerItemInfo>
+
+  for _, bag in ipairs(bags) do
+    for slot = GetContainerNumSlots(bag), 1, -1 do
+      local containerItemInfo = itemModule:GetContainerItemInfo(bag, slot)
+
+      if containerItemInfo.locked then
+        return true -- can't do nothing now, something is locked, try in 0.1 sec
+      end
+
+      if containerItemInfo.name == itemName then
+        tinsert(itemCandidates, containerItemInfo)
+      end
+    end
+  end
+
+  return itemCandidates
+end
+
 ---@param task table<string, number>
 ---@param moveName string
 ---@param moveAmount number Negative for take from bag, positive for take from bank
 function bagModule:MoveFromBank(task, moveName, moveAmount)
+  -- Build list of move candidates. Sort them to contain smallest stacks first.
+  local moveCandidates = self:GetItemCandidates(bagModule.BANK_BAGS, moveName)
+  table.sort(moveCandidates, itemModule.CompareByStacksizeAscending)
+
   -- For all bank bags and all bank bag slots
-  for _, bag in ipairs(bagModule.BANK_BAGS) do
-    for slot = GetContainerNumSlots(bag), 1, -1 do
-      local _icon, slotCount, slotLocked, _, _, _, slotItemLink, _, _, slotItemId = GetContainerItemInfo(bag, slot)
-      local itemName = slotItemLink and string.match(slotItemLink, "%[(.*)%]")
+  -- Ascending by stack count
+  for _index, containerItemInfo in ipairs(moveCandidates) do
+    if containerItemInfo.count <= moveAmount then
+      UseContainerItem(containerItemInfo.bag, containerItemInfo.slot)
+      task[containerItemInfo.name] = task[containerItemInfo.name] - containerItemInfo.count -- deduct
+      return true -- DONE one step
+    end
 
-      if slotLocked then
-        return true -- can't do nothing now, something is locked, try in 0.1 sec
-      end
+    if containerItemInfo.count > moveAmount then
+      local itemInfo = RS.GetItemInfo(containerItemInfo.itemId)
 
-      if itemName == moveName
-          and slotCount <= moveAmount
-      then
-        UseContainerItem(bag, slot)
-        task[itemName] = task[itemName] - slotCount -- deduct
-        return true -- DONE one step
-      end
+      SplitContainerItem(containerItemInfo.bag, containerItemInfo.slot, moveAmount)
+      --rsPutSplitItemIntoBags(itemInfo, 1, BANK_BAGS, PLAYER_BAGS)
+      bagModule:SplitSwapCursorItem(itemInfo, bagModule.BANK_BAGS)
 
-      if itemName == moveName
-          and slotCount > moveAmount
-      then
-        local itemInfo = RS.GetItemInfo(slotItemId)
-
-        SplitContainerItem(bag, slot, moveAmount)
-        --rsPutSplitItemIntoBags(itemInfo, 1, BANK_BAGS, PLAYER_BAGS)
-        bagModule:SplitSwapCursorItem(itemInfo, bagModule.BANK_BAGS)
-
-        task[itemName] = task[itemName] - moveAmount -- deduct
-        return true -- DONE one step
-      end
+      task[containerItemInfo.name] = task[containerItemInfo.name] - moveAmount -- deduct
+      return true -- DONE one step
     end
   end
   return false -- did not move
@@ -176,39 +195,51 @@ end
 ---@param moveName string
 ---@param moveAmount number Negative for take from bag, positive for take from bank
 function bagModule:MoveToBank(task, moveName, moveAmount)
+  -- Build list of move candidates. Sort them to contain smallest stacks first.
+  local moveCandidates = self:GetItemCandidates(bagModule.PLAYER_BAGS, moveName)
+  table.sort(moveCandidates, itemModule.CompareByStacksizeAscending)
+
   -- For all bank bags and all bank bag slots
-  for _, bag in ipairs(bagModule.PLAYER_BAGS) do
-    for slot = GetContainerNumSlots(bag), 1, -1 do
-      local _icon, slotCount, slotLocked, _, _, _, slotItemLink, _, _, slotItemId = GetContainerItemInfo(bag, slot)
-      local itemName = slotItemLink and string.match(slotItemLink, "%[(.*)%]")
+  for _index, containerItemInfo in ipairs(moveCandidates) do
 
-      if slotLocked then
-        return true -- can't do nothing now, something is locked, try in 0.1 sec
-      end
+    -- Found something to move and its smaller than what we need to move
+    if containerItemInfo.count <= moveAmount then
+      UseContainerItem(containerItemInfo.bag, containerItemInfo.slot)
+      task[containerItemInfo.name] = task[containerItemInfo.name] + containerItemInfo.count -- deduct
+      return true -- moved one
+    end
 
-      -- Found something to move and its smaller than what we need to move
-      if itemName == moveName
-          and slotCount <= moveAmount
-      then
-        UseContainerItem(bag, slot)
-        task[itemName] = task[itemName] + slotCount -- deduct
-        return true -- moved one
-      end
+    -- Found something to move, but its bigger than how many we need to move
+    if containerItemInfo.count > moveAmount then
+      local itemInfo = RS.GetItemInfo(containerItemInfo.itemId)
 
-      -- Found something to move, but its bigger than how many we need to move
-      if itemName == moveName
-          and slotCount > moveAmount
-      then
-        local itemInfo = RS.GetItemInfo(slotItemId)
+      SplitContainerItem(containerItemInfo.bag, containerItemInfo.slot, moveAmount)
+      --rsPutSplitItemIntoBags(itemInfo, 1, PLAYER_BAGS, BANK_BAGS)
+      bagModule:SplitSwapCursorItem(itemInfo, bagModule.PLAYER_BAGS)
 
-        SplitContainerItem(bag, slot, moveAmount)
-        --rsPutSplitItemIntoBags(itemInfo, 1, PLAYER_BAGS, BANK_BAGS)
-        bagModule:SplitSwapCursorItem(itemInfo, bagModule.PLAYER_BAGS)
-
-        task[itemName] = task[itemName] + moveAmount -- add
-        return true -- DONE one step
-      end
+      task[containerItemInfo.name] = task[containerItemInfo.name] + moveAmount -- add
+      return true -- DONE one step
     end
   end
   return false -- did not move
+end
+
+---@return string "ok", "bank" - bank is full, "bag" - bag is full, "both" - both bank and bag are full
+function bagModule:CheckBankBagSpace()
+  local bankFree = self:CheckSpace(bagModule.BANK_BAGS)
+  local bagFree = self:CheckSpace(bagModule.PLAYER_BAGS)
+
+  if bagFree then
+    if bankFree then
+      return "ok"
+    else
+      return "bank"
+    end
+  else
+    if bankFree then
+      return "bag"
+    else
+      return "both"
+    end
+  end
 end

@@ -17,7 +17,7 @@ RS.defaults = {
 
 RS.BAG_ICON = "Interface\\ICONS\\INV_Misc_Bag_10_Green" -- bag icon for add tooltip
 
-function RS:Print(...)
+function RS.Print(...)
   DEFAULT_CHAT_FRAME:AddMessage(RS.addonName .. "- " .. tostringall(...))
 end
 

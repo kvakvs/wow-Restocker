@@ -117,25 +117,6 @@ local function rsCountMoveItems(state)
   return moveCount, task
 end
 
----@return string "ok", "bank" - bank is full, "bag" - bag is full, "both" - both bank and bag are full
-local function rsCheckBankBagSpace()
-  local bankFree = bagModule:CheckSpace(bagModule.BANK_BAGS)
-  local bagFree = bagModule:CheckSpace(bagModule.PLAYER_BAGS)
-  if bagFree then
-    if bankFree then
-      return "ok"
-    else
-      return "bank"
-    end
-  else
-    if bankFree then
-      return "bag"
-    else
-      return "both"
-    end
-  end
-end
-
 ---Coroutine function to unload extra goods into bank and load goods from bank
 local function coroutineBank()
   if not bankModule.bankIsOpen then
@@ -160,7 +141,7 @@ local function coroutineBank()
     return
   end
 
-  local bagCheck = rsCheckBankBagSpace()
+  local bagCheck = bagModule:CheckBankBagSpace()
   if bagCheck == "both" then
     bankModule.currentlyRestocking = false
     RS.Print("Both bag and bank are full, need 1 free slot to begin")
@@ -188,7 +169,7 @@ local function testCoroutineBank()
 end
 
 RS.xxx = testCoroutineBank
-restockerCoroutine = coroutine.create(coroutineBank)
+local restockerCoroutine = coroutine.create(coroutineBank)
 
 
 --
