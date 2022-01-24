@@ -24,6 +24,7 @@ Frames\ListFrame.lua
 Frames\OptionsPanel.lua
 
 Src\Bank.lua
+Src\Merchant.lua
 Src\Cache.lua
 Src\Inspect.lua
 Src\Bag.lua

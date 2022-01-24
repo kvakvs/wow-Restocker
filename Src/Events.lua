@@ -28,7 +28,7 @@ EventFrame:SetScript("OnEvent", function(self, event, ...)
 end)
 
 function EventFrame:ADDON_LOADED(addonName)
-  if addonName ~= "Restocker" then
+  if addonName ~= "RestockerClassic" and addonName ~= "RestockerTBC" then
     return
   end
 

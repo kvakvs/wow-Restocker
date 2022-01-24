@@ -14,12 +14,12 @@ VERSION = '2022.1.0'  # year.month.build_num
 
 UI_VERSION_CLASSIC = '11401'  # patch 1.14.1
 BOM_NAME = 'Restocker'  # Directory and zip name
-BOM_NAME_CLASSIC = BOM_NAME + 'RestockerClassic'  # Directory and zip name
+BOM_NAME_CLASSIC = BOM_NAME + 'Classic'  # Directory and zip name
 BOM_TITLE_CLASSIC = BOM_NAME + ' Classic'  # Title field in TOC
 
-UI_VERSION_CLASSIC_TBC = '20502'  # patch 2.5.2
-BOM_NAME_CLASSIC_TBC = BOM_NAME + 'TBC'  # Directory and zip name
-BOM_TITLE_CLASSIC_TBC = BOM_NAME + ' TBC'  # Title field in TOC
+UI_VERSION_BCC = '20502'  # patch 2.5.2
+BOM_NAME_BCC = BOM_NAME + 'TBC'  # Directory and zip name
+BOM_TITLE_BCC = BOM_NAME + ' TBC'  # Title field in TOC
 
 COPY_DIRS = ['Frames', 'Classes', 'Src']
 COPY_FILES = []
@@ -31,16 +31,24 @@ class BuildTool:
         self.version = VERSION
         self.copy_dirs = COPY_DIRS[:]
         self.copy_files = COPY_FILES[:]
-        self.create_toc(dst=f'{BOM_NAME}-Classic.toc',
+        self.create_toc(dst=BuildTool.toc_name_classic(),
                         ui_version=UI_VERSION_CLASSIC,
                         title=BOM_TITLE_CLASSIC)
-        self.create_toc(dst=f'{BOM_NAME}-BCC.toc',
-                        ui_version=UI_VERSION_CLASSIC_TBC,
-                        title=BOM_TITLE_CLASSIC_TBC)
+        self.create_toc(dst=BuildTool.toc_name_bcc(),
+                        ui_version=UI_VERSION_BCC,
+                        title=BOM_TITLE_BCC)
+
+    @staticmethod
+    def toc_name_bcc():
+        return f'{BOM_NAME_BCC}-BCC.toc'
+
+    @staticmethod
+    def toc_name_classic():
+        return f'{BOM_NAME_CLASSIC}-Classic.toc'
 
     def do_install(self, toc_name: str):
-        self.copy_files.append(f'{toc_name}-BCC.toc')
-        self.copy_files.append(f'{toc_name}-Classic.toc')
+        self.copy_files.append(BuildTool.toc_name_bcc())
+        self.copy_files.append(BuildTool.toc_name_classic())
         dst_path = f'{self.args.dst}/{toc_name}'
 
         if os.path.isdir(dst_path):
@@ -72,8 +80,8 @@ class BuildTool:
                 zip.write(file, f'{toc_name}/{file}')
 
     def do_zip(self, toc_name: str):
-        self.copy_files.append(f'{toc_name}-BCC.toc')
-        self.copy_files.append(f'{toc_name}-Classic.toc')
+        self.copy_files.append(BuildTool.toc_name_bcc())
+        self.copy_files.append(BuildTool.toc_name_classic())
         zip_name = f'{self.args.dst}/{toc_name}-{self.version}.zip'
 
         with zipfile.ZipFile(zip_name, "w", zipfile.ZIP_DEFLATED,
@@ -130,11 +138,11 @@ def main():
 
     if args.command == 'install':
         bt = BuildTool(args)
-        bt.do_install(toc_name=BOM_NAME)
+        bt.do_install(toc_name=BOM_NAME_CLASSIC if args.version == 'classic' else BOM_NAME_BCC)
 
     elif args.command == 'zip':
         bt = BuildTool(args)
-        bt.do_zip(toc_name=BOM_NAME)
+        bt.do_zip(toc_name=BOM_NAME_CLASSIC if args.version == 'classic' else BOM_NAME_BCC)
     else:
         parser.print_help()
 
