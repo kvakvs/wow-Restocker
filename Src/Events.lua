@@ -1,5 +1,11 @@
 ---@type RestockerAddon
 local TOC, RS = ...;
+---@class RsEventsModule
+local eventsModule = RsModule.DeclareModule("Events") ---@type RsEventsModule
+
+local bankModule = RsModule.Import("Bank") ---@type RsBankModule
+local buyiModule = RsModule.Import("BuyIngredients") ---@type RsBuyIngredientsModule
+
 RS.loaded = false
 RS.addItemWait = {}
 RS.bankIsOpen = false
@@ -33,7 +39,7 @@ EventFrame:SetScript("OnEvent", function(self, event, ...)
 end)
 
 function EventFrame:ADDON_LOADED(addonName)
-  if addonName ~= "RestockerClassic" and addonName ~= "RestockerTBC" then
+  if addonName ~= "RestockerClassic" and addonName ~= "RestockerTBC" and addonName ~= "Restocker" then
     return
   end
 
@@ -68,6 +74,7 @@ function EventFrame:ADDON_LOADED(addonName)
   RS:Show()
   RS:Hide()
 
+  RsModule:CallInEachModule("OnModuleInit")
   RS.loaded = true
 end
 
@@ -218,7 +225,7 @@ function EventFrame:BANKFRAME_OPENED(isMinor)
   else
     RS.minorChange = false
   end
-  RS.didBankStuff = false
+  bankModule.didBankStuff = false
   RS.bankIsOpen = true
   RS.currentlyRestocking = true
   RS.onUpdateFrame:Show()
@@ -244,7 +251,7 @@ function EventFrame:GET_ITEM_INFO_RECEIVED(itemID, success)
   end
 
   -- If this was an autobuy item setup item request
-  if #RS.buyIngredientsWait > 0 then
+  if #buyiModule.buyIngredientsWait > 0 then
     RS.RetryWaitRecipes()
   end
 

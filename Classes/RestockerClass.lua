@@ -7,7 +7,8 @@ local _, RS = ...;
 ---@field loaded boolean
 ---@field bankIsOpen boolean
 ---@field merchantIsOpen boolean
----@field TBC boolean Whether we are running TBC or Classic Era
+---@field TBC boolean Whether we are running on TBC
+---@field Classic boolean Whether we are running on Classic or Season of Mastery
 ---
 ---@field addItemWait table<number, any> Item ids waiting for resolution to be added to the buy list
 ---@field buyIngredients table<string, RsRecipe> Auto buy table contains ingredients to buy if restocking some crafted item

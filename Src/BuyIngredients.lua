@@ -4,6 +4,12 @@
 ---@type RestockerAddon
 local _, RS = ...;
 
+---@class RsBuyIngredientsModule
+local buyiModule = RsModule.DeclareModule("BuyIngredients") ---@type RsBuyIngredientsModule
+
+buyiModule.buyIngredients = {}
+buyiModule.buyIngredientsWait = {}
+
 --- From 2 choices return TBC if BOM.TBC is true, otherwise return classic
 local function tbcOrClassic(tbc, classic)
   if RS.TBC then
@@ -16,9 +22,9 @@ end
 local function rsAddCraftableRecipe(recipe)
   -- Two situations can happen:
   -- 1. GetItemInfo will work and return all values required
-  -- 2. Some values will not work - then we place the task into RS.buyIngredientsWait and do later
+  -- 2. Some values will not work - then we place the task into buyiModule.buyIngredientsWait and do later
   local function postpone()
-    RS.buyIngredientsWait[recipe.item.id] = recipe
+    buyiModule.buyIngredientsWait[recipe.item.id] = recipe
   end
 
   local itemVal = RS.GetItemInfo(recipe.item.id) --- @type GIICacheItem
@@ -60,8 +66,8 @@ local function rsAddCraftableRecipe(recipe)
   end
 
   --RS.Dbg("Added craft recipe for item " .. recipe.item.id)
-  RS.buyIngredients[itemVal.itemName] = recipe -- added with localized name key
-  RS.buyIngredientsWait[recipe.item.id] = nil -- delete the waiting one
+  buyiModule.buyIngredients[itemVal.itemName] = recipe -- added with localized name key
+  buyiModule.buyIngredientsWait[recipe.item.id] = nil -- delete the waiting one
 end
 
 ---@param item RsItem
@@ -74,7 +80,7 @@ local function rsAddCraftable(item, reagent1, reagent2, reagent3)
 end
 
 function RS.RetryWaitRecipes()
-  for _, recipe in pairs(RS.buyIngredientsWait) do
+  for _, recipe in pairs(buyiModule.buyIngredientsWait) do
     rsAddCraftableRecipe(recipe)
   end
 end
@@ -92,9 +98,6 @@ local function rsAddCraftable_CLASSIC(item, reagent1, reagent2, reagent3)
 end
 
 function RS.SetupAutobuyIngredients()
-  RS.buyIngredients = {}
-  RS.buyIngredientsWait = {}
-
   local maidensAnguish = { RS.RsItem:Create(2931, "Maiden's Anguish"), 1 } -- always 1 in crafts
   local dustOfDeter = RS.RsItem:Create(8924, "Dust of Deterioration")
   local dustOfDecay = RS.RsItem:Create(2928, "Dust of Decay")
@@ -210,7 +213,7 @@ function RS.CraftingPurchaseOrder()
 
   -- Check auto-buy reagents table
   for _, item in ipairs(Restocker.profiles[Restocker.currentProfile]) do
-    if RS.buyIngredients[item.itemName] ~= nil then
+    if buyiModule.buyIngredients[item.itemName] ~= nil then
       local craftedName = item.itemName
       local craftedRestockAmount = item.amount
       local haveCrafted = GetItemCount(item.itemID, true)
@@ -226,7 +229,7 @@ function RS.CraftingPurchaseOrder()
       end
 
       if craftedMissing >= minDifference and craftedMissing > 0 then
-        local recipe = RS.buyIngredients[craftedName]
+        local recipe = buyiModule.buyIngredients[craftedName]
 
         ---@type table<RsItem|number> each element in ingredients is {RsItem, Count :: number}
         for _, ingredient in pairs(recipe.ingredients) do

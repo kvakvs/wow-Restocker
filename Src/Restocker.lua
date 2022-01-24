@@ -1,10 +1,9 @@
----@type RestockerAddon
-local _, RS = ...
+local _, RS = ... ---@type RestockerAddon
 
-local list  = {} ---@type table<number, RsRestockItem>
+local list = {} ---@type table<number, RsRestockItem>
 
 ---@type RestockerConf
-Restocker   = Restocker or {}
+Restocker = Restocker or {}
 RS_ADDON = RS
 
 RS.defaults = {
@@ -20,18 +19,15 @@ function RS:Print(...)
 end
 
 RS.slashPrefix = "|cff8d63ff/restocker|r "
-RS.addonName   = "|cff8d63ffRestocker|r "
+RS.addonName = "|cff8d63ffRestocker|r "
 
-function RS.IsTBC()
-  local function get_version()
-    return select(4, GetBuildInfo())
-  end
+--- Addon is running on Classic TBC client
+---@type boolean
+RS.TBC = WOW_PROJECT_ID == WOW_PROJECT_BURNING_CRUSADE_CLASSIC
 
-  local ui_ver = get_version()
-  return ui_ver >= 20000 and ui_ver <= 29999
-end
-
-RS.TBC = RS.IsTBC()
+--- Addon is running on Classic "Vanilla" client: Means Classic Era and its seasons like SoM
+---@type boolean
+RS.Classic = WOW_PROJECT_ID == WOW_PROJECT_CLASSIC
 
 function RS:Show()
   local menu = RS.MainFrame or RS:CreateMenu();
@@ -64,7 +60,7 @@ RS.commands = {
 ]]
 function RS:SlashCommand(args)
   local command, rest = strsplit(" ", args, 2)
-  command             = command:lower()
+  command = command:lower()
 
   if command == "show" then
     RS:Show()
@@ -184,10 +180,10 @@ end
 ]]
 ---@param newProfile string
 function RS:AddProfile(newProfile)
-  Restocker.currentProfile       = newProfile ---@type string
+  Restocker.currentProfile = newProfile ---@type string
   Restocker.profiles[newProfile] = {} ---@type RsRestockItem
 
-  local menu                     = RS.MainFrame or RS:CreateMenu()
+  local menu = RS.MainFrame or RS:CreateMenu()
   menu:Show()
   RS:Update()
 
@@ -206,11 +202,11 @@ function RS:DeleteProfile(profile)
   if currentProfile == profile then
     if #Restocker.profiles > 1 then
       Restocker.profiles[currentProfile] = nil
-      Restocker.currentProfile           = Restocker.profiles[1]
+      Restocker.currentProfile = Restocker.profiles[1]
     else
       Restocker.profiles[currentProfile] = nil
-      Restocker.currentProfile           = "default"
-      Restocker.profiles.default         = {}
+      Restocker.currentProfile = "default"
+      Restocker.profiles.default = {}
     end
 
   else
@@ -218,7 +214,7 @@ function RS:DeleteProfile(profile)
   end
 
   UIDropDownMenu_SetText(RS.optionsPanel.deleteProfileMenu, "")
-  local menu                    = RS.MainFrame or RS:CreateMenu()
+  local menu = RS.MainFrame or RS:CreateMenu()
   RS.profileSelectedForDeletion = ""
   UIDropDownMenu_SetText(RS.MainFrame.profileDropDownMenu, Restocker.currentProfile)
 
@@ -228,12 +224,12 @@ end
   RENAME PROFILE
 ]]
 function RS:RenameCurrentProfile(newName)
-  local currentProfile               = Restocker.currentProfile
+  local currentProfile = Restocker.currentProfile
 
-  Restocker.profiles[newName]        = Restocker.profiles[currentProfile]
+  Restocker.profiles[newName] = Restocker.profiles[currentProfile]
   Restocker.profiles[currentProfile] = nil
 
-  Restocker.currentProfile           = newName
+  Restocker.currentProfile = newName
 
   UIDropDownMenu_SetText(RS.MainFrame.profileDropDownMenu, Restocker.currentProfile)
 end
@@ -267,7 +263,7 @@ end
   COPY PROFILE
 ]]
 function RS:CopyProfile(profileToCopy)
-  local copyProfile                            = CopyTable(Restocker.profiles[profileToCopy])
+  local copyProfile = CopyTable(Restocker.profiles[profileToCopy])
   Restocker.profiles[Restocker.currentProfile] = copyProfile
   RS:Update()
 end
@@ -322,12 +318,11 @@ end
 --- This is executed before addon initialization is finished
 local function Init()
   RS.currentlyRestocking = false
-  RS.itemsRestocked      = {}
-  RS.restockedItems      = false
-  RS.framepool           = {}
-  RS.hiddenFrame         = CreateFrame("Frame", nil, UIParent):Hide()
+  RS.itemsRestocked = {}
+  RS.restockedItems = false
+  RS.framepool = {}
+  RS.hiddenFrame = CreateFrame("Frame", nil, UIParent):Hide()
   RS:loadSettings()
-  RS.SetupBankConstants()
 end
 
 RS.ICON_FORMAT = "|T%s:0:0:0:0:64:64:4:60:4:60|t"

@@ -9,6 +9,7 @@
 ## DefaultState: enabled
 ## SavedVariablesPerCharacter: Restocker
 
+Src\Module.lua
 Classes\RestockerClass.lua
 Classes\Item.lua
 Classes\BuyItem.lua
@@ -25,6 +26,7 @@ Frames\OptionsPanel.lua
 Helpers\Bank.lua
 Helpers\Cache.lua
 Helpers\Inspect.lua
+Helpers\Bag.lua
 
 Src\Restocker.lua
 
