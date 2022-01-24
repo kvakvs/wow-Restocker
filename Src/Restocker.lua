@@ -2,6 +2,9 @@ local _, RS = ... ---@type RestockerAddon
 
 local list = {} ---@type table<number, RsRestockItem>
 
+local bankModule = RsModule.Import("Bank") ---@type RsBankModule
+local merchantModule = RsModule.Import("Merchant") ---@type RsMerchantModule
+
 ---@type RestockerConf
 Restocker = Restocker or {}
 RS_ADDON = RS
@@ -245,11 +248,11 @@ function RS:ChangeProfile(newProfile)
   --print(RS.defaults.prefix .. "current profile: ".. Restocker.currentProfile)
   RS:Update()
 
-  if RS.bankIsOpen then
+  if bankModule.bankIsOpen then
     RS:BANKFRAME_OPENED(true)
   end
 
-  if RS.merchantIsOpen then
+  if merchantModule.merchantIsOpen then
     RS:MERCHANT_SHOW()
   end
 end

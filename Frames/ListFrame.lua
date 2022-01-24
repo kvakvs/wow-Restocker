@@ -1,6 +1,8 @@
 ---@type RestockerAddon
 local _, RS = ...;
 
+local bankModule = RsModule.Import("Bank") ---@type RsBankModule
+
 ---Create an amount edit box, aligning to the left of alignFrame
 local function rsAmountEditBox(frame, alignFrame)
   local editBox = CreateFrame("EditBox", nil, frame, "InputBoxTemplate");
@@ -24,7 +26,7 @@ local function rsAmountEditBox(frame, alignFrame)
     editBox:ClearFocus()
     self:SetText(tonumber(amount));
     RS:Update()
-    if RS.bankIsOpen then
+    if bankModule.bankIsOpen then
       RS:BANKFRAME_OPENED(true)
     end
 

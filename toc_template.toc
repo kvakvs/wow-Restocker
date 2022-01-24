@@ -23,10 +23,10 @@ Frames\MainFrame.lua
 Frames\ListFrame.lua
 Frames\OptionsPanel.lua
 
-Helpers\Bank.lua
-Helpers\Cache.lua
-Helpers\Inspect.lua
-Helpers\Bag.lua
+Src\Bank.lua
+Src\Cache.lua
+Src\Inspect.lua
+Src\Bag.lua
 
 Src\Restocker.lua
 

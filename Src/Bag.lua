@@ -132,3 +132,83 @@ function bagModule:CheckSpace(bags)
   end
   return false
 end
+
+---@param task table<string, number>
+---@param moveName string
+---@param moveAmount number Negative for take from bag, positive for take from bank
+function bagModule:MoveFromBank(task, moveName, moveAmount)
+  -- For all bank bags and all bank bag slots
+  for _, bag in ipairs(bagModule.BANK_BAGS) do
+    for slot = GetContainerNumSlots(bag), 1, -1 do
+      local _icon, slotCount, slotLocked, _, _, _, slotItemLink, _, _, slotItemId = GetContainerItemInfo(bag, slot)
+      local itemName = slotItemLink and string.match(slotItemLink, "%[(.*)%]")
+
+      if slotLocked then
+        return true -- can't do nothing now, something is locked, try in 0.1 sec
+      end
+
+      if itemName == moveName
+          and slotCount <= moveAmount
+      then
+        UseContainerItem(bag, slot)
+        task[itemName] = task[itemName] - slotCount -- deduct
+        return true -- DONE one step
+      end
+
+      if itemName == moveName
+          and slotCount > moveAmount
+      then
+        local itemInfo = RS.GetItemInfo(slotItemId)
+
+        SplitContainerItem(bag, slot, moveAmount)
+        --rsPutSplitItemIntoBags(itemInfo, 1, BANK_BAGS, PLAYER_BAGS)
+        bagModule:SplitSwapCursorItem(itemInfo, bagModule.BANK_BAGS)
+
+        task[itemName] = task[itemName] - moveAmount -- deduct
+        return true -- DONE one step
+      end
+    end
+  end
+  return false -- did not move
+end
+
+---@param task table<string, number>
+---@param moveName string
+---@param moveAmount number Negative for take from bag, positive for take from bank
+function bagModule:MoveToBank(task, moveName, moveAmount)
+  -- For all bank bags and all bank bag slots
+  for _, bag in ipairs(bagModule.PLAYER_BAGS) do
+    for slot = GetContainerNumSlots(bag), 1, -1 do
+      local _icon, slotCount, slotLocked, _, _, _, slotItemLink, _, _, slotItemId = GetContainerItemInfo(bag, slot)
+      local itemName = slotItemLink and string.match(slotItemLink, "%[(.*)%]")
+
+      if slotLocked then
+        return true -- can't do nothing now, something is locked, try in 0.1 sec
+      end
+
+      -- Found something to move and its smaller than what we need to move
+      if itemName == moveName
+          and slotCount <= moveAmount
+      then
+        UseContainerItem(bag, slot)
+        task[itemName] = task[itemName] + slotCount -- deduct
+        return true -- moved one
+      end
+
+      -- Found something to move, but its bigger than how many we need to move
+      if itemName == moveName
+          and slotCount > moveAmount
+      then
+        local itemInfo = RS.GetItemInfo(slotItemId)
+
+        SplitContainerItem(bag, slot, moveAmount)
+        --rsPutSplitItemIntoBags(itemInfo, 1, PLAYER_BAGS, BANK_BAGS)
+        bagModule:SplitSwapCursorItem(itemInfo, bagModule.PLAYER_BAGS)
+
+        task[itemName] = task[itemName] + moveAmount -- add
+        return true -- DONE one step
+      end
+    end
+  end
+  return false -- did not move
+end

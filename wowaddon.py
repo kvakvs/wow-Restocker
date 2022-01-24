@@ -21,7 +21,7 @@ UI_VERSION_CLASSIC_TBC = '20502'  # patch 2.5.2
 BOM_NAME_CLASSIC_TBC = BOM_NAME + 'TBC'  # Directory and zip name
 BOM_TITLE_CLASSIC_TBC = BOM_NAME + ' TBC'  # Title field in TOC
 
-COPY_DIRS = ['Frames', 'Helpers', 'Classes', 'Src']
+COPY_DIRS = ['Frames', 'Classes', 'Src']
 COPY_FILES = []
 
 
