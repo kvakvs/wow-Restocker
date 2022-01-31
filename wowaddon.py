@@ -10,7 +10,7 @@ import subprocess
 import sys
 import zipfile
 
-VERSION = '2022.1.0'  # year.month.build_num
+VERSION = '2022.1.1'  # year.month.build_num
 
 UI_VERSION_CLASSIC = '11401'  # patch 1.14.1
 BOM_NAME = 'Restocker'  # Directory and zip name
@@ -21,7 +21,7 @@ UI_VERSION_BCC = '20502'  # patch 2.5.2
 BOM_NAME_BCC = BOM_NAME + 'TBC'  # Directory and zip name
 BOM_TITLE_BCC = BOM_NAME + ' TBC'  # Title field in TOC
 
-COPY_DIRS = ['Frames', 'Classes', 'Src']
+COPY_DIRS = ['Frames', 'Classes', 'Src', ]
 COPY_FILES = []
 
 
@@ -40,15 +40,14 @@ class BuildTool:
 
     @staticmethod
     def toc_name_bcc():
-        return f'{BOM_NAME_BCC}-BCC.toc'
+        return f'{BOM_NAME_BCC}.toc'
 
     @staticmethod
     def toc_name_classic():
-        return f'{BOM_NAME_CLASSIC}-Classic.toc'
+        return f'{BOM_NAME_CLASSIC}.toc'
 
     def do_install(self, toc_name: str):
-        self.copy_files.append(BuildTool.toc_name_bcc())
-        self.copy_files.append(BuildTool.toc_name_classic())
+        self.copy_files.append(f'{toc_name}.toc')
         dst_path = f'{self.args.dst}/{toc_name}'
 
         if os.path.isdir(dst_path):
@@ -80,8 +79,7 @@ class BuildTool:
                 zip.write(file, f'{toc_name}/{file}')
 
     def do_zip(self, toc_name: str):
-        self.copy_files.append(BuildTool.toc_name_bcc())
-        self.copy_files.append(BuildTool.toc_name_classic())
+        self.copy_files.append(f'{toc_name}.toc')
         zip_name = f'{self.args.dst}/{toc_name}-{self.version}.zip'
 
         with zipfile.ZipFile(zip_name, "w", zipfile.ZIP_DEFLATED,

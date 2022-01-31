@@ -12,7 +12,7 @@ buyiModule.buyIngredientsWait = {}
 
 --- From 2 choices return TBC if BOM.TBC is true, otherwise return classic
 local function tbcOrClassic(tbc, classic)
-  if RS.TBC then
+  if RS.IsTBC then
     return tbc
   end
   return classic
@@ -86,13 +86,13 @@ function RS.RetryWaitRecipes()
 end
 
 local function rsAddCraftable_TBC(item, reagent1, reagent2, reagent3)
-  if RS.TBC then
+  if RS.IsTBC then
     rsAddCraftable(item, reagent1, reagent2, reagent3)
   end
 end
 
 local function rsAddCraftable_CLASSIC(item, reagent1, reagent2, reagent3)
-  if not RS.TBC then
+  if not RS.IsTBC then
     rsAddCraftable(item, reagent1, reagent2, reagent3)
   end
 end
@@ -127,11 +127,11 @@ function RS.SetupAutobuyIngredients()
   rsAddCraftable_TBC(instant3, { dustOfDeter, 2 }, leadedVial)
   rsAddCraftable_TBC(instant2, { dustOfDecay, 1 }, leadedVial)
 
-  rsAddCraftable_CLASSIC(instant6, { dustOfDeter, 4 }, emptyVial)
-  rsAddCraftable_CLASSIC(instant5, { dustOfDeter, 3 }, emptyVial)
-  rsAddCraftable_CLASSIC(instant4, { dustOfDeter, 2 }, emptyVial)
-  rsAddCraftable_CLASSIC(instant3, { dustOfDeter, 1 }, emptyVial)
-  rsAddCraftable_CLASSIC(instant2, { dustOfDecay, 3 }, emptyVial)
+  rsAddCraftable_CLASSIC(instant6, { dustOfDeter, 4 }, crystalVial)
+  rsAddCraftable_CLASSIC(instant5, { dustOfDeter, 3 }, crystalVial)
+  rsAddCraftable_CLASSIC(instant4, { dustOfDeter, 2 }, crystalVial)
+  rsAddCraftable_CLASSIC(instant3, { dustOfDeter, 1 }, leadedVial)
+  rsAddCraftable_CLASSIC(instant2, { dustOfDecay, 3 }, leadedVial)
 
   rsAddCraftable(instant1, { dustOfDecay, 1 }, emptyVial)
 
@@ -142,7 +142,7 @@ function RS.SetupAutobuyIngredients()
   local crip1 = RS.RsItem:Create(3775, "Crippling Poison")
 
   rsAddCraftable_TBC(crip2, { essOfAgony, 1 }, crystalVial)
-  rsAddCraftable_CLASSIC(crip2, { essOfAgony, 3 }, emptyVial)
+  rsAddCraftable_CLASSIC(crip2, { essOfAgony, 3 }, crystalVial)
 
   rsAddCraftable(crip1, { essOfPain, 1 }, emptyVial)
 
@@ -165,11 +165,11 @@ function RS.SetupAutobuyIngredients()
   rsAddCraftable_TBC(deadly2, { deathweed, 2 }, leadedVial)
   rsAddCraftable_TBC(deadly1, { deathweed, 1 }, leadedVial)
 
-  rsAddCraftable_CLASSIC(deadly5, { deathweed, 7 }, emptyVial)
-  rsAddCraftable_CLASSIC(deadly4, { deathweed, 5 }, emptyVial)
-  rsAddCraftable_CLASSIC(deadly3, { deathweed, 3 }, emptyVial)
-  rsAddCraftable_CLASSIC(deadly2, { deathweed, 2 }, emptyVial)
-  rsAddCraftable_CLASSIC(deadly1, { deathweed, 1 }, emptyVial)
+  rsAddCraftable_CLASSIC(deadly5, { deathweed, 7 }, crystalVial)
+  rsAddCraftable_CLASSIC(deadly4, { deathweed, 5 }, crystalVial)
+  rsAddCraftable_CLASSIC(deadly3, { deathweed, 3 }, crystalVial)
+  rsAddCraftable_CLASSIC(deadly2, { deathweed, 2 }, leadedVial)
+  rsAddCraftable_CLASSIC(deadly1, { deathweed, 1 }, leadedVial)
 
   -- MIND-NUMBING POISONS
   local mindNumbing3 = RS.RsItem:Create(9186, "Mind-numbing Poison III")
@@ -180,8 +180,8 @@ function RS.SetupAutobuyIngredients()
   rsAddCraftable_TBC(mindNumbing2, { essOfAgony, 1 }, leadedVial)
   rsAddCraftable_TBC(mindNumbing1, { dustOfDecay, 1 }, emptyVial)
 
-  rsAddCraftable_CLASSIC(mindNumbing3, { dustOfDeter, 2 }, { essOfAgony, 2 }, emptyVial)
-  rsAddCraftable_CLASSIC(mindNumbing2, { dustOfDecay, 4 }, { essOfPain, 4 }, emptyVial)
+  rsAddCraftable_CLASSIC(mindNumbing3, { dustOfDeter, 2 }, { essOfAgony, 2 }, crystalVial)
+  rsAddCraftable_CLASSIC(mindNumbing2, { dustOfDecay, 4 }, { essOfPain, 4 }, leadedVial)
   rsAddCraftable_CLASSIC(mindNumbing1, { dustOfDecay, 1 }, { essOfPain, 1 }, emptyVial)
 
   -- WOUND POISONS
@@ -197,10 +197,10 @@ function RS.SetupAutobuyIngredients()
   rsAddCraftable_TBC(wound2, { essOfPain, 1 }, { deathweed, 1 }, leadedVial)
   rsAddCraftable_TBC(wound1, { essOfPain, 1 }, leadedVial)
 
-  rsAddCraftable_CLASSIC(wound4, { essOfAgony, 2 }, { deathweed, 2 }, emptyVial)
-  rsAddCraftable_CLASSIC(wound3, { essOfAgony, 1 }, { deathweed, 2 }, emptyVial)
-  rsAddCraftable_CLASSIC(wound2, { essOfPain, 1 }, { deathweed, 2 }, emptyVial)
-  rsAddCraftable_CLASSIC(wound1, { essOfPain, 1 }, { deathweed, 1 }, emptyVial)
+  rsAddCraftable_CLASSIC(wound4, { essOfAgony, 2 }, { deathweed, 2 }, crystalVial)
+  rsAddCraftable_CLASSIC(wound3, { essOfAgony, 1 }, { deathweed, 2 }, crystalVial)
+  rsAddCraftable_CLASSIC(wound2, { essOfPain, 1 }, { deathweed, 2 }, leadedVial)
+  rsAddCraftable_CLASSIC(wound1, { essOfPain, 1 }, { deathweed, 1 }, leadedVial)
 
   -- ANESTHETIC POISON
   local anesth1 = RS.RsItem:Create(21835, "Anesthetic Poison")

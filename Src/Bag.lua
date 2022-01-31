@@ -21,7 +21,7 @@ bagModule.BANK_BAGS_REVERSED = {} -- set up in RS.SetupBankConstants
 
 function bagModule.OnModuleInit()
   -- -1 bank container, 0 backpack, 1234 bags, 5-10 or 5-11 is TBC bank
-  if RS.TBC then
+  if RS.IsTBC then
     bagModule.BANK_BAGS = { bagModule.BANK_CONTAINER, 5, 6, 7, 8, 9, 10, 11 }
     bagModule.BANK_BAGS_REVERSED = { 11, 10, 9, 8, 7, 6, 5, bagModule.BANK_CONTAINER }
   else
@@ -140,11 +140,21 @@ end
 ---@param bags table<number, number> List of bags from bagModule.* constants
 ---@param itemName string
 ---@return table<number, RsContainerItemInfo>
-function bagModule:GetItemCandidates(bags, itemName)
+---@param orderReverse boolean True to iterate from end to start
+function bagModule:GetItemCandidates(bags, itemName, orderReverse)
   local itemCandidates = {} ---@type table<number, RsContainerItemInfo>
 
+  local start = 1
+  local stop = GetContainerNumSlots(bag)
+  local step = 1
+  if orderReverse then
+    start = GetContainerNumSlots(bag)
+    stop = 1
+    step = -1
+  end
+
   for _, bag in ipairs(bags) do
-    for slot = GetContainerNumSlots(bag), 1, -1 do
+    for slot = start, stop, step do
       local containerItemInfo = itemModule:GetContainerItemInfo(bag, slot)
 
       if containerItemInfo.locked then
@@ -165,7 +175,7 @@ end
 ---@param moveAmount number Negative for take from bag, positive for take from bank
 function bagModule:MoveFromBank(task, moveName, moveAmount)
   -- Build list of move candidates. Sort them to contain smallest stacks first.
-  local moveCandidates = self:GetItemCandidates(bagModule.BANK_BAGS, moveName)
+  local moveCandidates = self:GetItemCandidates(bagModule.BANK_BAGS_REVERSED, moveName, true)
   table.sort(moveCandidates, itemModule.CompareByStacksizeAscending)
 
   -- For all bank bags and all bank bag slots
@@ -191,12 +201,12 @@ function bagModule:MoveFromBank(task, moveName, moveAmount)
   return false -- did not move
 end
 
----@param task table<string, number>
+---@param task table<string, number> How many items should arrive or depart to player bags
 ---@param moveName string
 ---@param moveAmount number Negative for take from bag, positive for take from bank
 function bagModule:MoveToBank(task, moveName, moveAmount)
   -- Build list of move candidates. Sort them to contain smallest stacks first.
-  local moveCandidates = self:GetItemCandidates(bagModule.PLAYER_BAGS, moveName)
+  local moveCandidates = self:GetItemCandidates(bagModule.PLAYER_BAGS_REVERSED, moveName, true)
   table.sort(moveCandidates, itemModule.CompareByStacksizeAscending)
 
   -- For all bank bags and all bank bag slots

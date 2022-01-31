@@ -7,7 +7,7 @@ local merchantModule = RsModule.Import("Merchant") ---@type RsMerchantModule
 
 ---@type RestockerConf
 Restocker = Restocker or {}
-RS_ADDON = RS
+RS_ADDON = RS ---@type RestockerAddon
 
 RS.defaults = {
   prefix = "|cff8d63ffRestocker|r ",
@@ -25,12 +25,13 @@ RS.slashPrefix = "|cff8d63ff/restocker|r "
 RS.addonName = "|cff8d63ffRestocker|r "
 
 --- Addon is running on Classic TBC client
----@type boolean
-RS.TBC = WOW_PROJECT_ID == WOW_PROJECT_BURNING_CRUSADE_CLASSIC
-
+RS.IsTBC = WOW_PROJECT_ID == WOW_PROJECT_BURNING_CRUSADE_CLASSIC
 --- Addon is running on Classic "Vanilla" client: Means Classic Era and its seasons like SoM
----@type boolean
-RS.Classic = WOW_PROJECT_ID == WOW_PROJECT_CLASSIC
+RS.IsClassic = WOW_PROJECT_ID == WOW_PROJECT_CLASSIC
+--- Addon is running on Classic "Vanilla" client and on Era realm
+RS.IsEra = Questie.IsClassic and (not C_Seasons.HasActiveSeason())
+--- Addon is running on Classic "Vanilla" client and on Seasons of Mastery realm
+RS.IsSoM = Questie.IsClassic and C_Seasons.HasActiveSeason() and (C_Seasons.GetActiveSeason() == Enum.SeasonID.SeasonOfMastery)
 
 function RS:Show()
   local menu = RS.MainFrame or RS:CreateMenu();
