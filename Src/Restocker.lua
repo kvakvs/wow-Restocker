@@ -29,9 +29,9 @@ RS.IsTBC = WOW_PROJECT_ID == WOW_PROJECT_BURNING_CRUSADE_CLASSIC
 --- Addon is running on Classic "Vanilla" client: Means Classic Era and its seasons like SoM
 RS.IsClassic = WOW_PROJECT_ID == WOW_PROJECT_CLASSIC
 --- Addon is running on Classic "Vanilla" client and on Era realm
-RS.IsEra = Questie.IsClassic and (not C_Seasons.HasActiveSeason())
+RS.IsEra = RS.IsClassic and (not C_Seasons.HasActiveSeason())
 --- Addon is running on Classic "Vanilla" client and on Seasons of Mastery realm
-RS.IsSoM = Questie.IsClassic and C_Seasons.HasActiveSeason() and (C_Seasons.GetActiveSeason() == Enum.SeasonID.SeasonOfMastery)
+RS.IsSoM = RS.IsClassic and C_Seasons.HasActiveSeason() and (C_Seasons.GetActiveSeason() == Enum.SeasonID.SeasonOfMastery)
 
 function RS:Show()
   local menu = RS.MainFrame or RS:CreateMenu();

@@ -1,3 +1,7 @@
+## Restocker TBC 2022.2.1
+
+- `[Bug]` Accidentally introduced dependency on Questie, now fixed.
+
 ## Restocker TBC 2022.1.1
 
 - Rogue poisons ingredients for classic were wrong from the Wowhead guide. Now updated to the
