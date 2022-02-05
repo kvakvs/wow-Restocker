@@ -1,9 +1,10 @@
-## Restocker TBC 2022.2.3
+## Restocker TBC 2022.2.3, -.4
 
-- Improved bank to bag movements, less erratic stacks creation, do not leave 
-  temporary stacks
+- Improved bank to bag movements, less erratic stacks creation, do not leave temporary stacks
 - Classic/SoM rogue restocking fixed
 - Migrated addon startup and events to AceAddon/AceEvents
+- `[Bug]` UI error when trying to Shift+click links in chat due to main frame being not initialized
+- `[Bug]` Configuration error on first install, must initialize to empty dictionary
 
 ## Restocker TBC 2022.2.1
 
