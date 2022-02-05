@@ -1,6 +1,9 @@
-## Restocker TBC 2022.2.2
+## Restocker TBC 2022.2.3
 
-- `[Bug]` Fixing reverse bag iteration to prefer latest items over oldest
+- Improved bank to bag movements, less erratic stacks creation, do not leave 
+  temporary stacks
+- Classic/SoM rogue restocking fixed
+- Migrated addon startup and events to AceAddon/AceEvents
 
 ## Restocker TBC 2022.2.1
 
