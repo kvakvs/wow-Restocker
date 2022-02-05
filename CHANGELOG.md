@@ -1,3 +1,7 @@
+## Restocker TBC 2022.2.2
+
+- `[Bug]` Fixing reverse bag iteration to prefer latest items over oldest
+
 ## Restocker TBC 2022.2.1
 
 - `[Bug]` Accidentally introduced dependency on Questie, now fixed.
