@@ -1,12 +1,16 @@
-local _, RS = ... ---@type RestockerAddon
+local TOCNAME, _ADDONPRIVATE = ... ---@type RestockerAddon
+
+---@class RsRestockerModule
+local restockerModule = RsModule.DeclareModule("Restocker") ---@type RsRestockerModule
 
 local list = {} ---@type table<number, RsRestockItem>
 
 local bankModule = RsModule.Import("Bank") ---@type RsBankModule
+local eventsModule = RsModule.Import("Events") ---@type RsEventsModule
 local merchantModule = RsModule.Import("Merchant") ---@type RsMerchantModule
 
----@type RestockerConf
-Restocker = Restocker or {}
+local RS = LibStub("AceAddon-3.0"):NewAddon(
+  "Restocker", "AceConsole-3.0", "AceEvent-3.0") ---@type RestockerAddon
 RS_ADDON = RS ---@type RestockerAddon
 
 RS.defaults = {
@@ -17,9 +21,9 @@ RS.defaults = {
 
 RS.BAG_ICON = "Interface\\ICONS\\INV_Misc_Bag_10_Green" -- bag icon for add tooltip
 
-function RS.Print(...)
-  DEFAULT_CHAT_FRAME:AddMessage(RS.addonName .. "- " .. tostringall(...))
-end
+--function RS.Print(...)
+--  DEFAULT_CHAT_FRAME:AddMessage(RS.addonName .. "- " .. tostringall(...))
+--end
 
 RS.slashPrefix = "|cff8d63ff/restocker|r "
 RS.addonName = "|cff8d63ffRestocker|r "
@@ -34,18 +38,25 @@ RS.IsEra = RS.IsClassic and (not C_Seasons.HasActiveSeason())
 RS.IsSoM = RS.IsClassic and C_Seasons.HasActiveSeason() and (C_Seasons.GetActiveSeason() == Enum.SeasonID.SeasonOfMastery)
 
 function RS:Show()
-  local menu = RS.MainFrame or RS:CreateMenu();
-  menu:Show()
-  return RS:Update()
+  if RS.loaded then
+    local menu = RS.MainFrame or RS:CreateMenu();
+    menu:Show()
+    return RS:Update()
+  end
 end
 
 function RS:Hide()
-  local menu = RS.MainFrame or RS:CreateMenu();
-  return menu:Hide()
+  if RS.loaded then
+    local menu = RS.MainFrame or RS:CreateMenu();
+    return menu:Hide()
+  end
 end
 
 function RS:Toggle()
-  return RS.MainFrame:SetShown(not RS.MainFrame:IsShown()) or false
+  if RS.loaded then
+    local menu = RS.MainFrame or RS:CreateMenu();
+    return menu:SetShown(not menu:IsShown()) or false
+  end
 end
 
 RS.commands = {
@@ -72,7 +83,7 @@ function RS:SlashCommand(args)
   elseif command == "profile" then
     if rest == "" or rest == nil then
       for _, v in pairs(RS.commands.profile) do
-        RS.Print(v)
+        RS:Print(v)
       end
       return
     end
@@ -97,10 +108,10 @@ function RS:SlashCommand(args)
     for _, v in pairs(RS.commands) do
       if type(v) == "table" then
         for _, vv in pairs(v) do
-          RS.Print(vv)
+          RS:Print(vv)
         end
       else
-        RS.Print(v)
+        RS:Print(v)
       end
     end
     return
@@ -128,12 +139,12 @@ function RS:Update()
     tinsert(list, v)
   end
 
-  if Restocker.sortListAlphabetically then
+  if RS.sortListAlphabetically then
     table.sort(list, function(a, b)
       return a.itemName < b.itemName
     end)
 
-  elseif Restocker.sortListNumerically then
+  elseif RS.sortListNumerically then
     table.sort(list, function(a, b)
       return a.amount > b.amount
     end)
@@ -192,8 +203,6 @@ function RS:AddProfile(newProfile)
   RS:Update()
 
   UIDropDownMenu_SetText(RS.MainFrame.profileDropDownMenu, Restocker.currentProfile)
-
-
 end
 
 
@@ -218,10 +227,10 @@ function RS:DeleteProfile(profile)
   end
 
   UIDropDownMenu_SetText(RS.optionsPanel.deleteProfileMenu, "")
+
   local menu = RS.MainFrame or RS:CreateMenu()
   RS.profileSelectedForDeletion = ""
   UIDropDownMenu_SetText(RS.MainFrame.profileDropDownMenu, Restocker.currentProfile)
-
 end
 
 --[[
@@ -250,11 +259,11 @@ function RS:ChangeProfile(newProfile)
   RS:Update()
 
   if bankModule.bankIsOpen then
-    RS:BANKFRAME_OPENED(true)
+    eventsModule.OnBankOpen(true)
   end
 
   if merchantModule.merchantIsOpen then
-    RS:MERCHANT_SHOW()
+    eventsModule.OnMerchantShow()
   end
 end
 
@@ -307,26 +316,9 @@ function RS:loadSettings()
   end
 end
 
----Print a text with "Restocker: " prefix in the game chat window
----@param t string
-function RS.Print(t)
-  local name = "Restocker"
-  DEFAULT_CHAT_FRAME:AddMessage("|c80808080" .. name .. "|r: " .. t)
-end
-
 function RS.Dbg(t)
   local name = "RsDbg"
   DEFAULT_CHAT_FRAME:AddMessage("|cffbb3333" .. name .. "|r: " .. t)
-end
-
---- This is executed before addon initialization is finished
-local function Init()
-  RS.currentlyRestocking = false
-  RS.itemsRestocked = {}
-  RS.restockedItems = false
-  RS.framepool = {}
-  RS.hiddenFrame = CreateFrame("Frame", nil, UIParent):Hide()
-  RS:loadSettings()
 end
 
 RS.ICON_FORMAT = "|T%s:0:0:0:0:64:64:4:60:4:60|t"
@@ -338,4 +330,60 @@ function RS.FormatTexture(texture)
   return string.format(RS.ICON_FORMAT, texture)
 end
 
-Init()
+---AceAddon handler
+function RS:OnInitialize()
+  -- do init tasks here, like loading the Saved Variables,
+  -- or setting up slash commands.
+  self.loaded = false
+end
+
+---AceAddon handler
+function RS:OnEnable()
+  self.currentlyRestocking = false
+  self.itemsRestocked = {}
+  self.restockedItems = false
+  self.framepool = {}
+  self.hiddenFrame = CreateFrame("Frame", nil, UIParent):Hide()
+  self:loadSettings()
+
+  -- Do more initialization here, that really enables the use of your addon.
+  -- Register Events, Hook functions, Create Frames, Get information from
+  -- the game that wasn't available in OnInitialize
+  for profile, _ in pairs(Restocker.profiles) do
+    for _, item in ipairs(Restocker.profiles[profile]) do
+      item.itemID = tonumber(item.itemID)
+    end
+  end
+
+  local f = InterfaceOptionsFrame;
+  f:SetMovable(true);
+  f:EnableMouse(true);
+  f:SetUserPlaced(true);
+  f:SetScript("OnMouseDown", f.StartMoving);
+  f:SetScript("OnMouseUp", f.StopMovingOrSizing);
+
+  SLASH_RESTOCKER1 = "/restocker";
+  SLASH_RESTOCKER2 = "/rs";
+  SlashCmdList.RESTOCKER = function(msg)
+    RS:SlashCommand(msg)
+  end
+
+  -- Options tabs
+  RS:CreateOptionsMenu(TOCNAME)
+
+  RS:Show()
+  RS:Hide()
+
+  eventsModule:InitEvents()
+
+  RsModule:CallInEachModule("OnModuleInit")
+  RS.loaded = true
+
+  if Restocker.loginMessage then
+    RS:Print("Initialized")
+  end
+end
+
+---AceAddon handler
+function RS:OnDisable()
+end

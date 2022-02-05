@@ -1,5 +1,6 @@
----@type RestockerAddon
-local TOC, RS = ...;
+local _TOCNAME, _ADDONPRIVATE = ... ---@type RestockerAddon
+local RS = RS_ADDON ---@type RestockerAddon
+
 ---@class RsEventsModule
 local eventsModule = RsModule.DeclareModule("Events") ---@type RsEventsModule
 
@@ -10,73 +11,20 @@ local merchantModule = RsModule.Import("Merchant") ---@type RsMerchantModule
 RS.loaded = false
 RS.addItemWait = {}
 
-local EventFrame = CreateFrame("Frame");
-RS.EventFrame = EventFrame
+--local EventFrame = CreateFrame("Frame");
+--RS.EventFrame = EventFrame
 
-EventFrame:RegisterEvent("ADDON_LOADED");
-EventFrame:RegisterEvent("MERCHANT_SHOW");
-EventFrame:RegisterEvent("MERCHANT_CLOSED");
-EventFrame:RegisterEvent("BANKFRAME_OPENED");
-EventFrame:RegisterEvent("BANKFRAME_CLOSED");
-EventFrame:RegisterEvent("GET_ITEM_INFO_RECEIVED");
-EventFrame:RegisterEvent("PLAYER_LOGOUT");
-EventFrame:RegisterEvent("PLAYER_ENTERING_WORLD");
-EventFrame:RegisterEvent("UI_ERROR_MESSAGE");
+--EventFrame:SetScript("OnEvent", function(self, event, ...)
+--  return self[event] and self[event](self, ...)
+--end)
 
-EventFrame:SetScript("OnEvent", function(self, event, ...)
-  return self[event] and self[event](self, ...)
-end)
-
-function EventFrame:ADDON_LOADED(addonName)
-  if addonName ~= "RestockerClassic" and addonName ~= "RestockerTBC" then
-    return
-  end
-
-  -- NEW RESTOCKER
-  RS:loadSettings()
-
-  for profile, _ in pairs(Restocker.profiles) do
-    for _, item in ipairs(Restocker.profiles[profile]) do
-      item.itemID = tonumber(item.itemID)
-    end
-  end
-
-  local f = InterfaceOptionsFrame;
-  f:SetMovable(true);
-  f:EnableMouse(true);
-  f:SetUserPlaced(true);
-  f:SetScript("OnMouseDown", f.StartMoving);
-  f:SetScript("OnMouseUp", f.StopMovingOrSizing);
-
-  SLASH_RESTOCKER1 = "/restocker";
-  SLASH_RESTOCKER2 = "/rs";
-  SlashCmdList.RESTOCKER = function(msg)
-    RS:SlashCommand(msg)
-  end
-
-  -- Craftable recipes (rogue poisons, etc)
-  RS.SetupAutobuyIngredients()
-
-  -- Options tabs
-  RS:CreateOptionsMenu(addonName)
-
-  RS:Show()
-  RS:Hide()
-
-  RsModule:CallInEachModule("OnModuleInit")
-  RS.loaded = true
+function eventsModule.OnEnteringWorld(login, reloadui)
 end
 
-function EventFrame:PLAYER_ENTERING_WORLD(login, reloadui)
-  if not RS.loaded then
-    return
-  end
-  if (login or reloadui) and Restocker.loginMessage then
-    RS.Print("Loaded")
-  end
-end
+function eventsModule.OnMerchantShow()
+  -- prevents double init but sometimes does not init when entering world too soon?
+  buyiModule:SetupAutobuyIngredients()
 
-function EventFrame:MERCHANT_SHOW()
   RS.buying = true
 
   if not Restocker.autoBuy then
@@ -91,12 +39,12 @@ function EventFrame:MERCHANT_SHOW()
   merchantModule:Restock()
 end
 
-function EventFrame:MERCHANT_CLOSED()
+function eventsModule.OnMerchantClose()
   merchantModule.merchantIsOpen = false
   RS:Hide()
 end
 
-function EventFrame:BANKFRAME_OPENED(isMinor)
+function eventsModule.OnBankOpen(isMinor)
   if IsShiftKeyDown()
       or not Restocker.restockFromBank
       or Restocker.profiles[Restocker.currentProfile] == nil then
@@ -118,21 +66,13 @@ function EventFrame:BANKFRAME_OPENED(isMinor)
   RS.onUpdateFrame:Show()
 end
 
-function RS:BANKFRAME_OPENED(bool)
-  EventFrame:BANKFRAME_OPENED(not not bool)
-end
-
-function RS:MERCHANT_SHOW()
-  EventFrame:MERCHANT_SHOW()
-end
-
-function EventFrame:BANKFRAME_CLOSED()
+function eventsModule.OnBankClose()
   bankModule.bankIsOpen = false
   bankModule.currentlyRestocking = false
   RS:Hide()
 end
 
-function EventFrame:GET_ITEM_INFO_RECEIVED(itemID, success)
+function eventsModule.OnItemInfoReceived(itemID, success)
   if success == nil then
     return
   end
@@ -149,7 +89,7 @@ function EventFrame:GET_ITEM_INFO_RECEIVED(itemID, success)
   end
 end
 
-function EventFrame:PLAYER_LOGOUT()
+function eventsModule.OnLogout()
   if Restocker.framePos == nil then
     Restocker.framePos = {}
   end
@@ -165,10 +105,22 @@ function EventFrame:PLAYER_LOGOUT()
   Restocker.framePos.yOfs = yOfs
 end
 
-function EventFrame:UI_ERROR_MESSAGE(id, message)
+function eventsModule.OnUiErrorMessage(id, message)
   if id == 2 or id == 3 then
     -- catch inventory / bank full error messages
     bankModule.currentlyRestocking = false
     RS.buying = false
   end
+end
+
+function eventsModule:InitEvents()
+  --RS:RegisterEvent("ADDON_LOADED", self.OnAddonLoaded);
+  RS:RegisterEvent("MERCHANT_SHOW", self.OnMerchantShow);
+  RS:RegisterEvent("MERCHANT_CLOSED", self.OnMerchantClose);
+  RS:RegisterEvent("BANKFRAME_OPENED", self.OnBankOpen);
+  RS:RegisterEvent("BANKFRAME_CLOSED", self.OnBankClose);
+  RS:RegisterEvent("GET_ITEM_INFO_RECEIVED", self.OnItemInfoReceived);
+  RS:RegisterEvent("PLAYER_LOGOUT", self.OnLogout);
+  RS:RegisterEvent("PLAYER_ENTERING_WORLD", self.OnEnteringWorld);
+  RS:RegisterEvent("UI_ERROR_MESSAGE", self.OnUiErrorMessage);
 end

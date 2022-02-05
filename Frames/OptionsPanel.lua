@@ -1,5 +1,5 @@
----@type RestockerAddon
-local _, RS                   = ...
+local _TOCNAME, _ADDONPRIVATE = ... ---@type RestockerAddon
+local RS = RS_ADDON ---@type RestockerAddon
 
 RS.profileSelectedForDeletion = ""
 
@@ -64,14 +64,14 @@ function RS:CreateOptionsMenu(name)
   sortListAlphabetically:SetSize(25, 25)
   sortListAlphabetically:SetPoint("TOPLEFT", autoOpenAtBank, "BOTTOMLEFT", 0, 0)
   sortListAlphabetically:SetScript("OnClick", function(self, button)
-    Restocker.sortListAlphabetically = self:GetChecked()
+    RS.sortListAlphabetically = self:GetChecked()
     if self:GetChecked() then
       optionsPanel.sortListNumerically:SetChecked(false)
-      Restocker.sortListNumerically = false
+      RS.sortListNumerically = false
     end
     RS:Update()
   end)
-  sortListAlphabetically:SetChecked(Restocker.sortListAlphabetically)
+  sortListAlphabetically:SetChecked(RS.sortListAlphabetically)
   optionsPanel.sortListAlphabetically = sortListAlphabetically
 
   local sortListAlphabeticallyText    = sortListAlphabetically:CreateFontString(nil, "OVERLAY")
@@ -84,14 +84,14 @@ function RS:CreateOptionsMenu(name)
   sortListNumerically:SetSize(25, 25)
   sortListNumerically:SetPoint("TOPLEFT", sortListAlphabetically, "BOTTOMLEFT", 0, 0)
   sortListNumerically:SetScript("OnClick", function(self, button)
-    Restocker.sortListNumerically = self:GetChecked()
+    RS.sortListNumerically = self:GetChecked()
     if self:GetChecked() then
       optionsPanel.sortListAlphabetically:SetChecked(false)
-      Restocker.sortListAlphabetically = false
+      RS.sortListAlphabetically = false
     end
     RS:Update()
   end)
-  sortListNumerically:SetChecked(Restocker.sortListNumerically)
+  sortListNumerically:SetChecked(RS.sortListNumerically)
   optionsPanel.sortListNumerically = sortListNumerically
 
   local sortListNumericallyText    = sortListNumerically:CreateFontString(nil, "OVERLAY")

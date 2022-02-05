@@ -21,8 +21,8 @@ UI_VERSION_BCC = '20502'  # patch 2.5.2
 BOM_NAME_BCC = BOM_NAME + 'TBC'  # Directory and zip name
 BOM_TITLE_BCC = BOM_NAME + ' TBC'  # Title field in TOC
 
-COPY_DIRS = ['Frames', 'Classes', 'Src', ]
-COPY_FILES = []
+COPY_DIRS = ['Frames', 'Classes', 'Src', 'Ace3']
+COPY_FILES = ['embeds.xml']
 
 
 class BuildTool:

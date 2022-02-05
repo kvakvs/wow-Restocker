@@ -1,7 +1,9 @@
----@type RestockerAddon
-local _, RS = ...;
+local _TOCNAME, _ADDONPRIVATE = ... ---@type RestockerAddon
+local RS = RS_ADDON ---@type RestockerAddon
 
 local bankModule = RsModule.Import("Bank") ---@type RsBankModule
+
+local eventsModule = RsModule.Import("Events") ---@type RsEventsModule
 
 ---Create an amount edit box, aligning to the left of alignFrame
 local function rsAmountEditBox(frame, alignFrame)
@@ -27,7 +29,7 @@ local function rsAmountEditBox(frame, alignFrame)
     self:SetText(tonumber(amount));
     RS:Update()
     if bankModule.bankIsOpen then
-      RS:BANKFRAME_OPENED(true)
+      eventsModule.OnBankOpen(true)
     end
 
   end);

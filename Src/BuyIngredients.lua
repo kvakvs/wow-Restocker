@@ -1,22 +1,14 @@
 --
 --This Module contains auto-buy table for ingredients for craftable items (example rogue poisons)
 --
----@type RestockerAddon
-local _, RS = ...;
+local _TOCNAME, _ADDONPRIVATE = ... ---@type RestockerAddon
+local RS = RS_ADDON ---@type RestockerAddon
 
 ---@class RsBuyIngredientsModule
 local buyiModule = RsModule.DeclareModule("BuyIngredients") ---@type RsBuyIngredientsModule
 
 buyiModule.buyIngredients = {}
 buyiModule.buyIngredientsWait = {}
-
---- From 2 choices return TBC if BOM.TBC is true, otherwise return classic
-local function tbcOrClassic(tbc, classic)
-  if RS.IsTBC then
-    return tbc
-  end
-  return classic
-end
 
 ---@param recipe RsRecipe
 local function rsAddCraftableRecipe(recipe)
@@ -97,7 +89,11 @@ local function rsAddCraftable_CLASSIC(item, reagent1, reagent2, reagent3)
   end
 end
 
-function RS.SetupAutobuyIngredients()
+function buyiModule:SetupAutobuyIngredients()
+  if next(self.buyIngredients) then
+    return -- do not double-init
+  end
+
   local maidensAnguish = { RS.RsItem:Create(2931, "Maiden's Anguish"), 1 } -- always 1 in crafts
   local dustOfDeter = RS.RsItem:Create(8924, "Dust of Deterioration")
   local dustOfDecay = RS.RsItem:Create(2928, "Dust of Decay")
@@ -208,7 +204,7 @@ function RS.SetupAutobuyIngredients()
 end
 
 --- Check if any of the items user wants to restock are on our crafting autobuy list
-function RS.CraftingPurchaseOrder()
+function buyiModule:CraftingPurchaseOrder()
   local purchaseOrder = {} ---@type table<string, number> Maps localized item name to buy count
 
   -- Check auto-buy reagents table
@@ -253,4 +249,9 @@ function RS.CraftingPurchaseOrder()
   end
 
   return purchaseOrder
+end
+
+function buyiModule.OnModuleInit()
+  -- Craftable recipes (rogue poisons, etc)
+  buyiModule:SetupAutobuyIngredients()
 end

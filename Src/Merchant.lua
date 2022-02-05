@@ -1,5 +1,5 @@
----@type RestockerAddon
-local _, RS = ...;
+local _TOCNAME, _ADDONPRIVATE = ... ---@type RestockerAddon
+local RS = RS_ADDON ---@type RestockerAddon
 
 ---@class RsMerchantModule
 ---@field merchantIsOpen boolean
@@ -7,6 +7,8 @@ local _, RS = ...;
 local merchantModule = RsModule.DeclareModule("Merchant") ---@type RsMerchantModule
 merchantModule.merchantIsOpen = false
 merchantModule.lastTimeRestocked = GetTime()
+
+local buyiModule = RsModule.Import("BuyIngredients") ---@type RsBuyIngredientsModule
 
 --local bagModule = RsModule.Import("Bag") ---@type RsBagModule
 
@@ -35,7 +37,7 @@ function merchantModule:Restock()
     RS:Show()
   end
 
-  local craftingPurchaseOrder = RS.CraftingPurchaseOrder() or {}
+  local craftingPurchaseOrder = buyiModule:CraftingPurchaseOrder() or {}
 
   ---@type table<string, RsBuyItem>
   local purchaseOrders = {}
@@ -51,7 +53,7 @@ function merchantModule:Restock()
     local requiredReaction = item.reaction or 0
 
     if requiredReaction > vendorReaction then
-      -- (spammy) RS.Print(string.format("Not buying: %s (too low reputation)", item.itemName))
+      -- (spammy) RS:Print(string.format("Not buying: %s (too low reputation)", item.itemName))
     elseif amount > 0 then
       local toBuy = amount - haveInBag
 
@@ -120,6 +122,6 @@ function merchantModule:Restock()
 
 
   if numPurchases > 0 then
-    RS.Print("Finished restocking (" .. numPurchases .. " purchase orders done)")
+    RS:Print("Finished restocking (" .. numPurchases .. " purchase orders done)")
   end
 end

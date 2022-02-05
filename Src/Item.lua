@@ -1,5 +1,5 @@
----@type RestockerAddon
-local _, RS = ...;
+local _TOCNAME, _ADDONPRIVATE = ... ---@type RestockerAddon
+local RS = RS_ADDON ---@type RestockerAddon
 
 ---@class RsItemModule
 local itemModule = RsModule.DeclareModule("Item") ---@type RsItemModule

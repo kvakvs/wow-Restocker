@@ -1,6 +1,7 @@
----@type RestockerAddon
-local _, RS       = ...;
+local _TOCNAME, _ADDONPRIVATE = ... ---@type RestockerAddon
+local RS = RS_ADDON ---@type RestockerAddon
 
+-- TODO: Remove this; move fields to RestockerAddon
 ---@class RestockerConf
 ---@field profiles table<string, table<string, number>>
 ---@field currentProfile string

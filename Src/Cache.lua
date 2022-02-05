@@ -1,5 +1,5 @@
----@type RestockerAddon
-local _TOCNAME, RS = ...
+local _TOCNAME, _ADDONPRIVATE = ... ---@type RestockerAddon
+local RS = RS_ADDON ---@type RestockerAddon
 
 ---@class GIICacheItem
 ---@field itemName string

@@ -9,7 +9,12 @@
 ## DefaultState: enabled
 ## SavedVariablesPerCharacter: Restocker
 
+# --- load first ---
+embeds.xml
 Src\Module.lua
+Src\Restocker.lua
+# --- end load first ---
+
 Classes\RestockerClass.lua
 Classes\Item.lua
 Classes\BuyItem.lua
@@ -30,7 +35,6 @@ Src\Cache.lua
 Src\Inspect.lua
 Src\Bag.lua
 
-Src\Restocker.lua
 
 #
 # Do not edit - this file is generated from TOC_TEMPLATE.TOC

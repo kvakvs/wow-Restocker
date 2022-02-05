@@ -1,5 +1,5 @@
----@type RestockerAddon
-local _, RS    = ...;
+local _TOCNAME, _ADDONPRIVATE = ... ---@type RestockerAddon
+local RS = RS_ADDON ---@type RestockerAddon
 
 RS.hiddenFrame = CreateFrame("Frame", nil, UIParent)
 RS.hiddenFrame:Hide()
@@ -9,8 +9,8 @@ function RS:CreateMenu()
     FRAME
   ]]
 
-  local addonFrame  = CreateFrame("Frame", "RestockerMainFrame", UIParent, "BasicFrameTemplate");
-  addonFrame.width  = 300
+  local addonFrame = CreateFrame("Frame", "RestockerMainFrame", UIParent, "BasicFrameTemplate");
+  addonFrame.width = 300
   addonFrame.height = 400
   addonFrame:SetSize(addonFrame.width, addonFrame.height);
   addonFrame:SetPoint(Restocker.framePos.point or "RIGHT",
@@ -27,8 +27,8 @@ function RS:CreateMenu()
   --[[
     INSET
   ]]
-  local listInset  = CreateFrame("Frame", nil, addonFrame, "InsetFrameTemplate3");
-  listInset.width  = addonFrame.width - 6
+  local listInset = CreateFrame("Frame", nil, addonFrame, "InsetFrameTemplate3");
+  listInset.width = addonFrame.width - 6
   listInset.height = addonFrame.height - 76
   listInset:SetSize(listInset.width, listInset.height);
   listInset:SetPoint("TOPLEFT", addonFrame, "TOPLEFT", 2, -22);
@@ -37,9 +37,9 @@ function RS:CreateMenu()
   --[[
     SCROLL FRAME
   ]]
-  local scrollFrame    = CreateFrame("ScrollFrame", nil, addonFrame, "UIPanelScrollFrameTemplate")
-  scrollFrame.width    = addonFrame.listInset.width - 4
-  scrollFrame.height   = addonFrame.listInset.height - 32
+  local scrollFrame = CreateFrame("ScrollFrame", nil, addonFrame, "UIPanelScrollFrameTemplate")
+  scrollFrame.width = addonFrame.listInset.width - 4
+  scrollFrame.height = addonFrame.listInset.height - 32
   scrollFrame:SetSize(scrollFrame.width - 30, scrollFrame.height);
   scrollFrame:SetPoint("TOPLEFT", listInset, "TOPLEFT", 8, -6);
   addonFrame.scrollFrame = scrollFrame
@@ -47,9 +47,9 @@ function RS:CreateMenu()
   --[[
     SCROLL CHILD
   ]]
-  local scrollChild      = CreateFrame("Frame", nil, ScrollFrame)
-  scrollChild.width      = scrollFrame:GetWidth()
-  scrollChild.height     = scrollFrame:GetHeight()
+  local scrollChild = CreateFrame("Frame", nil, ScrollFrame)
+  scrollChild.width = scrollFrame:GetWidth()
+  scrollChild.height = scrollFrame:GetHeight()
   scrollChild:SetWidth(scrollChild.width)
   scrollChild:SetHeight(scrollChild.height - 10)
   addonFrame.scrollChild = scrollChild
@@ -72,7 +72,7 @@ function RS:CreateMenu()
   --[[
     EDITBOX & ADD BUTTON GROUP
   ]]
-  local addGrp     = CreateFrame("Frame", nil, addonFrame);
+  local addGrp = CreateFrame("Frame", nil, addonFrame);
   addGrp:SetPoint("BOTTOM", addonFrame.listInset, "BOTTOM", 0, 2);
   addGrp:SetSize(listInset.width - 5, 25);
   addonFrame.addGrp = addGrp
@@ -81,7 +81,7 @@ function RS:CreateMenu()
 
 
   -- Add button
-  local addBtn      = CreateFrame("Button", nil, addonFrame.addGrp, "GameMenuButtonTemplate");
+  local addBtn = CreateFrame("Button", nil, addonFrame.addGrp, "GameMenuButtonTemplate");
   addBtn:SetPoint("BOTTOMRIGHT", addonFrame.addGrp, "BOTTOMRIGHT");
   addBtn:SetSize(60, 25);
   addBtn:SetText("Add");
@@ -89,7 +89,7 @@ function RS:CreateMenu()
   addBtn:SetHighlightFontObject("GameFontHighlight");
   addBtn:SetScript("OnClick", function(self, button, down)
     local editBox = self:GetParent():GetParent().editBox
-    local text    = editBox:GetText()
+    local text = editBox:GetText()
 
     RS:addItem(text);
 
@@ -136,7 +136,7 @@ function RS:CreateMenu()
   end)
 
   addonFrame.editBox = editBox
-  addonFrame.addBtn  = addBtn
+  addonFrame.addBtn = addBtn
 
   -- END OF GROUP
 
@@ -147,7 +147,7 @@ function RS:CreateMenu()
   ]]
 
   -- Checkbox for autobuy
-  local checkbox     = CreateFrame("CheckButton", nil, addonFrame, "UICheckButtonTemplate");
+  local checkbox = CreateFrame("CheckButton", nil, addonFrame, "UICheckButtonTemplate");
   checkbox:SetPoint("TOPLEFT", addonFrame.listInset, "BOTTOMLEFT", 2, -1)
   checkbox:SetSize(25, 25)
   checkbox:SetChecked(Restocker.autoBuy);
@@ -157,7 +157,7 @@ function RS:CreateMenu()
   addonFrame.checkbox = checkbox
 
   -- Auto buy text
-  local checkboxText  = addonFrame:CreateFontString(nil, "OVERLAY");
+  local checkboxText = addonFrame:CreateFontString(nil, "OVERLAY");
   checkboxText:SetFontObject("GameFontHighlight");
   checkboxText:SetPoint("LEFT", checkbox, "RIGHT", 1, 1);
   checkboxText:SetText("Auto buy items");
@@ -169,7 +169,7 @@ function RS:CreateMenu()
     AUTO RESTOCK FROM BANK
   ]]
   -- Checkbox for auto restock from bank
-  local checkboxBank      = CreateFrame("CheckButton", nil, addonFrame, "UICheckButtonTemplate");
+  local checkboxBank = CreateFrame("CheckButton", nil, addonFrame, "UICheckButtonTemplate");
   checkboxBank:SetPoint("LEFT", addonFrame.checkbox, "RIGHT", 100, 0)
   checkboxBank:SetSize(25, 25)
   checkboxBank:SetChecked(Restocker.restockFromBank);
@@ -179,7 +179,7 @@ function RS:CreateMenu()
   addonFrame.checkboxBank = checkboxBank
 
   -- Auto restock from bank text
-  local checkboxBankText  = addonFrame:CreateFontString(nil, "OVERLAY");
+  local checkboxBankText = addonFrame:CreateFontString(nil, "OVERLAY");
   checkboxBankText:SetFontObject("GameFontHighlight");
   checkboxBankText:SetPoint("LEFT", checkboxBank, "RIGHT", 1, 1);
   checkboxBankText:SetText("Restock from bank");
@@ -194,7 +194,7 @@ function RS:CreateMenu()
   --[[
     PROFILES
   ]]
-  local profileText       = addonFrame:CreateFontString(nil, "OVERLAY")
+  local profileText = addonFrame:CreateFontString(nil, "OVERLAY")
   profileText:SetPoint("BOTTOMLEFT", addonFrame, "BOTTOMLEFT", 10, 12)
   profileText:SetFontObject("GameFontNormal")
   profileText:SetText("Profile:")
@@ -212,18 +212,18 @@ function RS:CreateMenu()
     end
 
     for profileName, _ in pairs(Restocker.profiles) do
-      local info   = UIDropDownMenu_CreateInfo()
+      local info = UIDropDownMenu_CreateInfo()
 
-      info.text    = profileName
-      info.arg1    = profileName
-      info.func    = RS.DropDownMenuSelectProfile
+      info.text = profileName
+      info.arg1 = profileName
+      info.func = RS.DropDownMenuSelectProfile
       info.checked = profileName == Restocker.currentProfile
 
       UIDropDownMenu_AddButton(info, 1)
     end
   end
 
-  addonFrame.profileDropDownMenu           = Restocker_ProfileDropDownMenu
+  addonFrame.profileDropDownMenu = Restocker_ProfileDropDownMenu
 
   tinsert(UISpecialFrames, "RestockerMainFrame")
   addonFrame:Hide()
@@ -235,7 +235,7 @@ end
 
 -- Handle shiftclicks of items
 local origChatEdit_InsertLink = ChatEdit_InsertLink;
-ChatEdit_InsertLink           = function(link)
+ChatEdit_InsertLink = function(link)
   if RS.MainFrame.editBox:IsVisible() and RS.MainFrame.editBox:HasFocus() then
     return RS:addItem(link)
   end
@@ -268,12 +268,12 @@ function RS:addItem(text)
     end
   end
 
-  local T    = {}
+  local T = {}
 
   T.itemName = itemInfo.itemName
   T.itemLink = itemInfo.itemLink
-  T.itemID   = itemID
-  T.amount   = 1
+  T.itemID = itemID
+  T.amount = 1
 
   tinsert(Restocker.profiles[Restocker.currentProfile], T)
 

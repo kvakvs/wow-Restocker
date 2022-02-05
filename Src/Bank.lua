@@ -1,5 +1,5 @@
----@type RestockerAddon
-local _, RS = ...;
+local _TOCNAME, _ADDONPRIVATE = ... ---@type RestockerAddon
+local RS = RS_ADDON ---@type RestockerAddon
 
 ---@class RsBankModule
 ---@field bankIsOpen boolean
@@ -121,7 +121,7 @@ end
 local function coroutineBank()
   if not bankModule.bankIsOpen then
     bankModule.currentlyRestocking = false
-    RS.Print("Bank is not open")
+    RS:Print("Bank is not open")
     return
   end
 
@@ -137,22 +137,22 @@ local function coroutineBank()
 
   if moveCount < 1 then
     bankModule.currentlyRestocking = false
-    RS.Print("Finished restocking")
+    RS:Print("Finished restocking")
     return
   end
 
   local bagCheck = bagModule:CheckBankBagSpace()
   if bagCheck == "both" then
     bankModule.currentlyRestocking = false
-    RS.Print("Both bag and bank are full, need 1 free slot to begin")
+    RS:Print("Both bag and bank are full, need 1 free slot to begin")
     return
   elseif bagCheck == "bank" then
     bankModule.currentlyRestocking = false
-    RS.Print("Bank is full, need 1 free slot to begin")
+    RS:Print("Bank is full, need 1 free slot to begin")
     return
   elseif bagCheck == "bag" then
     bankModule.currentlyRestocking = false
-    RS.Print("Bag is full, need 1 free slot to begin")
+    RS:Print("Bag is full, need 1 free slot to begin")
     return
   end
 

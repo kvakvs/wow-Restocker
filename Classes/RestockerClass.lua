@@ -1,5 +1,5 @@
----@type RestockerAddon
-local _, RS = ...;
+local _TOCNAME, _ADDONPRIVATE = ... ---@type RestockerAddon
+local RS = RS_ADDON ---@type RestockerAddon
 
 ---@class RestockerAddon
 ---@field MainFrame table Main frame of the addon
