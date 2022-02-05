@@ -150,7 +150,7 @@ end
 ---@param itemName string
 ---@return table<number, RsContainerItemInfo>
 ---@param orderReverse boolean True to iterate from end to start
-function bagModule:GetItemCandidates(bags, itemName, orderReverse)
+function bagModule:ScanBagsForItemname(bags, itemName, orderReverse)
   local itemCandidates = {} ---@type table<number, RsContainerItemInfo>
 
   for _, bag in ipairs(bags) do
@@ -184,33 +184,35 @@ end
 ---@param moveName string
 ---@param moveAmount number Negative for take from bag, positive for take from bank
 function bagModule:MoveFromBank(task, moveName, moveAmount)
-  -- Build list of move candidates. Sort them to contain smallest stacks first.
-  local moveCandidates = self:GetItemCandidates(
-      self:GetBankBags(true),
-      moveName,
-      true)
-  table.sort(moveCandidates, itemModule.CompareByStacksizeAscending)
+  local bankBagsReverse = self:GetBankBags(true)
 
-  -- For all bank bags and all bank bag slots
-  -- Ascending by stack count
-  for _index, containerItemInfo in ipairs(moveCandidates) do
-    if containerItemInfo.count <= moveAmount then
-      UseContainerItem(containerItemInfo.bag, containerItemInfo.slot)
-      task[containerItemInfo.name] = task[containerItemInfo.name] - containerItemInfo.count -- deduct
-      return true -- DONE one step
+  for _index0, bag in ipairs(bankBagsReverse) do
+    -- Build list of move candidates. Sort them to contain smallest stacks first.
+    local moveCandidates = self:ScanBagsForItemname({ bag }, moveName, true)
+    table.sort(moveCandidates, itemModule.CompareByStacksizeAscending)
+
+    -- For all bank bags and all bank bag slots
+    -- Ascending by stack count
+    for _index, containerItemInfo in ipairs(moveCandidates) do
+      if containerItemInfo.count <= moveAmount then
+        UseContainerItem(containerItemInfo.bag, containerItemInfo.slot)
+        task[containerItemInfo.name] = task[containerItemInfo.name] - containerItemInfo.count -- deduct
+        return true -- DONE one step
+      end
+
+      if containerItemInfo.count > moveAmount then
+        local itemInfo = RS.GetItemInfo(containerItemInfo.itemId)
+
+        SplitContainerItem(containerItemInfo.bag, containerItemInfo.slot, moveAmount)
+        --rsPutSplitItemIntoBags(itemInfo, 1, BANK_BAGS, PLAYER_BAGS)
+        bagModule:SplitSwapCursorItem(itemInfo, bagModule.BANK_BAGS)
+
+        task[containerItemInfo.name] = task[containerItemInfo.name] - moveAmount -- deduct
+        return true -- DONE one step
+      end
     end
+  end -- for bank bags in reverse order
 
-    if containerItemInfo.count > moveAmount then
-      local itemInfo = RS.GetItemInfo(containerItemInfo.itemId)
-
-      SplitContainerItem(containerItemInfo.bag, containerItemInfo.slot, moveAmount)
-      --rsPutSplitItemIntoBags(itemInfo, 1, BANK_BAGS, PLAYER_BAGS)
-      bagModule:SplitSwapCursorItem(itemInfo, bagModule.BANK_BAGS)
-
-      task[containerItemInfo.name] = task[containerItemInfo.name] - moveAmount -- deduct
-      return true -- DONE one step
-    end
-  end
   return false -- did not move
 end
 
@@ -218,35 +220,37 @@ end
 ---@param moveName string
 ---@param moveAmount number Negative for take from bag, positive for take from bank
 function bagModule:MoveToBank(task, moveName, moveAmount)
-  -- Build list of move candidates. Sort them to contain smallest stacks first.
-  local moveCandidates = self:GetItemCandidates(
-      self:GetPlayerBags(true),
-      moveName,
-      true)
-  table.sort(moveCandidates, itemModule.CompareByStacksizeAscending)
+  local playerBags = self:GetPlayerBags(false)
 
-  -- For all bank bags and all bank bag slots
-  for _index, containerItemInfo in ipairs(moveCandidates) do
+  for _index0, bag in ipairs(playerBags) do
+    -- Build list of move candidates. Sort them to contain smallest stacks first.
+    local moveCandidates = self:ScanBagsForItemname({ bag }, moveName, true)
+    table.sort(moveCandidates, itemModule.CompareByStacksizeAscending)
 
-    -- Found something to move and its smaller than what we need to move
-    if containerItemInfo.count <= moveAmount then
-      UseContainerItem(containerItemInfo.bag, containerItemInfo.slot)
-      task[containerItemInfo.name] = task[containerItemInfo.name] + containerItemInfo.count -- deduct
-      return true -- moved one
+    -- For all bank bags and all bank bag slots
+    for _index, containerItemInfo in ipairs(moveCandidates) do
+
+      -- Found something to move and its smaller than what we need to move
+      if containerItemInfo.count <= moveAmount then
+        UseContainerItem(containerItemInfo.bag, containerItemInfo.slot)
+        task[containerItemInfo.name] = task[containerItemInfo.name] + containerItemInfo.count -- deduct
+        return true -- moved one
+      end
+
+      -- Found something to move, but its bigger than how many we need to move
+      if containerItemInfo.count > moveAmount then
+        local itemInfo = RS.GetItemInfo(containerItemInfo.itemId)
+
+        SplitContainerItem(containerItemInfo.bag, containerItemInfo.slot, moveAmount)
+        --rsPutSplitItemIntoBags(itemInfo, 1, PLAYER_BAGS, BANK_BAGS)
+        bagModule:SplitSwapCursorItem(itemInfo, bagModule.PLAYER_BAGS)
+
+        task[containerItemInfo.name] = task[containerItemInfo.name] + moveAmount -- add
+        return true -- DONE one step
+      end
     end
+  end -- for all player bags starting from main bag
 
-    -- Found something to move, but its bigger than how many we need to move
-    if containerItemInfo.count > moveAmount then
-      local itemInfo = RS.GetItemInfo(containerItemInfo.itemId)
-
-      SplitContainerItem(containerItemInfo.bag, containerItemInfo.slot, moveAmount)
-      --rsPutSplitItemIntoBags(itemInfo, 1, PLAYER_BAGS, BANK_BAGS)
-      bagModule:SplitSwapCursorItem(itemInfo, bagModule.PLAYER_BAGS)
-
-      task[containerItemInfo.name] = task[containerItemInfo.name] + moveAmount -- add
-      return true -- DONE one step
-    end
-  end
   return false -- did not move
 end
 

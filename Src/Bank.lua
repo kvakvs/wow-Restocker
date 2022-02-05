@@ -15,42 +15,42 @@ function bankModule.OnModuleInit()
 end
 
 -- unused
-local function rsIsItemInRestockList(item)
-  local type
-  if tonumber(item) then
-    type = "itemID"
-  elseif string.find(item, "Hitem:") then
-    type = "itemLink"
-  else
-    type = "itemName"
-  end
-
-  for _, restockItem in ipairs(Restocker.profiles[Restocker.currentProfile]) do
-    if restockItem[type] == item then
-      return true
-    end
-  end
-  return false
-end
+--local function rsIsItemInRestockList(item)
+--  local type
+--  if tonumber(item) then
+--    type = "itemID"
+--  elseif string.find(item, "Hitem:") then
+--    type = "itemLink"
+--  else
+--    type = "itemName"
+--  end
+--
+--  for _, restockItem in ipairs(Restocker.profiles[Restocker.currentProfile]) do
+--    if restockItem[type] == item then
+--      return true
+--    end
+--  end
+--  return false
+--end
 
 -- unused
-local function rsGetRestockItemIndex(item)
-  local type
-  if tonumber(item) then
-    type = "itemID"
-  elseif string.find(item, "Hitem:") then
-    type = "itemLink"
-  else
-    type = "itemName"
-  end
-
-  for i, restockItem in ipairs(Restocker.profiles[Restocker.currentProfile]) do
-    if restockItem[type] == item then
-      return i
-    end
-  end
-  return nil
-end
+--local function rsGetRestockItemIndex(item)
+--  local type
+--  if tonumber(item) then
+--    type = "itemID"
+--  elseif string.find(item, "Hitem:") then
+--    type = "itemLink"
+--  else
+--    type = "itemName"
+--  end
+--
+--  for i, restockItem in ipairs(Restocker.profiles[Restocker.currentProfile]) do
+--    if restockItem[type] == item then
+--      return i
+--    end
+--  end
+--  return nil
+--end
 
 ---Try move full stacks in or out of bank, if not possible, then try move 1 item at a time.
 ---@param state BankRestockCoroState
