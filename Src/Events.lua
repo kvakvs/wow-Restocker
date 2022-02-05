@@ -4,6 +4,7 @@ local RS = RS_ADDON ---@type RestockerAddon
 ---@class RsEventsModule
 local eventsModule = RsModule.DeclareModule("Events") ---@type RsEventsModule
 
+local bagModule = RsModule.Import("Bag") ---@type RsBagModule
 local bankModule = RsModule.Import("Bank") ---@type RsBankModule
 local buyiModule = RsModule.Import("BuyIngredients") ---@type RsBuyIngredientsModule
 local merchantModule = RsModule.Import("Merchant") ---@type RsMerchantModule
@@ -64,12 +65,16 @@ function eventsModule.OnBankOpen(isMinor)
   bankModule.bankIsOpen = true
   bankModule.currentlyRestocking = true
   RS.onUpdateFrame:Show()
+
+  bagModule:ResetBankRestocker()
 end
 
 function eventsModule.OnBankClose()
   bankModule.bankIsOpen = false
   bankModule.currentlyRestocking = false
   RS:Hide()
+
+  bagModule:ResetBankRestocker()
 end
 
 function eventsModule.OnItemInfoReceived(itemID, success)
@@ -79,7 +84,7 @@ function eventsModule.OnItemInfoReceived(itemID, success)
 
   -- If this was an autobuy item setup item request
   if #buyiModule.buyIngredientsWait > 0 then
-    RS.RetryWaitRecipes()
+    buyiModule:RetryWaitRecipes()
   end
 
   -- If this was an item add request for an unknown item
