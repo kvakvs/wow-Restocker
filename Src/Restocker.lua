@@ -10,8 +10,11 @@ local eventsModule = RsModule.Import("Events") ---@type RsEventsModule
 local merchantModule = RsModule.Import("Merchant") ---@type RsMerchantModule
 
 local RS = LibStub("AceAddon-3.0"):NewAddon(
-  "Restocker", "AceConsole-3.0", "AceEvent-3.0") ---@type RestockerAddon
+    "Restocker", "AceConsole-3.0", "AceEvent-3.0") ---@type RestockerAddon
 RS_ADDON = RS ---@type RestockerAddon
+
+-- Saved variables
+Restocker = Restocker or {}
 
 RS.defaults = {
   prefix = "|cff8d63ffRestocker|r ",
@@ -377,6 +380,11 @@ function RS:OnEnable()
   eventsModule:InitEvents()
 
   RsModule:CallInEachModule("OnModuleInit")
+
+  if not RS.MainFrame then
+    RS:CreateMenu()
+  end -- setup the UI
+
   RS.loaded = true
 
   if Restocker.loginMessage then
