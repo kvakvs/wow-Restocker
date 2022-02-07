@@ -1,4 +1,4 @@
-## Restocker TBC 2022.2.3, -.4, -.5
+## Restocker TBC 2022.2.3, .4, .5, .6
 
 - Improved bank to bag movements, less erratic stacks creation, do not leave temporary stacks
 - Classic/SoM rogue restocking fixed

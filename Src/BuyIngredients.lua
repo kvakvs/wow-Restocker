@@ -83,7 +83,7 @@ function buyiModule:TbcRecipe(item, reagent1, reagent2, reagent3)
 end
 
 function buyiModule:ClassicRecipe(item, reagent1, reagent2, reagent3)
-  if not RS.IsTBC then
+  if RS.IsSoM or RS.IsClassic then
     self:Recipe(item, reagent1, reagent2, reagent3)
   end
 end
