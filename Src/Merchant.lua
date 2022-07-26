@@ -22,7 +22,7 @@ local function countTableItems(T)
 end
 
 function merchantModule:Restock()
-  if countTableItems(Restocker.profiles[Restocker.currentProfile]) == 0 then
+  if countTableItems(RestockerSettings.profiles[RestockerSettings.currentProfile]) == 0 then
     return
   end -- If profile is emtpy then return
 
@@ -33,7 +33,7 @@ function merchantModule:Restock()
   self.lastTimeRestocked = GetTime()
   local numPurchases = 0
 
-  if Restocker.autoOpenAtMerchant then
+  if RestockerSettings.autoOpenAtMerchant then
     RS:Show()
   end
 
@@ -43,7 +43,7 @@ function merchantModule:Restock()
   local purchaseOrders = {}
 
   ---@type table<number, RsBuyItem>
-  local restockList = Restocker.profiles[Restocker.currentProfile]
+  local restockList = RestockerSettings.profiles[RestockerSettings.currentProfile]
   local vendorReaction = UnitReaction("target", "player") or 0
 
   -- Build the Purchase Orders table used for buying items

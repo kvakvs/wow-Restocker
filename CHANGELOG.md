@@ -1,3 +1,10 @@
+## Restocker TBC 2022.7.0
+
+- WotLK compatibility check
+- Merging addon versions for Classic, TBC and WotLK into one. Attempting to 
+  import old settings too. This creates a dummy "RestockerTBC" addon which can be 
+  deleted or ignored.
+
 ## Restocker TBC 2022.2.3, .4, .5, .6
 
 - Improved bank to bag movements, less erratic stacks creation, do not leave temporary stacks

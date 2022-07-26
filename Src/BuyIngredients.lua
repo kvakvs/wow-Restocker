@@ -207,7 +207,7 @@ function buyiModule:CraftingPurchaseOrder()
   local purchaseOrder = {} ---@type table<string, number> Maps localized item name to buy count
 
   -- Check auto-buy reagents table
-  for _, item in ipairs(Restocker.profiles[Restocker.currentProfile]) do
+  for _, item in ipairs(RestockerSettings.profiles[RestockerSettings.currentProfile]) do
     if buyiModule.buyIngredients[item.itemName] ~= nil then
       local craftedName = item.itemName
       local craftedRestockAmount = item.amount

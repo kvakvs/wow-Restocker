@@ -19,9 +19,9 @@ function RS:CreateOptionsMenu(name)
   loginMessage:SetSize(25, 25)
   loginMessage:SetPoint("TOPLEFT", text, "BOTTOMLEFT", 10, -15)
   loginMessage:SetScript("OnClick", function(self, button)
-    Restocker.loginMessage = self:GetChecked()
+    RestockerSettings.loginMessage = self:GetChecked()
   end)
-  loginMessage:SetChecked(Restocker.loginMessage)
+  loginMessage:SetChecked(RestockerSettings.loginMessage)
   optionsPanel.loginMessage = loginMessage
 
   local loginMessageText    = loginMessage:CreateFontString(nil, "OVERLAY")
@@ -34,9 +34,9 @@ function RS:CreateOptionsMenu(name)
   autoOpenAtMerchant:SetSize(25, 25)
   autoOpenAtMerchant:SetPoint("TOPLEFT", loginMessage, "BOTTOMLEFT", 0, 0)
   autoOpenAtMerchant:SetScript("OnClick", function(self, button)
-    Restocker.autoOpenAtMerchant = self:GetChecked()
+    RestockerSettings.autoOpenAtMerchant = self:GetChecked()
   end)
-  autoOpenAtMerchant:SetChecked(Restocker.autoOpenAtMerchant)
+  autoOpenAtMerchant:SetChecked(RestockerSettings.autoOpenAtMerchant)
   optionsPanel.autoOpenAtMerchant = autoOpenAtMerchant
 
   local autoOpenAtMerchantText    = autoOpenAtMerchant:CreateFontString(nil, "OVERLAY")
@@ -49,9 +49,9 @@ function RS:CreateOptionsMenu(name)
   autoOpenAtBank:SetSize(25, 25)
   autoOpenAtBank:SetPoint("TOPLEFT", autoOpenAtMerchant, "BOTTOMLEFT", 0, 0)
   autoOpenAtBank:SetScript("OnClick", function(self, button)
-    Restocker.autoOpenAtBank = self:GetChecked()
+    RestockerSettings.autoOpenAtBank = self:GetChecked()
   end)
-  autoOpenAtBank:SetChecked(Restocker.autoOpenAtBank)
+  autoOpenAtBank:SetChecked(RestockerSettings.autoOpenAtBank)
   optionsPanel.autoOpenAtBank = autoOpenAtBank
 
   local autoOpenAtBankText    = autoOpenAtBank:CreateFontString(nil, "OVERLAY")
@@ -140,7 +140,7 @@ function RS:CreateOptionsMenu(name)
       return
     end
 
-    for profileName, _ in pairs(Restocker.profiles) do
+    for profileName, _ in pairs(RestockerSettings.profiles) do
       local info   = UIDropDownMenu_CreateInfo()
 
       info.text    = profileName

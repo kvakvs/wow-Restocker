@@ -28,7 +28,7 @@ function eventsModule.OnMerchantShow()
 
   RS.buying = true
 
-  if not Restocker.autoBuy then
+  if not RestockerSettings.autoBuy then
     return
   end -- If not autobuying then return
 
@@ -47,12 +47,12 @@ end
 
 function eventsModule.OnBankOpen(isMinor)
   if IsShiftKeyDown()
-      or not Restocker.restockFromBank
-      or Restocker.profiles[Restocker.currentProfile] == nil then
+      or not RestockerSettings.restockFromBank
+      or RestockerSettings.profiles[RestockerSettings.currentProfile] == nil then
     return
   end
 
-  if Restocker.autoOpenAtBank then
+  if RestockerSettings.autoOpenAtBank then
     RS:Show()
   end
 
@@ -95,8 +95,8 @@ function eventsModule.OnItemInfoReceived(itemID, success)
 end
 
 function eventsModule.OnLogout()
-  if Restocker.framePos == nil then
-    Restocker.framePos = {}
+  if RestockerSettings.framePos == nil then
+    RestockerSettings.framePos = {}
   end
 
   RS:Show()
@@ -104,10 +104,10 @@ function eventsModule.OnLogout()
 
   local point, relativeTo, relativePoint, xOfs, yOfs = RS.MainFrame:GetPoint(RS.MainFrame:GetNumPoints())
 
-  Restocker.framePos.point = point
-  Restocker.framePos.relativePoint = relativePoint
-  Restocker.framePos.xOfs = xOfs
-  Restocker.framePos.yOfs = yOfs
+  RestockerSettings.framePos.point = point
+  RestockerSettings.framePos.relativePoint = relativePoint
+  RestockerSettings.framePos.xOfs = xOfs
+  RestockerSettings.framePos.yOfs = yOfs
 end
 
 function eventsModule.OnUiErrorMessage(id, message)

@@ -91,7 +91,7 @@ local function coroutineBank()
   local state = {
     itemsInBags    = bagModule:GetItemsInBags(),
     itemsInBank    = bagModule:GetItemsInBank(),
-    currentProfile = Restocker.profiles[Restocker.currentProfile],
+    currentProfile = RestockerSettings.profiles[RestockerSettings.currentProfile],
     task           = {}
   }
   local moveCount = 0

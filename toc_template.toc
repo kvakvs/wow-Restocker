@@ -7,7 +7,7 @@
 ## Notes: Restock items automatically
 ## Version: ${VERSION}
 ## DefaultState: enabled
-## SavedVariablesPerCharacter: Restocker
+## SavedVariablesPerCharacter: RestockerSettings
 
 # --- load first ---
 embeds.xml

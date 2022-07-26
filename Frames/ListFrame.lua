@@ -20,7 +20,7 @@ local function rsAmountEditBox(frame, alignFrame)
       amount = 0;
     end
 
-    for _, item in ipairs(Restocker.profiles[Restocker.currentProfile]) do
+    for _, item in ipairs(RestockerSettings.profiles[RestockerSettings.currentProfile]) do
       if item.itemName == text then
         item.amount = tonumber(amount)
       end
@@ -43,7 +43,7 @@ local function rsAmountEditBox(frame, alignFrame)
           amount = 0;
         end
 
-        for _, item in ipairs(Restocker.profiles[Restocker.currentProfile]) do
+        for _, item in ipairs(RestockerSettings.profiles[RestockerSettings.currentProfile]) do
           if item.itemName == text then
             item.amount = tonumber(amount)
           end
@@ -86,7 +86,7 @@ local function rsRequireReactionEditBox(frame, alignFrame)
           reaction = 0;
         end
 
-        for _, item in ipairs(Restocker.profiles[Restocker.currentProfile]) do
+        for _, item in ipairs(RestockerSettings.profiles[RestockerSettings.currentProfile]) do
           if item.itemName == text then
             item.reaction = tonumber(reaction)
           end
@@ -105,7 +105,7 @@ local function rsRequireReactionEditBox(frame, alignFrame)
           reaction = 0;
         end
 
-        for _, item in ipairs(Restocker.profiles[Restocker.currentProfile]) do
+        for _, item in ipairs(RestockerSettings.profiles[RestockerSettings.currentProfile]) do
           if item.itemName == text then
             item.reaction = tonumber(reaction)
           end
@@ -142,9 +142,9 @@ local function rsDeleteButton(frame)
         local parent = self:GetParent();
         local text = parent.text:GetText();
 
-        for i, item in ipairs(Restocker.profiles[Restocker.currentProfile]) do
+        for i, item in ipairs(RestockerSettings.profiles[RestockerSettings.currentProfile]) do
           if item.itemName == text then
-            tremove(Restocker.profiles[Restocker.currentProfile], i)
+            tremove(RestockerSettings.profiles[RestockerSettings.currentProfile], i)
             RS:Update();
             break
           end
@@ -185,7 +185,7 @@ function RS:addListFrame()
 end
 
 function RS:addListFrames()
-  for _, item in ipairs(Restocker.profiles[Restocker.currentProfile]) do
+  for _, item in ipairs(RestockerSettings.profiles[RestockerSettings.currentProfile]) do
     local frame = RS:addListFrame()
     frame.text:SetText(item.itemName)
     frame.editBox:SetText(item.amount)

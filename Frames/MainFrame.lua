@@ -13,10 +13,10 @@ function RS:CreateMenu()
   addonFrame.width = 300
   addonFrame.height = 400
   addonFrame:SetSize(addonFrame.width, addonFrame.height);
-  addonFrame:SetPoint(Restocker.framePos.point or "RIGHT",
-      UIParent, Restocker.framePos.relativePoint or "RIGHT",
-      Restocker.framePos.xOfs or -5,
-      Restocker.framePos.yOfs or 0);
+  addonFrame:SetPoint(RestockerSettings.framePos.point or "RIGHT",
+      UIParent, RestockerSettings.framePos.relativePoint or "RIGHT",
+      RestockerSettings.framePos.xOfs or -5,
+      RestockerSettings.framePos.yOfs or 0);
   addonFrame:SetFrameStrata("FULLSCREEN");
   addonFrame:SetMovable(true)
   addonFrame:EnableMouse(true)
@@ -150,9 +150,9 @@ function RS:CreateMenu()
   local checkbox = CreateFrame("CheckButton", nil, addonFrame, "UICheckButtonTemplate");
   checkbox:SetPoint("TOPLEFT", addonFrame.listInset, "BOTTOMLEFT", 2, -1)
   checkbox:SetSize(25, 25)
-  checkbox:SetChecked(Restocker.autoBuy);
+  checkbox:SetChecked(RestockerSettings.autoBuy);
   checkbox:SetScript("OnClick", function(self, button, down)
-    Restocker.autoBuy = checkbox:GetChecked()
+    RestockerSettings.autoBuy = checkbox:GetChecked()
   end);
   addonFrame.checkbox = checkbox
 
@@ -172,9 +172,9 @@ function RS:CreateMenu()
   local checkboxBank = CreateFrame("CheckButton", nil, addonFrame, "UICheckButtonTemplate");
   checkboxBank:SetPoint("LEFT", addonFrame.checkbox, "RIGHT", 100, 0)
   checkboxBank:SetSize(25, 25)
-  checkboxBank:SetChecked(Restocker.restockFromBank);
+  checkboxBank:SetChecked(RestockerSettings.restockFromBank);
   checkboxBank:SetScript("OnClick", function(self, button, down)
-    Restocker.restockFromBank = checkboxBank:GetChecked()
+    RestockerSettings.restockFromBank = checkboxBank:GetChecked()
   end);
   addonFrame.checkboxBank = checkboxBank
 
@@ -204,20 +204,20 @@ function RS:CreateMenu()
   --Restocker_ProfileDropDownMenu.displayMode = "MENU"
   UIDropDownMenu_SetWidth(Restocker_ProfileDropDownMenu, 120, 500)
   UIDropDownMenu_SetButtonWidth(Restocker_ProfileDropDownMenu, 140)
-  UIDropDownMenu_SetText(Restocker_ProfileDropDownMenu, Restocker.currentProfile)
+  UIDropDownMenu_SetText(Restocker_ProfileDropDownMenu, RestockerSettings.currentProfile)
 
   Restocker_ProfileDropDownMenu.initialize = function(self, level)
     if not level then
       return
     end
 
-    for profileName, _ in pairs(Restocker.profiles) do
+    for profileName, _ in pairs(RestockerSettings.profiles) do
       local info = UIDropDownMenu_CreateInfo()
 
       info.text = profileName
       info.arg1 = profileName
       info.func = RS.DropDownMenuSelectProfile
-      info.checked = profileName == Restocker.currentProfile
+      info.checked = profileName == RestockerSettings.currentProfile
 
       UIDropDownMenu_AddButton(info, 1)
     end
@@ -247,7 +247,7 @@ function RS.DropDownMenuSelectProfile(self, arg1, arg2, checked)
 end
 
 function RS:addItem(text)
-  local currentProfile = Restocker.profiles[Restocker.currentProfile]
+  local currentProfile = RestockerSettings.profiles[RestockerSettings.currentProfile]
 
   if tonumber(text) then
     text = tonumber(text)
@@ -275,7 +275,7 @@ function RS:addItem(text)
   T.itemID = itemID
   T.amount = 1
 
-  tinsert(Restocker.profiles[Restocker.currentProfile], T)
+  tinsert(RestockerSettings.profiles[RestockerSettings.currentProfile], T)
 
   RS:Update()
 end
