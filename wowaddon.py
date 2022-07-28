@@ -10,7 +10,7 @@ import subprocess
 import sys
 import zipfile
 
-VERSION = '2022.7.0'  # year.month.build_num
+VERSION = '2022.7.1'  # year.month.build_num
 
 ADDON_NAME = 'Restocker'  # Directory and zip name
 ADDON_NAME_CLASSIC = ADDON_NAME  # Directory and zip name

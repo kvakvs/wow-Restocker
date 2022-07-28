@@ -1,6 +1,7 @@
-## Restocker TBC 2022.7.0
+## Restocker TBC 2022.7.1
 
 - WotLK compatibility check
+- [WotLK] Rogue poisons in WotLK are not craftable but buyable
 - Merging addon versions for Classic, TBC and WotLK into one. Attempting to 
   import old settings too. This creates a dummy "RestockerTBC" addon which can be 
   deleted or ignored.
