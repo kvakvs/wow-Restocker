@@ -3,10 +3,12 @@ local RS = RS_ADDON ---@type RestockerAddon
 
 RS.profileSelectedForDeletion = ""
 
+local restockerModule = RsModule.Import("Restocker") ---@type RsRestockerModule
 
 ---INTERFACE OPTIONS PANEL
 ---@param name string Addon name
 function RS:CreateOptionsMenu(name)
+  local settings = restockerModule.settings
   local optionsPanel = CreateFrame("Frame", "RestockerOptions", UIParent)
   optionsPanel.name  = name
 
@@ -19,9 +21,9 @@ function RS:CreateOptionsMenu(name)
   loginMessage:SetSize(25, 25)
   loginMessage:SetPoint("TOPLEFT", text, "BOTTOMLEFT", 10, -15)
   loginMessage:SetScript("OnClick", function(self, button)
-    RestockerSettings.loginMessage = self:GetChecked()
+    settings.loginMessage = self:GetChecked()
   end)
-  loginMessage:SetChecked(RestockerSettings.loginMessage)
+  loginMessage:SetChecked(settings.loginMessage)
   optionsPanel.loginMessage = loginMessage
 
   local loginMessageText    = loginMessage:CreateFontString(nil, "OVERLAY")
@@ -34,9 +36,9 @@ function RS:CreateOptionsMenu(name)
   autoOpenAtMerchant:SetSize(25, 25)
   autoOpenAtMerchant:SetPoint("TOPLEFT", loginMessage, "BOTTOMLEFT", 0, 0)
   autoOpenAtMerchant:SetScript("OnClick", function(self, button)
-    RestockerSettings.autoOpenAtMerchant = self:GetChecked()
+    settings.autoOpenAtMerchant = self:GetChecked()
   end)
-  autoOpenAtMerchant:SetChecked(RestockerSettings.autoOpenAtMerchant)
+  autoOpenAtMerchant:SetChecked(settings.autoOpenAtMerchant)
   optionsPanel.autoOpenAtMerchant = autoOpenAtMerchant
 
   local autoOpenAtMerchantText    = autoOpenAtMerchant:CreateFontString(nil, "OVERLAY")
@@ -49,9 +51,9 @@ function RS:CreateOptionsMenu(name)
   autoOpenAtBank:SetSize(25, 25)
   autoOpenAtBank:SetPoint("TOPLEFT", autoOpenAtMerchant, "BOTTOMLEFT", 0, 0)
   autoOpenAtBank:SetScript("OnClick", function(self, button)
-    RestockerSettings.autoOpenAtBank = self:GetChecked()
+    settings.autoOpenAtBank = self:GetChecked()
   end)
-  autoOpenAtBank:SetChecked(RestockerSettings.autoOpenAtBank)
+  autoOpenAtBank:SetChecked(settings.autoOpenAtBank)
   optionsPanel.autoOpenAtBank = autoOpenAtBank
 
   local autoOpenAtBankText    = autoOpenAtBank:CreateFontString(nil, "OVERLAY")
@@ -140,7 +142,7 @@ function RS:CreateOptionsMenu(name)
       return
     end
 
-    for profileName, _ in pairs(RestockerSettings.profiles) do
+    for profileName, _ in pairs(settings.profiles) do
       local info   = UIDropDownMenu_CreateInfo()
 
       info.text    = profileName

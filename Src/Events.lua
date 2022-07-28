@@ -2,12 +2,13 @@ local _TOCNAME, _ADDONPRIVATE = ... ---@type RestockerAddon
 local RS = RS_ADDON ---@type RestockerAddon
 
 ---@class RsEventsModule
-local eventsModule = RsModule.DeclareModule("Events") ---@type RsEventsModule
+local eventsModule = RsModule.New("Events") ---@type RsEventsModule
 
 local bagModule = RsModule.Import("Bag") ---@type RsBagModule
 local bankModule = RsModule.Import("Bank") ---@type RsBankModule
 local buyiModule = RsModule.Import("BuyIngredients") ---@type RsBuyIngredientsModule
 local merchantModule = RsModule.Import("Merchant") ---@type RsMerchantModule
+local restockerModule = RsModule.Import("Restocker") ---@type RsRestockerModule
 
 RS.loaded = false
 RS.addItemWait = {}
@@ -28,7 +29,7 @@ function eventsModule.OnMerchantShow()
 
   RS.buying = true
 
-  if not RestockerSettings.autoBuy then
+  if not restockerModule.settings.autoBuy then
     return
   end -- If not autobuying then return
 
@@ -46,13 +47,15 @@ function eventsModule.OnMerchantClose()
 end
 
 function eventsModule.OnBankOpen(isMinor)
+  local settings = restockerModule.settings
+
   if IsShiftKeyDown()
-      or not RestockerSettings.restockFromBank
-      or RestockerSettings.profiles[RestockerSettings.currentProfile] == nil then
+      or not settings.restockFromBank
+      or settings.profiles[settings.currentProfile] == nil then
     return
   end
 
-  if RestockerSettings.autoOpenAtBank then
+  if settings.autoOpenAtBank then
     RS:Show()
   end
 
@@ -95,8 +98,10 @@ function eventsModule.OnItemInfoReceived(itemID, success)
 end
 
 function eventsModule.OnLogout()
-  if RestockerSettings.framePos == nil then
-    RestockerSettings.framePos = {}
+  local settings = restockerModule.settings
+
+  if settings.framePos == nil then
+    settings.framePos = {}
   end
 
   RS:Show()
@@ -104,10 +109,10 @@ function eventsModule.OnLogout()
 
   local point, relativeTo, relativePoint, xOfs, yOfs = RS.MainFrame:GetPoint(RS.MainFrame:GetNumPoints())
 
-  RestockerSettings.framePos.point = point
-  RestockerSettings.framePos.relativePoint = relativePoint
-  RestockerSettings.framePos.xOfs = xOfs
-  RestockerSettings.framePos.yOfs = yOfs
+  settings.framePos.point = point
+  settings.framePos.relativePoint = relativePoint
+  settings.framePos.xOfs = xOfs
+  settings.framePos.yOfs = yOfs
 end
 
 function eventsModule.OnUiErrorMessage(id, message)

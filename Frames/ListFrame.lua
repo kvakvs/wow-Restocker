@@ -2,12 +2,14 @@ local _TOCNAME, _ADDONPRIVATE = ... ---@type RestockerAddon
 local RS = RS_ADDON ---@type RestockerAddon
 
 local bankModule = RsModule.Import("Bank") ---@type RsBankModule
-
+local restockerModule = RsModule.Import("Restocker") ---@type RsRestockerModule
 local eventsModule = RsModule.Import("Events") ---@type RsEventsModule
 
 ---Create an amount edit box, aligning to the left of alignFrame
 local function rsAmountEditBox(frame, alignFrame)
+  local settings = restockerModule.settings
   local editBox = CreateFrame("EditBox", nil, frame, "InputBoxTemplate");
+
   editBox:SetSize(40, 20)
   editBox:SetPoint("RIGHT", alignFrame, "LEFT", 3, 0);
   editBox:SetAutoFocus(false);
@@ -20,7 +22,7 @@ local function rsAmountEditBox(frame, alignFrame)
       amount = 0;
     end
 
-    for _, item in ipairs(RestockerSettings.profiles[RestockerSettings.currentProfile]) do
+    for _, item in ipairs(settings.profiles[settings.currentProfile]) do
       if item.itemName == text then
         item.amount = tonumber(amount)
       end
@@ -43,7 +45,7 @@ local function rsAmountEditBox(frame, alignFrame)
           amount = 0;
         end
 
-        for _, item in ipairs(RestockerSettings.profiles[RestockerSettings.currentProfile]) do
+        for _, item in ipairs(settings.profiles[settings.currentProfile]) do
           if item.itemName == text then
             item.amount = tonumber(amount)
           end
@@ -70,7 +72,9 @@ end
 -- Add a small edit box defaulting to empty value, aligning to the left of alignFrame.
 ---Will check faction reaction on vendor if not empty.
 local function rsRequireReactionEditBox(frame, alignFrame)
+  local settings = restockerModule.settings
   local reactionBox = CreateFrame("EditBox", nil, frame, "InputBoxTemplate");
+
   reactionBox:SetSize(20, 20)
   reactionBox:SetPoint("RIGHT", alignFrame, "LEFT", 0, 0);
   reactionBox:SetAutoFocus(false);
@@ -86,7 +90,7 @@ local function rsRequireReactionEditBox(frame, alignFrame)
           reaction = 0;
         end
 
-        for _, item in ipairs(RestockerSettings.profiles[RestockerSettings.currentProfile]) do
+        for _, item in ipairs(settings.profiles[settings.currentProfile]) do
           if item.itemName == text then
             item.reaction = tonumber(reaction)
           end
@@ -105,7 +109,7 @@ local function rsRequireReactionEditBox(frame, alignFrame)
           reaction = 0;
         end
 
-        for _, item in ipairs(RestockerSettings.profiles[RestockerSettings.currentProfile]) do
+        for _, item in ipairs(settings.profiles[settings.currentProfile]) do
           if item.itemName == text then
             item.reaction = tonumber(reaction)
           end
@@ -134,7 +138,9 @@ end
 
 ---Create a X button which on click will remove the restocking item row
 local function rsDeleteButton(frame)
+  local settings = restockerModule.settings
   local delBtn = CreateFrame("Button", nil, frame, "UIPanelCloseButton");
+
   delBtn:SetPoint("RIGHT", frame, "RIGHT", 8, 0);
   delBtn:SetSize(30, 30);
   delBtn:SetScript("OnClick",
@@ -142,9 +148,9 @@ local function rsDeleteButton(frame)
         local parent = self:GetParent();
         local text = parent.text:GetText();
 
-        for i, item in ipairs(RestockerSettings.profiles[RestockerSettings.currentProfile]) do
+        for i, item in ipairs(settings.profiles[settings.currentProfile]) do
           if item.itemName == text then
-            tremove(RestockerSettings.profiles[RestockerSettings.currentProfile], i)
+            tremove(settings.profiles[settings.currentProfile], i)
             RS:Update();
             break
           end
@@ -185,7 +191,9 @@ function RS:addListFrame()
 end
 
 function RS:addListFrames()
-  for _, item in ipairs(RestockerSettings.profiles[RestockerSettings.currentProfile]) do
+  local settings = restockerModule.settings
+
+  for _, item in ipairs(settings.profiles[settings.currentProfile]) do
     local frame = RS:addListFrame()
     frame.text:SetText(item.itemName)
     frame.editBox:SetText(item.amount)

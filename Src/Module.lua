@@ -12,7 +12,7 @@ local function rsNewModule()
 end
 
 ---@param name string
-function RsModule.DeclareModule(name)
+function RsModule.New(name)
   if (not moduleIndex[name]) then
     moduleIndex[name] = rsNewModule()
     return moduleIndex[name]
@@ -21,7 +21,7 @@ function RsModule.DeclareModule(name)
   return moduleIndex[name] -- found
 end
 
-RsModule.Import = RsModule.DeclareModule
+RsModule.Import = RsModule.New
 
 ---For each known module call function by fnName and optional context will be
 ---passed as 1st argument, can be ignored (defaults to nil)

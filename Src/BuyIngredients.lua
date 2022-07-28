@@ -5,7 +5,8 @@ local _TOCNAME, _ADDONPRIVATE = ... ---@type RestockerAddon
 local RS = RS_ADDON ---@type RestockerAddon
 
 ---@class RsBuyIngredientsModule
-local buyiModule = RsModule.DeclareModule("BuyIngredients") ---@type RsBuyIngredientsModule
+local buyiModule = RsModule.New("BuyIngredients") ---@type RsBuyIngredientsModule
+local restockerModule = RsModule.Import("Restocker") ---@type RsRestockerModule
 
 buyiModule.buyIngredients = {}
 buyiModule.buyIngredientsWait = {}
@@ -89,6 +90,10 @@ function buyiModule:ClassicRecipe(item, reagent1, reagent2, reagent3)
 end
 
 function buyiModule:SetupAutobuyIngredients()
+  if RS.IsWotLK then
+    return -- in WotLK poisons are buyable pre-crafted
+  end
+
   if next(self.buyIngredients) then
     return -- do not double-init
   end
@@ -205,9 +210,10 @@ end
 --- Check if any of the items user wants to restock are on our crafting autobuy list
 function buyiModule:CraftingPurchaseOrder()
   local purchaseOrder = {} ---@type table<string, number> Maps localized item name to buy count
+  local settings = restockerModule.settings
 
   -- Check auto-buy reagents table
-  for _, item in ipairs(RestockerSettings.profiles[RestockerSettings.currentProfile]) do
+  for _, item in ipairs(settings.profiles[settings.currentProfile]) do
     if buyiModule.buyIngredients[item.itemName] ~= nil then
       local craftedName = item.itemName
       local craftedRestockAmount = item.amount

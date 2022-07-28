@@ -1,10 +1,12 @@
 local _TOCNAME, _ADDONPRIVATE = ... ---@type RestockerAddon
 local RS = RS_ADDON ---@type RestockerAddon
 
+local restockerModule = RsModule.Import("Restocker") ---@type RsRestockerModule
+
 ---@class RsMerchantModule
 ---@field merchantIsOpen boolean
 ---@field lastTimeRestocked number GetTime() of last restock
-local merchantModule = RsModule.DeclareModule("Merchant") ---@type RsMerchantModule
+local merchantModule = RsModule.New("Merchant") ---@type RsMerchantModule
 merchantModule.merchantIsOpen = false
 merchantModule.lastTimeRestocked = GetTime()
 
@@ -22,7 +24,9 @@ local function countTableItems(T)
 end
 
 function merchantModule:Restock()
-  if countTableItems(RestockerSettings.profiles[RestockerSettings.currentProfile]) == 0 then
+  local settings = restockerModule.settings
+
+  if countTableItems(settings.profiles[settings.currentProfile]) == 0 then
     return
   end -- If profile is emtpy then return
 
@@ -33,7 +37,7 @@ function merchantModule:Restock()
   self.lastTimeRestocked = GetTime()
   local numPurchases = 0
 
-  if RestockerSettings.autoOpenAtMerchant then
+  if settings.autoOpenAtMerchant then
     RS:Show()
   end
 
@@ -43,7 +47,7 @@ function merchantModule:Restock()
   local purchaseOrders = {}
 
   ---@type table<number, RsBuyItem>
-  local restockList = RestockerSettings.profiles[RestockerSettings.currentProfile]
+  local restockList = settings.profiles[settings.currentProfile]
   local vendorReaction = UnitReaction("target", "player") or 0
 
   -- Build the Purchase Orders table used for buying items

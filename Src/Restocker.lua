@@ -1,10 +1,12 @@
 local TOCNAME, _ADDONPRIVATE = ... ---@type RestockerAddon
 
 ---@class RsRestockerModule
-local restockerModule = RsModule.DeclareModule("Restocker") ---@type RsRestockerModule
+local restockerModule = RsModule.New("Restocker") ---@type RsRestockerModule
+restockerModule.settings = {} ---@type RsSettings
 
 local list = {} ---@type table<number, RsRestockItem>
 
+local mainFrameModule = RsModule.Import("MainFrame") ---@type RsMainFrameModule
 local bankModule = RsModule.Import("Bank") ---@type RsBankModule
 local eventsModule = RsModule.Import("Events") ---@type RsEventsModule
 local merchantModule = RsModule.Import("Merchant") ---@type RsMerchantModule
@@ -28,18 +30,20 @@ RS.BAG_ICON = "Interface\\ICONS\\INV_Misc_Bag_10_Green" -- bag icon for add tool
 RS.slashPrefix = "|cff8d63ff/restocker|r "
 RS.addonName = "|cff8d63ffRestocker|r "
 
---- Addon is running on Classic TBC client
+local _, _, _, tocversion = GetBuildInfo()
+RS.IsWotLK = (tocversion >= 30000 and tocversion <= 39999) -- TODO: change to WOTLK detection via WOW_PROJECT_..._CLASSIC
+RS.HaveWotLK = RS.IsWotLK
+
 RS.IsTBC = WOW_PROJECT_ID == WOW_PROJECT_BURNING_CRUSADE_CLASSIC
---- Addon is running on Classic "Vanilla" client: Means Classic Era and its seasons like SoM
+RS.HaveTBC = RS.IsWotLK or RS.IsTBC
+
 RS.IsClassic = WOW_PROJECT_ID == WOW_PROJECT_CLASSIC
---- Addon is running on Classic "Vanilla" client and on Era realm
 RS.IsEra = RS.IsClassic and (not C_Seasons.HasActiveSeason())
---- Addon is running on Classic "Vanilla" client and on Seasons of Mastery realm
 RS.IsSoM = RS.IsClassic and C_Seasons.HasActiveSeason() and (C_Seasons.GetActiveSeason() == Enum.SeasonID.SeasonOfMastery)
 
 function RS:Show()
   if RS.loaded then
-    local menu = RS.MainFrame or RS:CreateMenu();
+    local menu = RS.MainFrame or mainFrameModule:CreateMenu();
     menu:Show()
     return RS:Update()
   end
@@ -47,14 +51,14 @@ end
 
 function RS:Hide()
   if RS.loaded then
-    local menu = RS.MainFrame or RS:CreateMenu();
+    local menu = RS.MainFrame or mainFrameModule:CreateMenu();
     return menu:Hide()
   end
 end
 
 function RS:Toggle()
   if RS.loaded then
-    local menu = RS.MainFrame or RS:CreateMenu();
+    local menu = RS.MainFrame or mainFrameModule:CreateMenu();
     return menu:SetShown(not menu:IsShown()) or false
   end
 end
@@ -132,7 +136,8 @@ end
   UPDATE
 ]]
 function RS:Update()
-  local currentProfile = RestockerSettings.profiles[RestockerSettings.currentProfile]
+  local settings = restockerModule.settings
+  local currentProfile = settings.profiles[settings.currentProfile]
   wipe(list)
 
   for i, v in ipairs(currentProfile) do
@@ -195,14 +200,15 @@ end
 ]]
 ---@param newProfile string
 function RS:AddProfile(newProfile)
-  RestockerSettings.currentProfile = newProfile ---@type string
-  RestockerSettings.profiles[newProfile] = {} ---@type RsRestockItem
+  local settings = restockerModule.settings
+  settings.currentProfile = newProfile ---@type string
+  settings.profiles[newProfile] = {} ---@type RsRestockItem
 
-  local menu = RS.MainFrame or RS:CreateMenu()
+  local menu = RS.MainFrame or mainFrameModule:CreateMenu()
   menu:Show()
   RS:Update()
 
-  UIDropDownMenu_SetText(RS.MainFrame.profileDropDownMenu, RestockerSettings.currentProfile)
+  UIDropDownMenu_SetText(RS.MainFrame.profileDropDownMenu, settings.currentProfile)
 end
 
 
@@ -210,41 +216,43 @@ end
   DELETE PROFILE
 ]]
 function RS:DeleteProfile(profile)
-  local currentProfile = RestockerSettings.currentProfile
+  local settings = restockerModule.settings
+  local currentProfile = settings.currentProfile
 
   if currentProfile == profile then
-    if #RestockerSettings.profiles > 1 then
-      RestockerSettings.profiles[currentProfile] = nil
-      RestockerSettings.currentProfile = RestockerSettings.profiles[1]
+    if #settings.profiles > 1 then
+      settings.profiles[currentProfile] = nil
+      settings.currentProfile = settings.profiles[1]
     else
-      RestockerSettings.profiles[currentProfile] = nil
-      RestockerSettings.currentProfile = "default"
-      RestockerSettings.profiles.default = {}
+      settings.profiles[currentProfile] = nil
+      settings.currentProfile = "default"
+      settings.profiles.default = {}
     end
 
   else
-    RestockerSettings.profiles[profile] = nil
+    settings.profiles[profile] = nil
   end
 
   UIDropDownMenu_SetText(RS.optionsPanel.deleteProfileMenu, "")
 
-  local menu = RS.MainFrame or RS:CreateMenu()
+  local menu = RS.MainFrame or mainFrameModule:CreateMenu()
   RS.profileSelectedForDeletion = ""
-  UIDropDownMenu_SetText(RS.MainFrame.profileDropDownMenu, RestockerSettings.currentProfile)
+  UIDropDownMenu_SetText(RS.MainFrame.profileDropDownMenu, settings.currentProfile)
 end
 
 --[[
   RENAME PROFILE
 ]]
 function RS:RenameCurrentProfile(newName)
-  local currentProfile = RestockerSettings.currentProfile
+  local settings = restockerModule.settings
+  local currentProfile = settings.currentProfile
 
-  RestockerSettings.profiles[newName] = RestockerSettings.profiles[currentProfile]
-  RestockerSettings.profiles[currentProfile] = nil
+  settings.profiles[newName] = settings.profiles[currentProfile]
+  settings.profiles[currentProfile] = nil
 
-  RestockerSettings.currentProfile = newName
+  settings.currentProfile = newName
 
-  UIDropDownMenu_SetText(RS.MainFrame.profileDropDownMenu, RestockerSettings.currentProfile)
+  UIDropDownMenu_SetText(RS.MainFrame.profileDropDownMenu, settings.currentProfile)
 end
 
 
@@ -252,9 +260,10 @@ end
   CHANGE PROFILE
 ]]
 function RS:ChangeProfile(newProfile)
-  RestockerSettings.currentProfile = newProfile
+  local settings = restockerModule.settings
+  settings.currentProfile = newProfile
 
-  UIDropDownMenu_SetText(RS.MainFrame.profileDropDownMenu, RestockerSettings.currentProfile)
+  UIDropDownMenu_SetText(RS.MainFrame.profileDropDownMenu, settings.currentProfile)
   --print(RS.defaults.prefix .. "current profile: ".. Restocker.currentProfile)
   RS:Update()
 
@@ -276,43 +285,45 @@ end
   COPY PROFILE
 ]]
 function RS:CopyProfile(profileToCopy)
-  local copyProfile = CopyTable(RestockerSettings.profiles[profileToCopy])
-  RestockerSettings.profiles[RestockerSettings.currentProfile] = copyProfile
+  local settings = restockerModule.settings
+  local copyProfile = CopyTable(settings.profiles[profileToCopy])
+  settings.profiles[settings.currentProfile] = copyProfile
   RS:Update()
 end
 
 function RS:loadSettings()
-  if RestockerSettings.autoBuy == nil then
-    RestockerSettings.autoBuy = true
+  local settings = restockerModule.settings
+  if settings.autoBuy == nil then
+    settings.autoBuy = true
   end
-  if RestockerSettings.restockFromBank == nil then
-    RestockerSettings.restockFromBank = true
+  if settings.restockFromBank == nil then
+    settings.restockFromBank = true
   end
 
-  if RestockerSettings.profiles == nil then
+  if settings.profiles == nil then
     ---@type table<string, table<string, RsRestockItem>>
-    RestockerSettings.profiles = {}
+    settings.profiles = {}
   end
-  if RestockerSettings.profiles.default == nil then
+  if settings.profiles.default == nil then
     ---@type table<string, RsRestockItem>
-    RestockerSettings.profiles.default = {}
+    settings.profiles.default = {}
   end
-  if RestockerSettings.currentProfile == nil then
-    RestockerSettings.currentProfile = "default" ---@type string
-  end
-
-  if RestockerSettings.framePos == nil then
-    RestockerSettings.framePos = {}
+  if settings.currentProfile == nil then
+    settings.currentProfile = "default" ---@type string
   end
 
-  if RestockerSettings.autoOpenAtBank == nil then
-    RestockerSettings.autoOpenAtBank = false
+  if settings.framePos == nil then
+    settings.framePos = {}
   end
-  if RestockerSettings.autoOpenAtMerchant == nil then
-    RestockerSettings.autoOpenAtMerchant = false
+
+  if settings.autoOpenAtBank == nil then
+    settings.autoOpenAtBank = false
   end
-  if RestockerSettings.loginMessage == nil then
-    RestockerSettings.loginMessage = true
+  if settings.autoOpenAtMerchant == nil then
+    settings.autoOpenAtMerchant = false
+  end
+  if settings.loginMessage == nil then
+    settings.loginMessage = true
   end
 end
 
@@ -340,10 +351,11 @@ end
 ---AceAddon handler
 function RS:OnEnable()
   -- Saved variables; Migrate from old 'Restocker' to new 'RestockerSettings'
-  RestockerSettings = (Restocker or RestockerSettings) or {}
+  RestockerSettings = (Restocker or RestockerSettings) or {} ---@type RsSettings
   if Restocker then
     Restocker = nil
   end
+  restockerModule.settings = RestockerSettings
 
   self.currentlyRestocking = false
   self.itemsRestocked = {}
@@ -355,8 +367,8 @@ function RS:OnEnable()
   -- Do more initialization here, that really enables the use of your addon.
   -- Register Events, Hook functions, Create Frames, Get information from
   -- the game that wasn't available in OnInitialize
-  for profile, _ in pairs(RestockerSettings.profiles) do
-    for _, item in ipairs(RestockerSettings.profiles[profile]) do
+  for profile, _ in pairs(restockerModule.settings.profiles) do
+    for _, item in ipairs(restockerModule.settings.profiles[profile]) do
       item.itemID = tonumber(item.itemID)
     end
   end
@@ -385,12 +397,12 @@ function RS:OnEnable()
   RsModule:CallInEachModule("OnModuleInit")
 
   if not RS.MainFrame then
-    RS:CreateMenu()
+    mainFrameModule:CreateMenu()
   end -- setup the UI
 
   RS.loaded = true
 
-  if RestockerSettings.loginMessage then
+  if restockerModule.settings.loginMessage then
     RS:Print("Initialized")
   end
 end

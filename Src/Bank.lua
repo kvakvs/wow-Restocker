@@ -1,9 +1,11 @@
 local _TOCNAME, _ADDONPRIVATE = ... ---@type RestockerAddon
 local RS = RS_ADDON ---@type RestockerAddon
 
+local restockerModule = RsModule.Import("Restocker") ---@type RsRestockerModule
+
 ---@class RsBankModule
 ---@field bankIsOpen boolean
-local bankModule = RsModule.DeclareModule("Bank") ---@type RsBankModule
+local bankModule = RsModule.New("Bank") ---@type RsBankModule
 bankModule.bankIsOpen = false
 
 local bagModule = RsModule.Import("Bag") ---@type RsBagModule
@@ -87,11 +89,13 @@ local function coroutineBank()
     return
   end
 
+  local settings = restockerModule.settings
+
   ---@type BankRestockCoroState
   local state = {
     itemsInBags    = bagModule:GetItemsInBags(),
     itemsInBank    = bagModule:GetItemsInBank(),
-    currentProfile = RestockerSettings.profiles[RestockerSettings.currentProfile],
+    currentProfile = settings.profiles[settings.currentProfile],
     task           = {}
   }
   local moveCount = 0
