@@ -2,6 +2,7 @@
 local RS = RS_ADDON ---@type RestockerAddon
 
 ---@class GIICacheItem
+---@field itemId number
 ---@field itemName string
 ---@field itemLink string Printable colored clickable item link
 ---@field itemRarity number 0=poor, 1=normal, 2=uncommon, 3=rare ... etc
@@ -33,6 +34,7 @@ function RS.GetItemInfo(arg)
   end
 
   local cacheItem = --[[---@type GIICacheItem]] {
+    itemId = tonumber(string.match(itemLink, "item:(%d+)")),
     itemName = itemName,
     itemLink = itemLink,
     itemRarity = itemRarity,

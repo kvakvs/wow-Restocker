@@ -251,37 +251,36 @@ function RS.DropDownMenuSelectProfile(self, arg1, arg2, checked)
   RS:ChangeProfile(arg1)
 end
 
+---@param text string|number
 function RS:addItem(text)
   local settings = restockerModule.settings
   local currentProfile = settings.profiles[settings.currentProfile]
 
   if tonumber(text) then
-    text = tonumber(text)
+    text = --[[---@not nil]] tonumber(text)
   end
 
   --local itemName, itemLink = GetItemInfo(text)
   local itemInfo = RS.GetItemInfo(text)
-  local itemID
   if itemInfo == nil then
     RS.addItemWait[text] = true
     return
   else
-    itemID = tonumber(string.match(itemInfo.itemLink, "item:(%d+)"))
     for _, item in ipairs(currentProfile) do
-      if item.itemName:lower() == itemInfo.itemName:lower() then
+      if item.itemName:lower() == (--[[---@not nil]] itemInfo).itemName:lower() then
         return
       end
     end
   end
 
-  local T = {}
+  local buyItem = --[[---@type RsBuyItem]] {}
 
-  T.itemName = itemInfo.itemName
-  T.itemLink = itemInfo.itemLink
-  T.itemID = itemID
-  T.amount = 1
+  buyItem.itemName = (--[[---@not nil]] itemInfo).itemName
+  buyItem.itemLink = (--[[---@not nil]] itemInfo).itemLink
+  buyItem.itemID = (--[[---@not nil]] itemInfo).itemId
+  buyItem.amount = 1
 
-  tinsert(settings.profiles[settings.currentProfile], T)
+  tinsert(settings.profiles[settings.currentProfile], buyItem)
 
   RS:Update()
 end

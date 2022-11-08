@@ -25,6 +25,18 @@ function itemModule:Create(id, englishName)
   return fields
 end
 
+---@param gii GIICacheItem
+---@return RsItem
+function itemModule:FromCachedItem(gii)
+  local fields = --[[---@type RsItem]] {}
+  fields.id = gii.itemId
+  fields.englishName = gii.itemName
+
+  setmetatable(fields, itemClass)
+
+  return fields
+end
+
 ---@class RsContainerItemInfo
 ---@field bag number Bag number where the item is found
 ---@field slot number Slot number in the bag
