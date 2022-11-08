@@ -1,18 +1,18 @@
-local _TOCNAME, _ADDONPRIVATE = ... ---@type RestockerAddon
+--local _TOCNAME, _ADDONPRIVATE = ... ---@type RestockerAddon
 local RS = RS_ADDON ---@type RestockerAddon
 
-local restockerModule = RsModule.Import("Restocker") ---@type RsRestockerModule
+local restockerModule = RsModule.restockerModule ---@type RsRestockerModule
 
 ---@class RsMerchantModule
 ---@field merchantIsOpen boolean
 ---@field lastTimeRestocked number GetTime() of last restock
-local merchantModule = RsModule.New("Merchant") ---@type RsMerchantModule
+local merchantModule = RsModule.merchantModule ---@type RsMerchantModule
 merchantModule.merchantIsOpen = false
 merchantModule.lastTimeRestocked = GetTime()
 
-local buyiModule = RsModule.Import("BuyIngredients") ---@type RsBuyIngredientsModule
+local buyiModule = RsModule.buyIngredientsModule ---@type RsBuyIngredientsModule
 
---local bagModule = RsModule.Import("Bag") ---@type RsBagModule
+--local bagModule = RsModule.bagModule ---@type RsBagModule
 
 ---@param T table
 local function countTableItems(T)

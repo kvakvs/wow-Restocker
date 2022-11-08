@@ -2,7 +2,7 @@
 --local RS = RS_ADDON ---@type RestockerAddon
 
 ---@class RsItemModule
-local itemModule = RsModule.New("Item") ---@type RsItemModule
+local itemModule = RsModule.itemModule ---@type RsItemModule
 
 ---@class RsContainerItemInfo
 ---@field bag number Bag number where the item is found

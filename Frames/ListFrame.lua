@@ -1,9 +1,9 @@
 local _TOCNAME, _ADDONPRIVATE = ... ---@type RestockerAddon
 local RS = RS_ADDON ---@type RestockerAddon
 
-local bankModule = RsModule.Import("Bank") ---@type RsBankModule
-local restockerModule = RsModule.Import("Restocker") ---@type RsRestockerModule
-local eventsModule = RsModule.Import("Events") ---@type RsEventsModule
+local bankModule = RsModule.bankModule ---@type RsBankModule
+local restockerModule = RsModule.restockerModule ---@type RsRestockerModule
+local eventsModule = RsModule.eventsModule ---@type RsEventsModule
 
 ---Create an amount edit box, aligning to the left of alignFrame
 local function rsAmountEditBox(frame, alignFrame)

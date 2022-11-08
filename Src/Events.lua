@@ -2,13 +2,13 @@ local _TOCNAME, _ADDONPRIVATE = ... ---@type RestockerAddon
 local RS = RS_ADDON ---@type RestockerAddon
 
 ---@class RsEventsModule
-local eventsModule = RsModule.New("Events") ---@type RsEventsModule
+local eventsModule = RsModule.eventsModule ---@type RsEventsModule
 
-local bagModule = RsModule.Import("Bag") ---@type RsBagModule
-local bankModule = RsModule.Import("Bank") ---@type RsBankModule
-local buyiModule = RsModule.Import("BuyIngredients") ---@type RsBuyIngredientsModule
-local merchantModule = RsModule.Import("Merchant") ---@type RsMerchantModule
-local restockerModule = RsModule.Import("Restocker") ---@type RsRestockerModule
+local bagModule = RsModule.bagModule ---@type RsBagModule
+local bankModule = RsModule.bankModule ---@type RsBankModule
+local buyiModule = RsModule.buyIngredientsModule ---@type RsBuyIngredientsModule
+local merchantModule = RsModule.merchantModule ---@type RsMerchantModule
+local restockerModule = RsModule.restockerModule ---@type RsRestockerModule
 
 RS.loaded = false
 RS.addItemWait = {}

@@ -1,15 +1,15 @@
 local TOCNAME, _ADDONPRIVATE = ... ---@type RestockerAddon
 
 ---@class RsRestockerModule
-local restockerModule = RsModule.New("Restocker") ---@type RsRestockerModule
+local restockerModule = RsModule.restockerModule ---@type RsRestockerModule
 restockerModule.settings = {} ---@type RsSettings
 
 local list = {} ---@type table<number, RsRestockItem>
 
-local mainFrameModule = RsModule.Import("MainFrame") ---@type RsMainFrameModule
-local bankModule = RsModule.Import("Bank") ---@type RsBankModule
-local eventsModule = RsModule.Import("Events") ---@type RsEventsModule
-local merchantModule = RsModule.Import("Merchant") ---@type RsMerchantModule
+local mainFrameModule = RsModule.mainFrameModule
+local bankModule = RsModule.bankModule
+local eventsModule = RsModule.eventsModule
+local merchantModule = RsModule.merchantModule ---@type RsMerchantModule
 
 local RS = LibStub("AceAddon-3.0"):NewAddon(
     "Restocker", "AceConsole-3.0", "AceEvent-3.0") ---@type RestockerAddon
@@ -394,7 +394,7 @@ function RS:OnEnable()
 
   eventsModule:InitEvents()
 
-  RsModule:CallInEachModule("OnModuleInit")
+  RsModule:CallInEachModule("OnModuleInit", nil)
 
   if not RS.MainFrame then
     mainFrameModule:CreateMenu()

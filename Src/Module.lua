@@ -1,37 +1,33 @@
----@class RsModuleModule
-RsModule = {}
-
-local moduleIndex = {}
-RsModule._moduleIndex = moduleIndex
-
----New empty module with private section
-local function rsNewModule()
-  return {
-    private = {}
-  }
-end
-
----@param name string
-function RsModule.New(name)
-  if (not moduleIndex[name]) then
-    moduleIndex[name] = rsNewModule()
-    return moduleIndex[name]
-  end
-
-  return moduleIndex[name] -- found
-end
-
-RsModule.Import = RsModule.New
+---@shape RsModuleModule
+---@field mainFrameModule RsMainFrameModule
+---@field bagModule RsBagModule
+---@field bankModule RsBankModule
+---@field buyIngredientsModule RsBuyIngredientsModule
+---@field eventsModule RsEventsModule
+---@field itemModule RsItemModule
+---@field merchantModule RsMerchantModule
+---@field restockerModule RsRestockerModule
+local rsModule = {
+  mainFrameModule = {},
+  bagModule = {},
+  bankModule = {},
+  buyIngredientsModule = {},
+  eventsModule = {},
+  itemModule = {},
+  merchantModule = {},
+  restockerModule = {},
+}
+RsModule = rsModule
 
 ---For each known module call function by fnName and optional context will be
 ---passed as 1st argument, can be ignored (defaults to nil)
 ---module:EarlyModuleInit (called early on startup)
 ---module:LateModuleInit (called late on startup, after entered world)
 function RsModule:CallInEachModule(fnName, context)
-  for _name, module in pairs(moduleIndex) do
-    local fn = module[fnName]
-    if fn then
-      fn(context)
+  for _name, module in pairs(--[[---@type table]] rsModule) do
+    -- Only interested in table fields, skip functions
+    if module and type(module) == "table" and module[fnName] then
+      module[fnName](context)
     end
   end
 end

@@ -6,9 +6,8 @@ local RS = RS_ADDON ---@type RestockerAddon
 ---@field priorityMoveBankSlot number|nil If not nil, this will be priority clicked before any new stack is split
 ---@field priorityMovePlayerBag number|nil If not nil, this will be priority clicked before any new stack is split
 ---@field priorityMovePlayerSlot number|nil If not nil, this will be priority clicked before any new stack is split
-local bagModule = RsModule.New("Bag") ---@type RsBagModule
-
-local itemModule = RsModule.Import("Item") ---@type RsItemModule
+local bagModule = RsModule.bagModule ---@type RsBagModule
+local itemModule = RsModule.itemModule ---@type RsItemModule
 
 bagModule.BACKPACK_CONTAINER = 0
 bagModule.BANK_CONTAINER = -1

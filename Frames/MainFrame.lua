@@ -2,9 +2,8 @@ local _TOCNAME, _ADDONPRIVATE = ... ---@type RestockerAddon
 local RS = RS_ADDON ---@type RestockerAddon
 
 ---@class RsMainFrameModule
-local mainFrameModule = RsModule.New("MainFrame") ---@type RsMainFrameModule
-
-local restockerModule = RsModule.Import("Restocker") ---@type RsRestockerModule
+local mainFrameModule = RsModule.mainFrameModule ---@type RsMainFrameModule
+local restockerModule = RsModule.restockerModule ---@type RsRestockerModule
 
 RS.hiddenFrame = CreateFrame("Frame", nil, UIParent)
 RS.hiddenFrame:Hide()

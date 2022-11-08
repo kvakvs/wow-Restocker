@@ -5,8 +5,8 @@ local _TOCNAME, _ADDONPRIVATE = ... ---@type RestockerAddon
 local RS = RS_ADDON ---@type RestockerAddon
 
 ---@class RsBuyIngredientsModule
-local buyiModule = RsModule.New("BuyIngredients") ---@type RsBuyIngredientsModule
-local restockerModule = RsModule.Import("Restocker") ---@type RsRestockerModule
+local buyiModule = RsModule.buyIngredientsModule ---@type RsBuyIngredientsModule
+local restockerModule = RsModule.restockerModule ---@type RsRestockerModule
 
 buyiModule.buyIngredients = {}
 buyiModule.buyIngredientsWait = {}

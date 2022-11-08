@@ -1,14 +1,13 @@
-local _TOCNAME, _ADDONPRIVATE = ... ---@type RestockerAddon
+--local _TOCNAME, _ADDONPRIVATE = ... ---@type RestockerAddon
 local RS = RS_ADDON ---@type RestockerAddon
-
-local restockerModule = RsModule.Import("Restocker") ---@type RsRestockerModule
 
 ---@class RsBankModule
 ---@field bankIsOpen boolean
-local bankModule = RsModule.New("Bank") ---@type RsBankModule
+local bankModule = RsModule.bankModule ---@type RsBankModule
 bankModule.bankIsOpen = false
 
-local bagModule = RsModule.Import("Bag") ---@type RsBagModule
+local restockerModule = RsModule.restockerModule ---@type RsRestockerModule
+local bagModule = RsModule.bagModule ---@type RsBagModule
 
 bankModule.didBankStuff = false
 
