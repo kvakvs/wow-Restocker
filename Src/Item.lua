@@ -4,6 +4,27 @@
 ---@class RsItemModule
 local itemModule = RsModule.itemModule ---@type RsItemModule
 
+---@class RsItem
+---@field id number
+---@field englishName string Name as it appears in English
+---@field localizedName string Name in current client language
+
+local itemClass = {}
+itemClass.__index = itemClass
+
+---@param id number
+---@param englishName string
+---@return RsItem
+function itemModule:Create(id, englishName)
+  local fields = --[[---@type RsItem]] {}
+  fields.id = id
+  fields.englishName = englishName
+
+  setmetatable(fields, itemClass)
+
+  return fields
+end
+
 ---@class RsContainerItemInfo
 ---@field bag number Bag number where the item is found
 ---@field slot number Slot number in the bag
@@ -19,16 +40,16 @@ function itemModule:GetContainerItemInfo(bag, slot)
   local icon, slotCount, slotLocked, _, _, _, slotItemLink, _, _, slotItemId = GetContainerItemInfo(bag, slot)
   local itemName = slotItemLink and string.match(slotItemLink, "%[(.*)%]")
 
-  return {
-    bag    = bag,
-    slot   = slot,
-    icon   = icon,
-    count  = slotCount,
-    locked = slotLocked,
-    link   = slotItemLink,
-    itemId = slotItemId,
-    name   = itemName,
-  }
+  local i = --[[---@type RsContainerItemInfo]] {}
+  i.bag = bag
+  i.slot = slot
+  i.icon = icon
+  i.count = slotCount
+  i.locked = slotLocked
+  i.link = slotItemLink
+  i.itemId = slotItemId
+  i.name = --[[---@type string]] itemName
+  return i
 end
 
 ---Compare whether a is less than b

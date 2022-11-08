@@ -2,10 +2,8 @@ local _TOCNAME, _ADDONPRIVATE = ... ---@type RestockerAddon
 local RS = RS_ADDON ---@type RestockerAddon
 
 ---@class RsBagModule
----@field priorityMoveBankBag number|nil If not nil, this will be priority clicked before any new stack is split
----@field priorityMoveBankSlot number|nil If not nil, this will be priority clicked before any new stack is split
----@field priorityMovePlayerBag number|nil If not nil, this will be priority clicked before any new stack is split
----@field priorityMovePlayerSlot number|nil If not nil, this will be priority clicked before any new stack is split
+---@field priorityMoveBank RsInventorySlotNumber|nil If not nil, this will be priority clicked before any new stack is split
+---@field priorityMovePlayer RsInventorySlotNumber|nil If not nil, this will be priority clicked before any new stack is split
 local bagModule = RsModule.bagModule ---@type RsBagModule
 local itemModule = RsModule.itemModule ---@type RsItemModule
 
@@ -74,9 +72,9 @@ function bagModule:IsSomethingLocked()
   return false
 end
 
----@return table<string, number>
+---@return RsInventory
 function bagModule:GetItemsInBags()
-  local result = {}
+  local result = --[[---@type RsInventory]] {}
   for bag = self.BACKPACK_CONTAINER, NUM_BAG_SLOTS do
     for slot = 1, GetContainerNumSlots(bag) do
       local _, itemCount, locked, _, _, _, itemLink, _, _, itemID = GetContainerItemInfo(bag, slot)
@@ -89,9 +87,9 @@ function bagModule:GetItemsInBags()
   return result
 end
 
----@return table<string, number>
+---@return RsInventory
 function bagModule:GetItemsInBank()
-  local result = {}
+  local result = --[[---@type RsInventory]] {}
   for _, bag in ipairs(self.BANK_BAGS_REVERSED) do
     for slot = 1, GetContainerNumSlots(bag) do
       local _, itemCount, locked, _, _, _, itemLink, _, _, itemID = GetContainerItemInfo(bag, slot)
@@ -107,7 +105,7 @@ end
 
 ---@param dropItem RsItem
 ---@param bag number BagID https://wowwiki-archive.fandom.com/wiki/BagId
----@return number, number Returns bag, slot where drop happened
+---@return RsInventorySlotNumber|nil Returns bag, slot where drop happened
 function bagModule:DropCursorItemIntoBag(dropItem, bag)
   -- Search through the bag for an empty slot
   for slot = 1, GetContainerNumSlots(bag) do
@@ -115,7 +113,7 @@ function bagModule:DropCursorItemIntoBag(dropItem, bag)
 
     if not locked and not itemCount then
       PickupContainerItem(bag, slot)
-      return bag, slot
+      return { bag = bag, slot = slot }
     end
   end -- for all bag slots
   return nil
@@ -124,11 +122,11 @@ end
 ---Takes cursor item. Drops it into same bags where it was taken from then right-clicks it to move
 ---into the opposite bags group. I.e. bank to bags, or bags to bank.
 ---@param dropItem RsItem
----@param srcBags table<number, number> Bag list where the item comes from - used for splitting
----@return number, number Bag and slot where the drop happened
+---@param srcBags number[] Bag list where the item comes from - used for splitting
+---@return RsInventorySlotNumber|nil Bag and slot where the drop happened
 function bagModule:SplitSwapCursorItem(dropItem, srcBags)
   if not CursorHasItem() then
-    return
+    return nil
   end
   C_NewItems.ClearAll()
 
@@ -138,13 +136,16 @@ function bagModule:SplitSwapCursorItem(dropItem, srcBags)
   for _, bag in ipairs(srcBags) do
     local numberOfFreeSlots, _bagType = GetContainerNumFreeSlots(bag)
     if numberOfFreeSlots > 0 then
-      local tmpBag, tmpSlot = bagModule:DropCursorItemIntoBag(dropItem, bag)
-      UseContainerItem(tmpBag, tmpSlot) -- move to the opposite container group bank-bag, or bag-bank
-      return tmpBag, tmpSlot
+      local tmp = bagModule:DropCursorItemIntoBag(dropItem, bag)
+      if tmp then
+        -- move to the opposite container group bank-bag, or bag-bank
+        UseContainerItem((--[[---@not nil]] tmp).bag, (--[[---@not nil]] tmp).slot)
+      end
+      return tmp
     end
   end
 
-  return nil, nil
+  return nil
 end
 
 function bagModule:CheckSpace(bags)
@@ -237,7 +238,7 @@ function bagModule:MoveFromBankToPlayer_1(task, candidates, moveAmount)
       SplitContainerItem(containerItemInfo.bag, containerItemInfo.slot, moveAmount)
       --rsPutSplitItemIntoBags(itemInfo, 1, BANK_BAGS, PLAYER_BAGS)
       -- Now these slots will be priority clicked and cleared before next stack is produced
-      self.priorityMoveBankBag, self.priorityMoveBankSlot = bagModule:SplitSwapCursorItem(itemInfo, bagModule.BANK_BAGS)
+      self.priorityMoveBank = bagModule:SplitSwapCursorItem(itemInfo, bagModule.BANK_BAGS)
 
       task[containerItemInfo.name] = task[containerItemInfo.name] - moveAmount -- deduct
       return true -- DONE one step
@@ -290,7 +291,7 @@ function bagModule:MoveFromPlayerToBank_1(task, candidates, moveAmount)
 
       SplitContainerItem(containerItemInfo.bag, containerItemInfo.slot, moveAmount)
       --rsPutSplitItemIntoBags(itemInfo, 1, PLAYER_BAGS, BANK_BAGS)
-      self.priorityMovePlayerBag, self.priorityMovePlayerSlot = bagModule:SplitSwapCursorItem(itemInfo, bagModule.PLAYER_BAGS)
+      self.priorityMovePlayer = bagModule:SplitSwapCursorItem(itemInfo, bagModule.PLAYER_BAGS)
 
       task[containerItemInfo.name] = task[containerItemInfo.name] + moveAmount -- add
       return true -- DONE one step

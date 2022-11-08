@@ -1,18 +1,19 @@
-local TOCNAME, _ADDONPRIVATE = ... ---@type RestockerAddon
+local TOCNAME, _ADDONPRIVATE = ... ---@type string, RestockerAddon
 
 ---@class RsRestockerModule
+---@field settings RsSettings
 local restockerModule = RsModule.restockerModule ---@type RsRestockerModule
-restockerModule.settings = {} ---@type RsSettings
+restockerModule.settings = --[[---@type RsSettings]] {}
 
-local list = {} ---@type table<number, RsRestockItem>
+local list = {} ---@type RsRestockItem[]
 
 local mainFrameModule = RsModule.mainFrameModule
 local bankModule = RsModule.bankModule
 local eventsModule = RsModule.eventsModule
 local merchantModule = RsModule.merchantModule ---@type RsMerchantModule
 
-local RS = LibStub("AceAddon-3.0"):NewAddon(
-    "Restocker", "AceConsole-3.0", "AceEvent-3.0") ---@type RestockerAddon
+local RS = --[[---@type RestockerAddon]] LibStub("AceAddon-3.0"):NewAddon(
+    "Restocker", "AceConsole-3.0", "AceEvent-3.0")
 RS_ADDON = RS ---@type RestockerAddon
 
 RS.defaults = {
@@ -65,7 +66,7 @@ end
 
 RS.commands = {
   show    = RS.defaults.slash .. "show - Show the addon",
-  profile = {
+  profile = --[[---@type {[string]: string}]] {
     add    = RS.defaults.slash .. "profile add [name] - Adds a profile with [name]",
     delete = RS.defaults.slash .. "profile delete [name] - Deletes profile with [name]",
     rename = RS.defaults.slash .. "profile rename [name] - Renames current profile to [name]",
@@ -109,13 +110,13 @@ function RS:SlashCommand(args)
 
   elseif command == "help" then
 
-    for _, v in pairs(RS.commands) do
-      if type(v) == "table" then
-        for _, vv in pairs(v) do
-          RS:Print(vv)
+    for _, eachCommand in pairs(RS.commands) do
+      if type(eachCommand) == "table" then
+        for _, eachSubcommand in pairs(--[[---@type table]] eachCommand) do
+          RS:Print(eachSubcommand)
         end
       else
-        RS:Print(v)
+        RS:Print(eachCommand)
       end
     end
     return
@@ -243,6 +244,7 @@ end
 --[[
   RENAME PROFILE
 ]]
+---@param newName string
 function RS:RenameCurrentProfile(newName)
   local settings = restockerModule.settings
   local currentProfile = settings.currentProfile
@@ -284,6 +286,7 @@ end
 --[[
   COPY PROFILE
 ]]
+---@param profileToCopy string
 function RS:CopyProfile(profileToCopy)
   local settings = restockerModule.settings
   local copyProfile = CopyTable(settings.profiles[profileToCopy])
@@ -301,8 +304,7 @@ function RS:loadSettings()
   end
 
   if settings.profiles == nil then
-    ---@type table<string, table<string, RsRestockItem>>
-    settings.profiles = {}
+    settings.profiles = --[[---@type RsProfileCollection]] {}
   end
   if settings.profiles.default == nil then
     ---@type table<string, RsRestockItem>
@@ -369,7 +371,7 @@ function RS:OnEnable()
   -- the game that wasn't available in OnInitialize
   for profile, _ in pairs(restockerModule.settings.profiles) do
     for _, item in ipairs(restockerModule.settings.profiles[profile]) do
-      item.itemID = tonumber(item.itemID)
+      item.itemID = --[[---@not nil]] tonumber(item.itemID)
     end
   end
 

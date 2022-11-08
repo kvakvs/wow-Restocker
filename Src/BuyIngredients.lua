@@ -1,18 +1,26 @@
 --
 --This Module contains auto-buy table for ingredients for craftable items (example rogue poisons)
 --
-local _TOCNAME, _ADDONPRIVATE = ... ---@type RestockerAddon
+--local _TOCNAME, _ADDONPRIVATE = ... ---@type RestockerAddon
 local RS = RS_ADDON ---@type RestockerAddon
 
----@class RsBuyIngredientsModule
-local buyiModule = RsModule.buyIngredientsModule ---@type RsBuyIngredientsModule
-local restockerModule = RsModule.restockerModule ---@type RsRestockerModule
+---@alias RsCraftingBookItemName {[string]: RsRecipe}
+---@alias RsCraftingBookItemId {[number]: RsRecipe}
 
-buyiModule.buyIngredients = {}
-buyiModule.buyIngredientsWait = {}
+---@class RsBuyIngredientsModule
+---@field buyIngredients RsCraftingBookItemName
+---@field buyIngredientsWait RsCraftingBookItemId
+local buyIngredientsModule = RsModule.buyIngredientsModule ---@type RsBuyIngredientsModule
+---
+local restockerModule = RsModule.restockerModule ---@type RsRestockerModule
+local itemModule = RsModule.itemModule ---@type RsItemModule
+local recipeModule = RsModule.recipeModule ---@type RsRecipeModule
+
+buyIngredientsModule.buyIngredients = --[[---@type RsCraftingBookItemName]] {}
+buyIngredientsModule.buyIngredientsWait = --[[---@type RsCraftingBookItemId]] {}
 
 ---@param recipe RsRecipe
-function buyiModule:AddRecipe(recipe)
+function buyIngredientsModule:AddRecipe(recipe)
   -- Two situations can happen:
   -- 1. GetItemInfo will work and return all values required
   -- 2. Some values will not work - then we place the task into buyiModule.buyIngredientsWait and do later
@@ -20,42 +28,42 @@ function buyiModule:AddRecipe(recipe)
     self.buyIngredientsWait[recipe.item.id] = recipe
   end
 
-  local itemVal = RS.GetItemInfo(recipe.item.id) --- @type GIICacheItem
+  local itemVal = --[[---@not nil]] RS.GetItemInfo(recipe.item.id)
   if not itemVal then
     postpone()
     return
   end
   recipe.item.localizedName = itemVal.itemName -- update localizedName
 
-  local ing1 = recipe.ingredients[1][1]
-  local ing1Val = RS.GetItemInfo(ing1.id) --- @type GIICacheItem
-  if not ing1Val then
+  local ing1 = recipe.ingredient1
+  local ing1Item = RS.GetItemInfo(ing1.item.id)
+  if not ing1Item then
     postpone()
     return
   end
-  ing1.localizedName = ing1Val.itemName -- update localizedName
+  ing1.item.localizedName = (--[[---@not nil]] ing1Item).itemName -- update localizedName
 
-  local ing2Val --- @type GIICacheItem
-  local ing3Val --- @type GIICacheItem
+  local ing2Item --- @type GIICacheItem
+  local ing3Item --- @type GIICacheItem
 
-  if recipe.ingredients[2] then
-    local ing2 = recipe.ingredients[2][1]
-    ing2Val = RS.GetItemInfo(ing2.id)
-    if not ing2Val then
+  if recipe.ingredient2 then
+    local ing2 = --[[---@not nil]] recipe.ingredient2
+    ing2Item = --[[---@not nil]] RS.GetItemInfo(ing2.item.id)
+    if not ing2Item then
       postpone()
       return
     end
-    ing2.localizedName = ing2Val.itemName -- update localizedName
+    ing2.item.localizedName = ing2Item.itemName -- update localizedName
   end
 
-  if recipe.ingredients[3] then
-    local ing3 = recipe.ingredients[3][1]
-    ing3Val = RS.GetItemInfo(ing3.id)
-    if not ing3Val then
+  if recipe.ingredient3 then
+    local ing3 = --[[---@not nil]] recipe.ingredient3
+    ing3Item = --[[---@not nil]] RS.GetItemInfo(ing3.item.id)
+    if not ing3Item then
       postpone()
       return
     end
-    ing3.localizedName = ing3Val.itemName -- update localizedName
+    ing3.item.localizedName = ing3Item.itemName -- update localizedName
   end
 
   self.buyIngredients[itemVal.itemName] = recipe -- added with localized name key
@@ -63,33 +71,41 @@ function buyiModule:AddRecipe(recipe)
 end
 
 ---@param item RsItem
----@param reagent1 table<RsItem|number> Pair of {Item, Count} First reagent to craft
----@param reagent2 table<RsItem|number>|nil Nil or pair of {Item, Count} 2nd reagent to craft
----@param reagent3 table<RsItem|number>|nil Nil or pair of {Item, Count} 3rd reagent to craft
-function buyiModule:Recipe(item, reagent1, reagent2, reagent3)
-  local recipe = RS.RsRecipe:Create(item, reagent1, reagent2, reagent3)
+---@param reagent1 RsIngredient Pair of {Item, Count} First reagent to craft
+---@param reagent2 RsIngredient|nil Nil or pair of {Item, Count} 2nd reagent to craft
+---@param reagent3 RsIngredient|nil Nil or pair of {Item, Count} 3rd reagent to craft
+function buyIngredientsModule:Recipe(item, reagent1, reagent2, reagent3)
+  local recipe = recipeModule:Create(item, reagent1, reagent2, reagent3)
   self:AddRecipe(recipe)
 end
 
-function buyiModule:RetryWaitRecipes()
+function buyIngredientsModule:RetryWaitRecipes()
   for _, recipe in pairs(self.buyIngredientsWait) do
     self:AddRecipe(recipe)
   end
 end
 
-function buyiModule:TbcRecipe(item, reagent1, reagent2, reagent3)
+---@param item RsItem
+---@param reagent1 RsIngredient
+---@param reagent2 RsIngredient|nil
+---@param reagent3 RsIngredient|nil
+function buyIngredientsModule:TbcRecipe(item, reagent1, reagent2, reagent3)
   if RS.IsTBC then
     self:Recipe(item, reagent1, reagent2, reagent3)
   end
 end
 
-function buyiModule:ClassicRecipe(item, reagent1, reagent2, reagent3)
+---@param item RsItem
+---@param reagent1 RsIngredient
+---@param reagent2 RsIngredient|nil
+---@param reagent3 RsIngredient|nil
+function buyIngredientsModule:ClassicRecipe(item, reagent1, reagent2, reagent3)
   if RS.IsSoM or RS.IsClassic then
     self:Recipe(item, reagent1, reagent2, reagent3)
   end
 end
 
-function buyiModule:SetupAutobuyIngredients()
+function buyIngredientsModule:SetupAutobuyIngredients()
   if RS.IsWotLK then
     return -- in WotLK poisons are buyable pre-crafted
   end
@@ -98,123 +114,126 @@ function buyiModule:SetupAutobuyIngredients()
     return -- do not double-init
   end
 
-  local maidensAnguish = { RS.RsItem:Create(2931, "Maiden's Anguish"), 1 } -- always 1 in crafts
-  local dustOfDeter = RS.RsItem:Create(8924, "Dust of Deterioration")
-  local dustOfDecay = RS.RsItem:Create(2928, "Dust of Decay")
-  local essOfAgony = RS.RsItem:Create(8923, "Essence of Agony")
-  local essOfPain = RS.RsItem:Create(2930, "Essence of Pain")
-  local deathweed = RS.RsItem:Create(5173, "Deathweed")
+  local maidensAnguish = {
+    item  = itemModule:Create(2931, "Maiden's Anguish"),
+    count = 1
+  } -- always 1 in crafts
+  local dustOfDeter = itemModule:Create(8924, "Dust of Deterioration")
+  local dustOfDecay = itemModule:Create(2928, "Dust of Decay")
+  local essOfAgony = itemModule:Create(8923, "Essence of Agony")
+  local essOfPain = itemModule:Create(2930, "Essence of Pain")
+  local deathweed = itemModule:Create(5173, "Deathweed")
 
-  local crystalVial = { RS.RsItem:Create(8925, "Crystal Vial"), 1 }
-  local leadedVial = { RS.RsItem:Create(3372, "Leaded Vial"), 1 }
-  local emptyVial = { RS.RsItem:Create(3371, "Empty Vial"), 1 }
+  local crystalVial = { item = itemModule:Create(8925, "Crystal Vial"), count = 1 }
+  local leadedVial = { item = itemModule:Create(3372, "Leaded Vial"), count = 1 }
+  local emptyVial = { item = itemModule:Create(3371, "Empty Vial"), count = 1 }
 
   --
   -- INSTANT POISONS
   --
-  local instant7 = RS.RsItem:Create(21927, "Instant Poison VII")
-  local instant6 = RS.RsItem:Create(8928, "Instant Poison VI")
-  local instant5 = RS.RsItem:Create(8927, "Instant Poison V")
-  local instant4 = RS.RsItem:Create(8926, "Instant Poison IV")
-  local instant3 = RS.RsItem:Create(6950, "Instant Poison III")
-  local instant2 = RS.RsItem:Create(6949, "Instant Poison II")
-  local instant1 = RS.RsItem:Create(6947, "Instant Poison")
+  local instant7 = itemModule:Create(21927, "Instant Poison VII")
+  local instant6 = itemModule:Create(8928, "Instant Poison VI")
+  local instant5 = itemModule:Create(8927, "Instant Poison V")
+  local instant4 = itemModule:Create(8926, "Instant Poison IV")
+  local instant3 = itemModule:Create(6950, "Instant Poison III")
+  local instant2 = itemModule:Create(6949, "Instant Poison II")
+  local instant1 = itemModule:Create(6947, "Instant Poison")
 
-  self:TbcRecipe(instant7, maidensAnguish, crystalVial)
-  self:TbcRecipe(instant6, { dustOfDeter, 2 }, crystalVial)
-  self:TbcRecipe(instant5, { dustOfDeter, 2 }, crystalVial)
-  self:TbcRecipe(instant4, { dustOfDeter, 1 }, crystalVial)
-  self:TbcRecipe(instant3, { dustOfDeter, 2 }, leadedVial)
-  self:TbcRecipe(instant2, { dustOfDecay, 1 }, leadedVial)
+  self:TbcRecipe(instant7, maidensAnguish, crystalVial, nil)
+  self:TbcRecipe(instant6, { item = dustOfDeter, count = 2 }, crystalVial, nil)
+  self:TbcRecipe(instant5, { item = dustOfDeter, count = 2 }, crystalVial, nil)
+  self:TbcRecipe(instant4, { item = dustOfDeter, count = 1 }, crystalVial, nil)
+  self:TbcRecipe(instant3, { item = dustOfDeter, count = 2 }, leadedVial, nil)
+  self:TbcRecipe(instant2, { item = dustOfDecay, count = 1 }, leadedVial, nil)
 
-  self:ClassicRecipe(instant6, { dustOfDeter, 4 }, crystalVial)
-  self:ClassicRecipe(instant5, { dustOfDeter, 3 }, crystalVial)
-  self:ClassicRecipe(instant4, { dustOfDeter, 2 }, crystalVial)
-  self:ClassicRecipe(instant3, { dustOfDeter, 1 }, leadedVial)
-  self:ClassicRecipe(instant2, { dustOfDecay, 3 }, leadedVial)
+  self:ClassicRecipe(instant6, { item = dustOfDeter, count = 4 }, crystalVial, nil)
+  self:ClassicRecipe(instant5, { item = dustOfDeter, count = 3 }, crystalVial, nil)
+  self:ClassicRecipe(instant4, { item = dustOfDeter, count = 2 }, crystalVial, nil)
+  self:ClassicRecipe(instant3, { item = dustOfDeter, count = 1 }, leadedVial, nil)
+  self:ClassicRecipe(instant2, { item = dustOfDecay, count = 3 }, leadedVial, nil)
 
-  self:Recipe(instant1, { dustOfDecay, 1 }, emptyVial)
+  self:Recipe(instant1, { item = dustOfDecay, count = 1 }, emptyVial, nil)
 
   --
   -- CRIPPLING POISONS
   --
-  local crip2 = RS.RsItem:Create(3776, "Crippling Poison II")
-  local crip1 = RS.RsItem:Create(3775, "Crippling Poison")
+  local crip2 = itemModule:Create(3776, "Crippling Poison II")
+  local crip1 = itemModule:Create(3775, "Crippling Poison")
 
-  self:TbcRecipe(crip2, { essOfAgony, 1 }, crystalVial)
-  self:ClassicRecipe(crip2, { essOfAgony, 3 }, crystalVial)
+  self:TbcRecipe(crip2, { item = essOfAgony, count = 1 }, crystalVial, nil)
+  self:ClassicRecipe(crip2, { item = essOfAgony, count = 3 }, crystalVial, nil)
 
-  self:Recipe(crip1, { essOfPain, 1 }, emptyVial)
+  self:Recipe(crip1, { item = essOfPain, count = 1 }, emptyVial, nil)
 
   --
   -- DEADLY POISONS
   --
-  local deadly7 = RS.RsItem:Create(22054, "Deadly Poison VII")
-  local deadly6 = RS.RsItem:Create(22053, "Deadly Poison VI")
-  local deadly5 = RS.RsItem:Create(20844, "Deadly Poison V")
-  local deadly4 = RS.RsItem:Create(8985, "Deadly Poison IV")
-  local deadly3 = RS.RsItem:Create(8984, "Deadly Poison III")
-  local deadly2 = RS.RsItem:Create(2893, "Deadly Poison II")
-  local deadly1 = RS.RsItem:Create(2892, "Deadly Poison")
+  local deadly7 = itemModule:Create(22054, "Deadly Poison VII")
+  local deadly6 = itemModule:Create(22053, "Deadly Poison VI")
+  local deadly5 = itemModule:Create(20844, "Deadly Poison V")
+  local deadly4 = itemModule:Create(8985, "Deadly Poison IV")
+  local deadly3 = itemModule:Create(8984, "Deadly Poison III")
+  local deadly2 = itemModule:Create(2893, "Deadly Poison II")
+  local deadly1 = itemModule:Create(2892, "Deadly Poison")
 
-  self:TbcRecipe(deadly7, maidensAnguish, crystalVial)
-  self:TbcRecipe(deadly6, maidensAnguish, crystalVial)
-  self:TbcRecipe(deadly5, { deathweed, 2 }, crystalVial)
-  self:TbcRecipe(deadly4, { deathweed, 2 }, crystalVial)
-  self:TbcRecipe(deadly3, { deathweed, 1 }, crystalVial)
-  self:TbcRecipe(deadly2, { deathweed, 2 }, leadedVial)
-  self:TbcRecipe(deadly1, { deathweed, 1 }, leadedVial)
+  self:TbcRecipe(deadly7, maidensAnguish, crystalVial, nil)
+  self:TbcRecipe(deadly6, maidensAnguish, crystalVial, nil)
+  self:TbcRecipe(deadly5, { item = deathweed, count = 2 }, crystalVial, nil)
+  self:TbcRecipe(deadly4, { item = deathweed, count = 2 }, crystalVial, nil)
+  self:TbcRecipe(deadly3, { item = deathweed, count = 1 }, crystalVial, nil)
+  self:TbcRecipe(deadly2, { item = deathweed, count = 2 }, leadedVial, nil)
+  self:TbcRecipe(deadly1, { item = deathweed, count = 1 }, leadedVial, nil)
 
-  self:ClassicRecipe(deadly5, { deathweed, 7 }, crystalVial)
-  self:ClassicRecipe(deadly4, { deathweed, 5 }, crystalVial)
-  self:ClassicRecipe(deadly3, { deathweed, 3 }, crystalVial)
-  self:ClassicRecipe(deadly2, { deathweed, 2 }, leadedVial)
-  self:ClassicRecipe(deadly1, { deathweed, 1 }, leadedVial)
+  self:ClassicRecipe(deadly5, { item = deathweed, count = 7 }, crystalVial, nil)
+  self:ClassicRecipe(deadly4, { item = deathweed, count = 5 }, crystalVial, nil)
+  self:ClassicRecipe(deadly3, { item = deathweed, count = 3 }, crystalVial, nil)
+  self:ClassicRecipe(deadly2, { item = deathweed, count = 2 }, leadedVial, nil)
+  self:ClassicRecipe(deadly1, { item = deathweed, count = 1 }, leadedVial, nil)
 
   -- MIND-NUMBING POISONS
-  local mindNumbing3 = RS.RsItem:Create(9186, "Mind-numbing Poison III")
-  local mindNumbing2 = RS.RsItem:Create(6951, "Mind-numbing Poison II")
-  local mindNumbing1 = RS.RsItem:Create(5237, "Mind-numbing Poison")
+  local mindNumbing3 = itemModule:Create(9186, "Mind-numbing Poison III")
+  local mindNumbing2 = itemModule:Create(6951, "Mind-numbing Poison II")
+  local mindNumbing1 = itemModule:Create(5237, "Mind-numbing Poison")
 
-  self:TbcRecipe(mindNumbing3, { essOfAgony, 1 }, crystalVial)
-  self:TbcRecipe(mindNumbing2, { essOfAgony, 1 }, leadedVial)
-  self:TbcRecipe(mindNumbing1, { dustOfDecay, 1 }, emptyVial)
+  self:TbcRecipe(mindNumbing3, { item = essOfAgony, count = 1 }, crystalVial, nil)
+  self:TbcRecipe(mindNumbing2, { item = essOfAgony, count = 1 }, leadedVial, nil)
+  self:TbcRecipe(mindNumbing1, { item = dustOfDecay, count = 1 }, emptyVial, nil)
 
-  self:ClassicRecipe(mindNumbing3, { dustOfDeter, 2 }, { essOfAgony, 2 }, crystalVial)
-  self:ClassicRecipe(mindNumbing2, { dustOfDecay, 4 }, { essOfPain, 4 }, leadedVial)
-  self:ClassicRecipe(mindNumbing1, { dustOfDecay, 1 }, { essOfPain, 1 }, emptyVial)
+  self:ClassicRecipe(mindNumbing3, { item = dustOfDeter, count = 2 }, { item = essOfAgony, count = 2 }, crystalVial)
+  self:ClassicRecipe(mindNumbing2, { item = dustOfDecay, count = 4 }, { item = essOfPain, count = 4 }, leadedVial)
+  self:ClassicRecipe(mindNumbing1, { item = dustOfDecay, count = 1 }, { item = essOfPain, count = 1 }, emptyVial)
 
   -- WOUND POISONS
-  local wound5 = RS.RsItem:Create(22055, "Wound Poison V")
-  local wound4 = RS.RsItem:Create(10922, "Wound Poison IV")
-  local wound3 = RS.RsItem:Create(10921, "Wound Poison III")
-  local wound2 = RS.RsItem:Create(10920, "Wound Poison II")
-  local wound1 = RS.RsItem:Create(10918, "Wound Poison")
+  local wound5 = itemModule:Create(22055, "Wound Poison V")
+  local wound4 = itemModule:Create(10922, "Wound Poison IV")
+  local wound3 = itemModule:Create(10921, "Wound Poison III")
+  local wound2 = itemModule:Create(10920, "Wound Poison II")
+  local wound1 = itemModule:Create(10918, "Wound Poison")
 
-  self:TbcRecipe(wound5, { essOfAgony, 2 }, crystalVial)
-  self:TbcRecipe(wound4, { essOfAgony, 1 }, { deathweed, 1 }, crystalVial)
-  self:TbcRecipe(wound3, { essOfAgony, 1 }, crystalVial)
-  self:TbcRecipe(wound2, { essOfPain, 1 }, { deathweed, 1 }, leadedVial)
-  self:TbcRecipe(wound1, { essOfPain, 1 }, leadedVial)
+  self:TbcRecipe(wound5, { item = essOfAgony, count = 2 }, crystalVial, nil)
+  self:TbcRecipe(wound4, { item = essOfAgony, count = 1 }, { item = deathweed, count = 1}, crystalVial)
+  self:TbcRecipe(wound3, { item = essOfAgony, count = 1 }, crystalVial, nil)
+  self:TbcRecipe(wound2, { item = essOfPain, count = 1 }, { item = deathweed, count = 1 }, leadedVial)
+  self:TbcRecipe(wound1, { item = essOfPain, count = 1 }, leadedVial, nil)
 
-  self:ClassicRecipe(wound4, { essOfAgony, 2 }, { deathweed, 2 }, crystalVial)
-  self:ClassicRecipe(wound3, { essOfAgony, 1 }, { deathweed, 2 }, crystalVial)
-  self:ClassicRecipe(wound2, { essOfPain, 1 }, { deathweed, 2 }, leadedVial)
-  self:ClassicRecipe(wound1, { essOfPain, 1 }, { deathweed, 1 }, leadedVial)
+  self:ClassicRecipe(wound4, { item = essOfAgony, count = 2 }, { item = deathweed, count = 2 }, crystalVial)
+  self:ClassicRecipe(wound3, { item = essOfAgony, count = 1 }, { item = deathweed, count = 2 }, crystalVial)
+  self:ClassicRecipe(wound2, { item = essOfPain, count = 1 }, { item = deathweed, count = 2 }, leadedVial)
+  self:ClassicRecipe(wound1, { item = essOfPain, count = 1 }, { item = deathweed, count = 1 }, leadedVial)
 
   -- ANESTHETIC POISON
-  local anesth1 = RS.RsItem:Create(21835, "Anesthetic Poison")
-  self:TbcRecipe(anesth1, maidensAnguish, { deathweed, 1 }, crystalVial)
+  local anesth1 = itemModule:Create(21835, "Anesthetic Poison")
+  self:TbcRecipe(anesth1, maidensAnguish, { item = deathweed, count = 1 }, crystalVial)
 end
 
 --- Check if any of the items user wants to restock are on our crafting autobuy list
-function buyiModule:CraftingPurchaseOrder()
+function buyIngredientsModule:CraftingPurchaseOrder()
   local purchaseOrder = {} ---@type table<string, number> Maps localized item name to buy count
   local settings = restockerModule.settings
 
   -- Check auto-buy reagents table
   for _, item in ipairs(settings.profiles[settings.currentProfile]) do
-    if buyiModule.buyIngredients[item.itemName] ~= nil then
+    if buyIngredientsModule.buyIngredients[item.itemName] ~= nil then
       local craftedName = item.itemName
       local craftedRestockAmount = item.amount
       local haveCrafted = GetItemCount(item.itemID, true)
@@ -230,18 +249,21 @@ function buyiModule:CraftingPurchaseOrder()
       end
 
       if craftedMissing >= minDifference and craftedMissing > 0 then
-        local recipe = buyiModule.buyIngredients[craftedName]
+        local recipe = buyIngredientsModule.buyIngredients[craftedName]
 
-        ---@type table<RsItem|number> each element in ingredients is {RsItem, Count :: number}
-        for _, ingredient in pairs(recipe.ingredients) do
-          if ingredient then
-            local amountToGet = ingredient[2] * craftedMissing
-            local locName = ingredient[1].localizedName
+        ---@param i RsIngredient|nil
+        local function forEachIngredient(i)
+          if i then
+            local amountToGet = (--[[---@not nil]] i).count * craftedMissing
+            local locName = (--[[---@not nil]] i).item.localizedName
             local purchase = purchaseOrder[locName]
 
             purchaseOrder[locName] = purchase and purchase + amountToGet or amountToGet
           end -- if ingredient
-        end -- each ingredient
+        end
+        forEachIngredient(recipe.ingredient1)
+        forEachIngredient(recipe.ingredient2)
+        forEachIngredient(recipe.ingredient3)
       end -- if need to buy missing reagents/ingredients
     end
   end
@@ -256,7 +278,7 @@ function buyiModule:CraftingPurchaseOrder()
   return purchaseOrder
 end
 
-function buyiModule.OnModuleInit()
+function buyIngredientsModule.OnModuleInit()
   -- Craftable recipes (rogue poisons, etc)
-  buyiModule:SetupAutobuyIngredients()
+  buyIngredientsModule:SetupAutobuyIngredients()
 end

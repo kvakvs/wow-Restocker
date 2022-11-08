@@ -10,7 +10,8 @@ local merchantModule = RsModule.merchantModule ---@type RsMerchantModule
 merchantModule.merchantIsOpen = false
 merchantModule.lastTimeRestocked = GetTime()
 
-local buyiModule = RsModule.buyIngredientsModule ---@type RsBuyIngredientsModule
+local buyIngredientsModule = RsModule.buyIngredientsModule ---@type RsBuyIngredientsModule
+local buyItemModule = RsModule.buyItemModule ---@type RsBuyItemModule
 
 --local bagModule = RsModule.bagModule ---@type RsBagModule
 
@@ -41,12 +42,11 @@ function merchantModule:Restock()
     RS:Show()
   end
 
-  local craftingPurchaseOrder = buyiModule:CraftingPurchaseOrder() or {}
+  local craftingPurchaseOrder = buyIngredientsModule:CraftingPurchaseOrder() or {}
 
   ---@type table<string, RsBuyItem>
   local purchaseOrders = {}
 
-  ---@type table<number, RsBuyItem>
   local restockList = settings.profiles[settings.currentProfile]
   local vendorReaction = UnitReaction("target", "player") or 0
 
@@ -64,12 +64,13 @@ function merchantModule:Restock()
       if toBuy > 0 then
         if not purchaseOrders[item.itemName] then
           -- add new
-          purchaseOrders[item.itemName] = RS.RsBuyItem:Create({
-            numNeeded = toBuy,
-            itemName  = item.itemName,
-            itemID    = item.itemID,
-            itemLink  = item.itemLink,
-          })
+          purchaseOrders[item.itemName] = buyItemModule:Create(
+                --[[---@type RsBuyItem]] {
+                numNeeded = toBuy,
+                itemName  = item.itemName,
+                itemID    = item.itemID,
+                itemLink  = item.itemLink,
+              })
         else
           -- update amount, add more
           local purchase = purchaseOrders[item.itemName]
@@ -82,10 +83,11 @@ function merchantModule:Restock()
   -- Insert craft reagents for missing items into purchase orders, or add
   for ingredientName, toBuy in pairs(craftingPurchaseOrder) do
     if not purchaseOrders[ingredientName] then
-      purchaseOrders[ingredientName] = RS.RsBuyItem:Create({
-        numNeeded = toBuy,
-        itemName  = ingredientName,
-      })
+      purchaseOrders[ingredientName] = buyItemModule:Create(
+            --[[---@type RsBuyItem]] {
+            numNeeded = toBuy,
+            itemName  = ingredientName,
+          })
     else
       local purchase = purchaseOrders[ingredientName]
       purchase.numNeeded = purchase.numNeeded + toBuy
@@ -111,9 +113,9 @@ function merchantModule:Restock()
         BuyMerchantItem(i, merchantAvailable)
         numPurchases = numPurchases + 1
       else
-        for n = buyItem.numNeeded, 1, -itemInfo.itemStackCount do
-          if n > itemInfo.itemStackCount then
-            BuyMerchantItem(i, itemInfo.itemStackCount)
+        for n = buyItem.numNeeded, 1, -(--[[---@not nil]] itemInfo).itemStackCount do
+          if n > (--[[---@not nil]] itemInfo).itemStackCount then
+            BuyMerchantItem(i, (--[[---@not nil]] itemInfo).itemStackCount)
             numPurchases = numPurchases + 1
           else
             BuyMerchantItem(i, n)

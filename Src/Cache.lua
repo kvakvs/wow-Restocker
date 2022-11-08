@@ -1,4 +1,4 @@
-local _TOCNAME, _ADDONPRIVATE = ... ---@type RestockerAddon
+--local _TOCNAME, _ADDONPRIVATE = ... ---@type RestockerAddon
 local RS = RS_ADDON ---@type RestockerAddon
 
 ---@class GIICacheItem
@@ -14,16 +14,16 @@ local RS = RS_ADDON ---@type RestockerAddon
 ---@field itemTexture string|number Texture or icon id
 ---@field itemSellPrice number Copper price for the item
 
----@type table<number|string, GIICacheItem> Stores arg to results mapping for GetItemInfo
-local rs_gii_cache = {}
+---Stores arg to results mapping for GetItemInfo
+local getItemInfoCache = --[[---@type {[number|string]: GIICacheItem}]] {}
 
 ---Calls GetItemInfo and saves the results, or not (if nil was returned)
 ---@param arg number|string
 ---@return GIICacheItem|nil
 function RS.GetItemInfo(arg)
-  if rs_gii_cache[arg] ~= nil then
+  if getItemInfoCache[arg] ~= nil then
     --print("Cached item response for ", arg)
-    return rs_gii_cache[arg]
+    return getItemInfoCache[arg]
   end
 
   local itemName, itemLink, itemRarity, itemLevel, itemMinLevel, itemType
@@ -32,7 +32,7 @@ function RS.GetItemInfo(arg)
     return nil
   end
 
-  local cache_item = {
+  local cacheItem = --[[---@type GIICacheItem]] {
     itemName = itemName,
     itemLink = itemLink,
     itemRarity = itemRarity,
@@ -46,6 +46,6 @@ function RS.GetItemInfo(arg)
     itemSellPrice = itemSellPrice
   }
   --print("Added to cache item info for ", arg)
-  rs_gii_cache[arg] = cache_item
-  return cache_item
+  getItemInfoCache[arg] = cacheItem
+  return cacheItem
 end

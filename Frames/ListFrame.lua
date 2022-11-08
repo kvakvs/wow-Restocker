@@ -24,7 +24,7 @@ local function rsAmountEditBox(frame, alignFrame)
 
     for _, item in ipairs(settings.profiles[settings.currentProfile]) do
       if item.itemName == text then
-        item.amount = tonumber(amount)
+        item.amount = --[[---@not nil]] tonumber(amount)
       end
     end
     editBox:ClearFocus()
@@ -47,7 +47,7 @@ local function rsAmountEditBox(frame, alignFrame)
 
         for _, item in ipairs(settings.profiles[settings.currentProfile]) do
           if item.itemName == text then
-            item.amount = tonumber(amount)
+            item.amount = --[[---@not nil]] tonumber(amount)
           end
         end
       end)
@@ -92,7 +92,7 @@ local function rsRequireReactionEditBox(frame, alignFrame)
 
         for _, item in ipairs(settings.profiles[settings.currentProfile]) do
           if item.itemName == text then
-            item.reaction = tonumber(reaction)
+            item.reaction = --[[---@not nil]] tonumber(reaction)
           end
         end
         reactionBox:ClearFocus()
@@ -111,7 +111,7 @@ local function rsRequireReactionEditBox(frame, alignFrame)
 
         for _, item in ipairs(settings.profiles[settings.currentProfile]) do
           if item.itemName == text then
-            item.reaction = tonumber(reaction)
+            item.reaction = --[[---@not nil]] tonumber(reaction)
           end
         end
       end)

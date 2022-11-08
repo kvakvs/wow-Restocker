@@ -16,7 +16,6 @@ Src\Restocker.lua
 # --- end load first ---
 
 Classes\RestockerClass.lua
-Classes\Item.lua
 Classes\BuyItem.lua
 Classes\RestockerConf.lua
 Classes\Recipe.lua

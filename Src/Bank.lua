@@ -3,6 +3,7 @@ local RS = RS_ADDON ---@type RestockerAddon
 
 ---@class RsBankModule
 ---@field bankIsOpen boolean
+---@field currentlyRestocking boolean
 local bankModule = RsModule.bankModule ---@type RsBankModule
 bankModule.bankIsOpen = false
 
@@ -41,19 +42,23 @@ local function coroBankToBagExchange(state)
   end
 end
 
+---@alias RsInventory {[string]: number} Items in the bag by name
+
 ---@class BankRestockCoroState
----@field itemsInBags table<string, number> How many items in bags, name is key, count is value
----@field itemsInBank table<string, number> How many items in bank, name is key, count is value
----@field currentProfile table
----@field task table<string, number> What item, and how many to move (negative = move to bank)
+---@field itemsInBags RsInventory How many items in bags, name is key, count is value
+---@field itemsInBank RsInventory How many items in bank, name is key, count is value
+---@field currentProfile RsProfile
+---@field task RsBuyTask What item, and how many to move (negative = move to bank)
+
+---@alias RsBuyTask {[string]: number} Item name is key, amount to buy is value
 
 ---Go through the bags and see what's too much in our bag and must be sent to bank
 ---The values will be stored in dictionary with negative quantities
 ---(i.e. remove from backpack)
 ---@param state BankRestockCoroState
----@return number, table<string, number> Count of items to move and table of item names to move
+---@return number, RsBuyTask Count of items to move and table of item names to move
 local function rsCountMoveItems(state)
-  local task = {}
+  local task = --[[---@type RsBuyTask]] {}
   local moveCount = 0
 
   for i, rs in pairs(state.currentProfile) do
@@ -90,8 +95,7 @@ local function coroutineBank()
 
   local settings = restockerModule.settings
 
-  ---@type BankRestockCoroState
-  local state = {
+  local state = --[[---@type BankRestockCoroState]] {
     itemsInBags    = bagModule:GetItemsInBags(),
     itemsInBank    = bagModule:GetItemsInBank(),
     currentProfile = settings.profiles[settings.currentProfile],
@@ -102,7 +106,7 @@ local function coroutineBank()
 
   if moveCount < 1 then
     bankModule.currentlyRestocking = false
-    RS:Print("Finished restocking")
+    RS:Print("Finished restocking. Hold Shift to skip next time.")
     return
   end
 
@@ -133,7 +137,7 @@ local function testCoroutineBank()
   coroutineBank()
 end
 
-RS.xxx = testCoroutineBank
+--RS.xxx = testCoroutineBank
 local restockerCoroutine = coroutine.create(coroutineBank)
 
 

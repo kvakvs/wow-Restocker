@@ -1,5 +1,5 @@
-local _TOCNAME, _ADDONPRIVATE = ... ---@type RestockerAddon
-local RS = RS_ADDON ---@type RestockerAddon
+--local _TOCNAME, _ADDONPRIVATE = ... ---@type RestockerAddon
+--local RS = RS_ADDON ---@type RestockerAddon
 
 -- TODO: Remove this; move fields to RestockerAddon
 ---@class RestockerConf
@@ -12,12 +12,12 @@ local RS = RS_ADDON ---@type RestockerAddon
 ---@field loginMessage boolean
 ---@field framePos table<number>
 
-RS.RestockerConf         = {}
-RS.RestockerConf.__index = RS.RestockerConf
+local rsConfClass         = {}
+rsConfClass.__index = rsConfClass
 
 -- -@return RsItem
---function RS.RestockerConf.Create(fields)
+--function rsConfClass.Create(fields)
 --  fields = fields or {}
---  setmetatable(fields, RS.RestockerConf)
+--  setmetatable(fields, rsConfClass)
 --  return fields
 --end

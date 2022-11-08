@@ -1,4 +1,4 @@
-local _TOCNAME, _ADDONPRIVATE = ... ---@type RestockerAddon
+--local _TOCNAME, _ADDONPRIVATE = ... ---@type RestockerAddon
 local RS = RS_ADDON ---@type RestockerAddon
 
 ---@class RsEventsModule
@@ -80,6 +80,8 @@ function eventsModule.OnBankClose()
   bagModule:ResetBankRestocker()
 end
 
+---@param itemID number
+---@param success boolean
 function eventsModule.OnItemInfoReceived(itemID, success)
   if success == nil then
     return

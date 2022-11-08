@@ -1,19 +1,35 @@
 local _TOCNAME, _ADDONPRIVATE = ... ---@type RestockerAddon
 local RS = RS_ADDON ---@type RestockerAddon
 
+---@class RsRecipeModule
+local recipeModule = RsModule.recipeModule ---@type RsRecipeModule
+
+---@shape RsIngredient
+---@field item RsItem
+---@field count number
+
 ---@class RsRecipe
 ---@field item RsItem
----@field ingredients table<RsItem>
+---@field ingredient1 RsIngredient
+---@field ingredient2 RsIngredient|nil
+---@field ingredient3 RsIngredient|nil
 
-RS.RsRecipe         = {}
-RS.RsRecipe.__index = RS.RsRecipe
+local recipeClass = {}
+recipeClass.__index = recipeClass
 
 ---@return RsRecipe
-function RS.RsRecipe:Create(item, reagent1, reagent2, reagent3)
-  local fields = { item        = item,
-                   ingredients = { reagent1, reagent2, reagent3 } }
+---@param reagent1 RsIngredient
+---@param reagent2 RsIngredient|nil
+---@param reagent3 RsIngredient|nil
+function recipeModule:Create(item, reagent1, reagent2, reagent3)
+  local fields = --[[---@type RsRecipe]] {}
 
-  setmetatable(fields, RS.RsRecipe)
+  fields.item = item
+  fields.ingredient1 = reagent1
+  fields.ingredient2 = reagent2
+  fields.ingredient3 = reagent3
+
+  setmetatable(fields, recipeClass)
 
   return fields
 end
