@@ -15,7 +15,7 @@ VERSION = '2022.11.0'  # year.month.build_num
 ADDON_NAME = 'Restocker'  # Directory and zip name
 ADDON_NAME_CLASSIC = ADDON_NAME  # Directory and zip name
 ADDON_TITLE_CLASSIC = ADDON_NAME  # Title field in TOC
-LEGACY_OVERRIDE_ADDON = f"{ADDON_NAME_CLASSIC}TBC" # subdirectory with dummy addon
+#LEGACY_OVERRIDE_ADDON = f"{ADDON_NAME_CLASSIC}TBC" # subdirectory with dummy addon
 
 UI_VERSION_CLASSIC = '11403'  # patch 1.14.3
 UI_VERSION_CLASSIC_TBC = '20504'  # patch 2.5.4 Phase 4 and 5 TBC
@@ -99,7 +99,7 @@ class BuildTool:
         with zipfile.ZipFile(zip_name, "w", zipfile.ZIP_DEFLATED,
                              allowZip64=True) as zip_file:
             # Add deprecation addon to zip
-            BuildTool.do_zip_add_root_dir(zip_file, dir=LEGACY_OVERRIDE_ADDON, toc_name=toc_name)
+            #BuildTool.do_zip_add_root_dir(zip_file, dir=LEGACY_OVERRIDE_ADDON, toc_name=toc_name)
 
             for input_dir in self.copy_dirs:
                 BuildTool.do_zip_add_dir(zip_file, dir=input_dir, toc_name=toc_name)
