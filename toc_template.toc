@@ -4,7 +4,7 @@
 ## Interface: ${UI_VERSION}
 ## Title: ${ADDON_TITLE}
 ## Author: kvakvs; original author RainForDays
-## Notes: Restock items automatically
+## Notes: Restock items automatically from vendors and manage bag/bank balance
 ## Version: ${VERSION}
 ## DefaultState: enabled
 ## SavedVariablesPerCharacter: RestockerSettings

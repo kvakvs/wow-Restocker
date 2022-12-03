@@ -1,6 +1,12 @@
 --local _TOCNAME, _ADDONPRIVATE = ... ---@type RestockerAddon
 --local RS = RS_ADDON ---@type RestockerAddon
 
+---@class RsReusableFrame: WowControl
+---@field isInUse boolean
+---@field index number
+---@field text WowFontString
+---@field editBox WowControl
+
 ---@class RestockerAddon
 ---@field RegisterEvent function
 ---@field buying boolean Currently buying is in progress
@@ -11,19 +17,17 @@
 ---@field buyIngredients table<string, RsRecipe> Auto buy table contains ingredients to buy if restocking some crafted item
 ---@field buyIngredientsWait table<number, RsRecipe> Item ids waiting for resolution for auto-buy setup
 ---@field commands RsCommands
----@field currentlyRestocking boolean
 ---@field defaults RsAddonDefaults
----@field EventFrame table Hidden frame for addon events
----@field framepool table A collection of UI frames
+---@field EventFrame WowControl Hidden frame for addon events
+---@field framepool RsReusableFrame[] A collection of UI frames
 ---@field HaveTBC boolean Whether we are running on or after TBC
 ---@field HaveWotLK boolean
----@field hiddenFrame table An UI frame
+---@field hiddenFrame WowControl An UI frame
 ---@field IsClassic boolean Whether we are running on Classic or Season of Mastery
 ---@field IsEra boolean
 ---@field IsSoM boolean
 ---@field IsTBC boolean Whether we are running on TBC
 ---@field IsWotLK boolean
----@field itemsRestocked table
 ---@field loaded boolean
 ---@field MainFrame table Main frame of the addon
 ---@field merchantIsOpen boolean
@@ -48,7 +52,10 @@
 ---@field slash string
 
 ---@alias RsProfile RsBuyItem[]
----@alias RsProfileCollection {[string]: RsProfile}
+
+---@shape RsProfileCollection
+---@field [string] RsProfile
+---@field default RsProfile|nil
 
 ---@class RsSettings
 ---@field autoBuy boolean

@@ -230,7 +230,7 @@ function mainFrameModule:CreateMenu()
 
   addonFrame.profileDropDownMenu = Restocker_ProfileDropDownMenu
 
-  tinsert(UISpecialFrames, "RestockerMainFrame")
+  table.insert(UISpecialFrames, "RestockerMainFrame")
   addonFrame:Hide()
 
   RS.MainFrame = addonFrame
@@ -280,7 +280,7 @@ function RS:addItem(text)
   buyItem.itemID = (--[[---@not nil]] itemInfo).itemId
   buyItem.amount = 1
 
-  tinsert(settings.profiles[settings.currentProfile], buyItem)
+  table.insert(settings.profiles[settings.currentProfile], buyItem)
 
   RS:Update()
 end

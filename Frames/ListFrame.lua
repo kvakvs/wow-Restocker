@@ -8,7 +8,7 @@ local eventsModule = RsModule.eventsModule ---@type RsEventsModule
 ---Create an amount edit box, aligning to the left of alignFrame
 local function rsAmountEditBox(frame, alignFrame)
   local settings = restockerModule.settings
-  local editBox = CreateFrame("EditBox", nil, frame, "InputBoxTemplate");
+  local editBox = --[[---@type WowInputBox]] CreateFrame("EditBox", nil, frame, "InputBoxTemplate");
 
   editBox:SetSize(40, 20)
   editBox:SetPoint("RIGHT", alignFrame, "LEFT", 3, 0);
@@ -73,7 +73,7 @@ end
 ---Will check faction reaction on vendor if not empty.
 local function rsRequireReactionEditBox(frame, alignFrame)
   local settings = restockerModule.settings
-  local reactionBox = CreateFrame("EditBox", nil, frame, "InputBoxTemplate");
+  local reactionBox = --[[---@type WowInputBox]] CreateFrame("EditBox", nil, frame, "InputBoxTemplate");
 
   reactionBox:SetSize(20, 20)
   reactionBox:SetPoint("RIGHT", alignFrame, "LEFT", 0, 0);
@@ -160,8 +160,9 @@ local function rsDeleteButton(frame)
 end
 
 ---Create UI row for items
+---@return RsReusableFrame
 function RS:addListFrame()
-  local frame = CreateFrame("Frame", nil, RS.hiddenFrame)
+  local frame = --[[---@type RsReusableFrame]] CreateFrame("Frame", nil, RS.hiddenFrame, nil)
   frame.index = #RS.framepool + 1
   frame:SetSize(RS.MainFrame.scrollChild:GetWidth(), 20);
 
@@ -174,7 +175,7 @@ function RS:addListFrame()
   RS.MainFrame.scrollChild:SetHeight(#RS.framepool * 20)
 
   -- ITEM TEXT
-  local text = frame:CreateFontString(nil, "OVERLAY");
+  local text = frame:CreateFontString(nil, "OVERLAY", nil);
   text:SetFontObject("GameFontHighlight");
   text:SetPoint("LEFT", frame, "LEFT");
   frame.text = text
@@ -186,7 +187,7 @@ function RS:addListFrame()
   local amountBox = rsAmountEditBox(frame, delBtn)
   local reactionBox = rsRequireReactionEditBox(frame, amountBox)
 
-  tinsert(RS.framepool, frame)
+  table.insert(RS.framepool, frame)
   return frame
 end
 
@@ -196,6 +197,6 @@ function RS:addListFrames()
   for _, item in ipairs(settings.profiles[settings.currentProfile]) do
     local frame = RS:addListFrame()
     frame.text:SetText(item.itemName)
-    frame.editBox:SetText(item.amount)
+    frame.editBox:SetText(tostring(item.amount))
   end
 end

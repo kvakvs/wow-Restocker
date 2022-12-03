@@ -201,7 +201,7 @@ function bagModule:ScanBagsFor(bags, predicate)
       end
 
       if predicate(containerItemInfo) then
-        tinsert(itemCandidates, containerItemInfo)
+        table.insert(itemCandidates, containerItemInfo)
       end
     end
   end

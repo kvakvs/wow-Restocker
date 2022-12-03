@@ -4,7 +4,7 @@ local RS = RS_ADDON ---@type RestockerAddon
 ---@class RsBankModule
 ---@field bankIsOpen boolean
 ---@field currentlyRestocking boolean
-local bankModule = RsModule.bankModule ---@type RsBankModule
+local bankModule = RsModule.bankModule
 bankModule.bankIsOpen = false
 
 local restockerModule = RsModule.restockerModule ---@type RsRestockerModule

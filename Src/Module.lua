@@ -10,16 +10,16 @@
 ---@field buyItemModule RsBuyItemModule
 ---@field recipeModule RsRecipeModule
 local rsModule = {
-  mainFrameModule = {},
-  bagModule = {},
-  bankModule = {},
+  mainFrameModule      = {},
+  bagModule            = {},
+  bankModule           = {},
   buyIngredientsModule = {},
-  eventsModule = {},
-  itemModule = {},
-  merchantModule = {},
-  restockerModule = {},
-  buyItemModule = {},
-  recipeModule = {},
+  eventsModule         = {},
+  itemModule           = {},
+  merchantModule       = {},
+  restockerModule      = {},
+  buyItemModule        = {},
+  recipeModule         = {},
 }
 RsModule = rsModule
 

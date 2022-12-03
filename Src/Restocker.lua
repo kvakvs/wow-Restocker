@@ -2,7 +2,7 @@ local TOCNAME, _ADDONPRIVATE = ... ---@type string, RestockerAddon
 
 ---@class RsRestockerModule
 ---@field settings RsSettings
-local restockerModule = RsModule.restockerModule ---@type RsRestockerModule
+local restockerModule = RsModule.restockerModule
 restockerModule.settings = --[[---@type RsSettings]] {}
 
 local list = {} ---@type RsRestockItem[]
@@ -18,8 +18,8 @@ RS_ADDON = RS ---@type RestockerAddon
 
 RS.defaults = {
   prefix = "|cff8d63ffRestocker|r ",
-  color  = "8d63ff",
-  slash  = "|cff8d63ff/rs|r "
+  color = "8d63ff",
+  slash = "|cff8d63ff/rs|r "
 }
 
 RS.BAG_ICON = "Interface\\ICONS\\INV_Misc_Bag_10_Green" -- bag icon for add tooltip
@@ -65,12 +65,12 @@ function RS:Toggle()
 end
 
 RS.commands = {
-  show    = RS.defaults.slash .. "show - Show the addon",
+  show = RS.defaults.slash .. "show - Show the addon",
   profile = --[[---@type {[string]: string}]] {
-    add    = RS.defaults.slash .. "profile add [name] - Adds a profile with [name]",
+    add = RS.defaults.slash .. "profile add [name] - Adds a profile with [name]",
     delete = RS.defaults.slash .. "profile delete [name] - Deletes profile with [name]",
     rename = RS.defaults.slash .. "profile rename [name] - Renames current profile to [name]",
-    copy   = RS.defaults.slash .. "profile copy [name] - Copies profile [name] into current profile.",
+    copy = RS.defaults.slash .. "profile copy [name] - Copies profile [name] into current profile.",
     config = RS.defaults.slash .. "config - Opens the interface options menu."
   }
 }
@@ -142,7 +142,7 @@ function RS:Update()
   wipe(list)
 
   for i, v in ipairs(currentProfile) do
-    tinsert(list, v)
+    table.insert(list, v)
   end
 
   if RS.sortListAlphabetically then
@@ -162,6 +162,7 @@ function RS:Update()
     f:Hide()
   end
 
+  ---@param item RsRestockItem
   for _, item in ipairs(list) do
     local f = RS:GetFirstEmpty()
     f:SetParent(RS.MainFrame.scrollChild)
@@ -185,6 +186,7 @@ end
 --[[
   GET FIRST UNUSED SCROLLCHILD FRAME
 ]]
+---@return RsReusableFrame
 function RS:GetFirstEmpty()
   for i, frame in ipairs(RS.framepool) do
     if not frame.isInUse then
@@ -289,13 +291,16 @@ end
 ---@param profileToCopy string
 function RS:CopyProfile(profileToCopy)
   local settings = restockerModule.settings
+
   local copyProfile = CopyTable(settings.profiles[profileToCopy])
   settings.profiles[settings.currentProfile] = copyProfile
+
   RS:Update()
 end
 
 function RS:loadSettings()
   local settings = restockerModule.settings
+
   if settings.autoBuy == nil then
     settings.autoBuy = true
   end
@@ -303,27 +308,18 @@ function RS:loadSettings()
     settings.restockFromBank = true
   end
 
-  if settings.profiles == nil then
-    settings.profiles = --[[---@type RsProfileCollection]] {}
-  end
+  settings.profiles = settings.profiles or --[[---@type RsProfileCollection]] {}
+
   if settings.profiles.default == nil then
     ---@type table<string, RsRestockItem>
     settings.profiles.default = {}
   end
-  if settings.currentProfile == nil then
-    settings.currentProfile = "default" ---@type string
-  end
 
-  if settings.framePos == nil then
-    settings.framePos = {}
-  end
+  settings.currentProfile = settings.currentProfile or "default"
+  settings.framePos = settings.framePos or {}
+  settings.autoOpenAtBank = settings.autoOpenAtBank or false
+  settings.autoOpenAtMerchant = settings.autoOpenAtMerchant or false
 
-  if settings.autoOpenAtBank == nil then
-    settings.autoOpenAtBank = false
-  end
-  if settings.autoOpenAtMerchant == nil then
-    settings.autoOpenAtMerchant = false
-  end
   if settings.loginMessage == nil then
     settings.loginMessage = true
   end
@@ -353,17 +349,16 @@ end
 ---AceAddon handler
 function RS:OnEnable()
   -- Saved variables; Migrate from old 'Restocker' to new 'RestockerSettings'
-  RestockerSettings = (Restocker or RestockerSettings) or {} ---@type RsSettings
-  if Restocker then
-    Restocker = nil
-  end
+  --RestockerSettings = (Restocker or RestockerSettings) or {} ---@type RsSettings
+  --if Restocker then
+  --  Restocker = nil
+  --end
+  RestockerSettings = RestockerSettings or {}
   restockerModule.settings = RestockerSettings
 
-  self.currentlyRestocking = false
-  self.itemsRestocked = {}
   self.restockedItems = false
   self.framepool = {}
-  self.hiddenFrame = CreateFrame("Frame", nil, UIParent):Hide()
+  self.hiddenFrame = CreateFrame("Frame", nil, --[[---@type WowControl]] UIParent):Hide()
   self:loadSettings()
 
   -- Do more initialization here, that really enables the use of your addon.
@@ -375,7 +370,7 @@ function RS:OnEnable()
     end
   end
 
-  local f = InterfaceOptionsFrame;
+  local f = InterfaceOptionsFrame
   f:SetMovable(true);
   f:EnableMouse(true);
   f:SetUserPlaced(true);
