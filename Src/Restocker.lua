@@ -10,7 +10,8 @@ local restockItemList = {} ---@type RsBuyCommand[]
 local mainFrameModule = RsModule.mainFrameModule
 local bankModule = RsModule.bankModule
 local eventsModule = RsModule.eventsModule
-local merchantModule = RsModule.merchantModule ---@type RsMerchantModule
+local merchantModule = RsModule.merchantModule
+local addonOptionsModule = RsModule.addonOptionsModule
 local envModule = KvModuleManager.envModule
 
 local RS = --[[---@type RestockerAddon]] LibStub("AceAddon-3.0"):NewAddon(
@@ -112,8 +113,7 @@ function RS:SlashCommand(args)
     return
 
   elseif command == "config" then
-    InterfaceOptionsFrame_OpenToCategory(RS.optionsPanel)
-    InterfaceOptionsFrame_OpenToCategory(RS.optionsPanel)
+    LibStub("AceConfigDialog-3.0"):Open(TOCNAME)
     return
 
   else
@@ -375,7 +375,7 @@ function RS:OnEnable()
   end
 
   -- Options tabs
-  RS:CreateOptionsMenu(TOCNAME)
+  --RS:CreateOptionsMenu(TOCNAME)
 
   RS:Show()
   RS:Hide()
@@ -388,10 +388,23 @@ function RS:OnEnable()
     mainFrameModule:CreateMenu()
   end -- setup the UI
 
+  self:OptionsInit()
   RS.loaded = true
 
   if restockerModule.settings.loginMessage then
     RS:Print("Initialized")
+  end
+end
+
+function RS:OptionsInit()
+  local AceConfig = LibStub("AceConfig-3.0")
+  AceConfig:RegisterOptionsTable(TOCNAME, addonOptionsModule:CreateOptionsTable(), {})
+  self.optionsFrames = {
+    general = LibStub("AceConfigDialog-3.0"):AddToBlizOptions(
+        TOCNAME, TOCNAME, nil)
+  }
+  self.optionsFrames.general.default = function()
+    addonOptionsModule:ResetDefaultOptions()
   end
 end
 

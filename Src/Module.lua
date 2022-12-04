@@ -1,25 +1,27 @@
 ---@shape RsModuleModule
----@field mainFrameModule RsMainFrameModule
+---@field addonOptionsModule RsAddonOptionsModule
 ---@field bagModule RsBagModule
 ---@field bankModule RsBankModule
+---@field buyCommandModule RsBuyCommandModule
 ---@field buyIngredientsModule RsBuyIngredientsModule
 ---@field eventsModule RsEventsModule
 ---@field itemModule RsItemModule
+---@field mainFrameModule RsMainFrameModule
 ---@field merchantModule RsMerchantModule
----@field restockerModule RsRestockerModule
----@field buyCommandModule RsBuyCommandModule
 ---@field recipeModule RsRecipeModule
+---@field restockerModule RsRestockerModule
 local rsModule = {
-  mainFrameModule      = {},
-  bagModule            = {},
-  bankModule           = {},
+  addonOptionsModule = {},
+  bagModule = {},
+  bankModule = {},
+  buyCommandModule = {},
   buyIngredientsModule = {},
-  eventsModule         = {},
-  itemModule           = {},
-  merchantModule       = {},
-  restockerModule      = {},
-  buyItemModule        = {},
-  recipeModule         = {},
+  eventsModule = {},
+  itemModule = {},
+  mainFrameModule = {},
+  merchantModule = {},
+  recipeModule = {},
+  restockerModule = {},
 }
 RsModule = rsModule
 

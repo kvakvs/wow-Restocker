@@ -2,7 +2,7 @@
 --local RS = RS_ADDON ---@type RestockerAddon
 
 ---@class RsBuyCommandModule
-local buyCommandModule = RsModule.buyCommandModule ---@type RsBuyCommandModule
+local buyCommandModule = RsModule.buyCommandModule
 
 ---@shape RsBuyCommand
 ---@field amount number

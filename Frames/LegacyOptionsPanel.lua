@@ -7,6 +7,7 @@ local restockerModule = RsModule.restockerModule ---@type RsRestockerModule
 
 ---INTERFACE OPTIONS PANEL
 ---@param name string Addon name
+---@deprecated Use AceConfig instead
 function RS:CreateOptionsMenu(name)
   local settings = restockerModule.settings
   local optionsPanel = CreateFrame("Frame", "RestockerOptions", UIParent)

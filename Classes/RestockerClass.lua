@@ -62,7 +62,12 @@
 ---@field framePos table
 ---@field loginMessage boolean Show restocker hello message
 ---@field profiles RsProfileCollection
+---@field restockFromMerchant boolean
+---@field restockSell boolean
+---@field restockToBank boolean
 ---@field restockFromBank boolean
+-- See RS.sortListAlphabetically -@field sortListAlphabetically boolean
+-- See RS.sortListNumerically -@field sortListNumerically boolean
 
 ---@shape RsInventorySlotNumber
 ---@field bag number
