@@ -2,7 +2,7 @@
 local RS = RS_ADDON ---@type RestockerAddon
 
 ---@class RsEventsModule
-local eventsModule = RsModule.eventsModule ---@type RsEventsModule
+local eventsModule = RsModule.eventsModule
 
 local bagModule = RsModule.bagModule ---@type RsBagModule
 local bankModule = RsModule.bankModule ---@type RsBankModule
@@ -12,13 +12,6 @@ local restockerModule = RsModule.restockerModule ---@type RsRestockerModule
 
 RS.loaded = false
 RS.addItemWait = {}
-
---local EventFrame = CreateFrame("Frame");
---RS.EventFrame = EventFrame
-
---EventFrame:SetScript("OnEvent", function(self, event, ...)
---  return self[event] and self[event](self, ...)
---end)
 
 function eventsModule.OnEnteringWorld(login, reloadui)
 end

@@ -1,10 +1,10 @@
 --local _TOCNAME, _ADDONPRIVATE = ... ---@type RestockerAddon
 --local RS = RS_ADDON ---@type RestockerAddon
 
----@class RsBuyItemModule
-local buyItemModule = RsModule.buyItemModule ---@type RsBuyItemModule
+---@class RsBuyCommandModule
+local buyCommandModule = RsModule.buyCommandModule ---@type RsBuyCommandModule
 
----@shape RsBuyItem
+---@shape RsBuyCommand
 ---@field amount number
 ---@field numNeeded number
 ---@field itemName string
@@ -15,9 +15,9 @@ local buyItemModule = RsModule.buyItemModule ---@type RsBuyItemModule
 local buyItemClass = {}
 buyItemClass.__index = buyItemClass
 
----@param fields RsBuyItem
----@return RsBuyItem
-function buyItemModule:Create(fields)
+---@param fields RsBuyCommand
+---@return RsBuyCommand
+function buyCommandModule:Create(fields)
   fields = fields or {}
   setmetatable(fields, buyItemClass)
   return fields

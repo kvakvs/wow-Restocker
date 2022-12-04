@@ -34,7 +34,7 @@ function RS.GetItemInfo(arg)
   end
 
   local cacheItem = --[[---@type GIICacheItem]] {
-    itemId = tonumber(string.match(itemLink, "item:(%d+)")),
+    itemId = tonumber(--[[---@not nil]] string.match(itemLink, "item:(%d+)")),
     itemName = itemName,
     itemLink = itemLink,
     itemRarity = itemRarity,

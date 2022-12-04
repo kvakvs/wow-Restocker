@@ -2,7 +2,7 @@
 --local RS = RS_ADDON ---@type RestockerAddon
 
 ---@class RsItemModule
-local itemModule = RsModule.itemModule ---@type RsItemModule
+local itemModule = RsModule.itemModule
 
 ---@class RsItem
 ---@field id number

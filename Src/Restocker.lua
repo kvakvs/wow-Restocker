@@ -5,12 +5,13 @@ local TOCNAME, _ADDONPRIVATE = ... ---@type string, RestockerAddon
 local restockerModule = RsModule.restockerModule
 restockerModule.settings = --[[---@type RsSettings]] {}
 
-local list = {} ---@type RsRestockItem[]
+local restockItemList = {} ---@type RsBuyCommand[]
 
 local mainFrameModule = RsModule.mainFrameModule
 local bankModule = RsModule.bankModule
 local eventsModule = RsModule.eventsModule
 local merchantModule = RsModule.merchantModule ---@type RsMerchantModule
+local envModule = KvModuleManager.envModule
 
 local RS = --[[---@type RestockerAddon]] LibStub("AceAddon-3.0"):NewAddon(
     "Restocker", "AceConsole-3.0", "AceEvent-3.0")
@@ -30,17 +31,6 @@ RS.BAG_ICON = "Interface\\ICONS\\INV_Misc_Bag_10_Green" -- bag icon for add tool
 
 RS.slashPrefix = "|cff8d63ff/restocker|r "
 RS.addonName = "|cff8d63ffRestocker|r "
-
-local _, _, _, tocversion = GetBuildInfo()
-RS.IsWotLK = (tocversion >= 30000 and tocversion <= 39999) -- TODO: change to WOTLK detection via WOW_PROJECT_..._CLASSIC
-RS.HaveWotLK = RS.IsWotLK
-
-RS.IsTBC = WOW_PROJECT_ID == WOW_PROJECT_BURNING_CRUSADE_CLASSIC
-RS.HaveTBC = RS.IsWotLK or RS.IsTBC
-
-RS.IsClassic = WOW_PROJECT_ID == WOW_PROJECT_CLASSIC
-RS.IsEra = RS.IsClassic and (not C_Seasons.HasActiveSeason())
-RS.IsSoM = RS.IsClassic and C_Seasons.HasActiveSeason() and (C_Seasons.GetActiveSeason() == Enum.SeasonID.SeasonOfMastery)
 
 function RS:Show()
   if RS.loaded then
@@ -138,20 +128,20 @@ end
 ]]
 function RS:Update()
   local settings = restockerModule.settings
-  local currentProfile = settings.profiles[settings.currentProfile]
-  wipe(list)
+  local currentProfile = --[[---@not nil]] settings.profiles[settings.currentProfile]
+  wipe(restockItemList)
 
   for i, v in ipairs(currentProfile) do
-    table.insert(list, v)
+    table.insert(restockItemList, v)
   end
 
   if RS.sortListAlphabetically then
-    table.sort(list, function(a, b)
+    table.sort(restockItemList, function(a, b)
       return a.itemName < b.itemName
     end)
 
   elseif RS.sortListNumerically then
-    table.sort(list, function(a, b)
+    table.sort(restockItemList, function(a, b)
       return a.amount > b.amount
     end)
   end
@@ -162,8 +152,8 @@ function RS:Update()
     f:Hide()
   end
 
-  ---@param item RsRestockItem
-  for _, item in ipairs(list) do
+  ---@param item RsBuyCommand
+  for _, item in ipairs(restockItemList) do
     local f = RS:GetFirstEmpty()
     f:SetParent(RS.MainFrame.scrollChild)
     f.isInUse = true
@@ -205,7 +195,7 @@ end
 function RS:AddProfile(newProfile)
   local settings = restockerModule.settings
   settings.currentProfile = newProfile ---@type string
-  settings.profiles[newProfile] = {} ---@type RsRestockItem
+  settings.profiles[newProfile] = {} ---@type RsBuyCommand
 
   local menu = RS.MainFrame or mainFrameModule:CreateMenu()
   menu:Show()
@@ -218,6 +208,7 @@ end
 --[[
   DELETE PROFILE
 ]]
+---@param profile string
 function RS:DeleteProfile(profile)
   local settings = restockerModule.settings
   local currentProfile = settings.currentProfile
@@ -225,7 +216,8 @@ function RS:DeleteProfile(profile)
   if currentProfile == profile then
     if #settings.profiles > 1 then
       settings.profiles[currentProfile] = nil
-      settings.currentProfile = settings.profiles[1]
+      local firstKey, _ = next(settings.profiles)
+      settings.currentProfile = --[[---@not nil]] firstKey
     else
       settings.profiles[currentProfile] = nil
       settings.currentProfile = "default"
@@ -280,11 +272,6 @@ function RS:ChangeProfile(newProfile)
   end
 end
 
----@class RsRestockItem
----@field amount number
----@field reaction number
----@field itemName string
-
 --[[
   COPY PROFILE
 ]]
@@ -311,7 +298,7 @@ function RS:loadSettings()
   settings.profiles = settings.profiles or --[[---@type RsProfileCollection]] {}
 
   if settings.profiles.default == nil then
-    ---@type table<string, RsRestockItem>
+    ---@type table<string, RsBuyCommand>
     settings.profiles.default = {}
   end
 
@@ -344,6 +331,7 @@ function RS:OnInitialize()
   -- do init tasks here, like loading the Saved Variables,
   -- or setting up slash commands.
   self.loaded = false
+  envModule:DetectVersions()
 end
 
 ---AceAddon handler
@@ -358,14 +346,17 @@ function RS:OnEnable()
 
   self.restockedItems = false
   self.framepool = {}
-  self.hiddenFrame = CreateFrame("Frame", nil, --[[---@type WowControl]] UIParent):Hide()
+  self.hiddenFrame = CreateFrame("Frame", nil, --[[---@type WowControl]] UIParent)
+  self.hiddenFrame:Hide()
   self:loadSettings()
 
   -- Do more initialization here, that really enables the use of your addon.
   -- Register Events, Hook functions, Create Frames, Get information from
   -- the game that wasn't available in OnInitialize
-  for profile, _ in pairs(restockerModule.settings.profiles) do
-    for _, item in ipairs(restockerModule.settings.profiles[profile]) do
+  for profileKey, _ in pairs(restockerModule.settings.profiles) do
+    local profile = restockerModule.settings.profiles[profileKey]
+
+    for _, item in ipairs(--[[---@not nil]] profile) do
       item.itemID = --[[---@not nil]] tonumber(item.itemID)
     end
   end

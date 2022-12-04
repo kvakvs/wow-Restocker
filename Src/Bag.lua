@@ -1,15 +1,15 @@
-local _TOCNAME, _ADDONPRIVATE = ... ---@type RestockerAddon
+--local _TOCNAME, _ADDONPRIVATE = ... ---@type RestockerAddon
 local RS = RS_ADDON ---@type RestockerAddon
 
 ---@class RsBagModule
 ---@field priorityMoveBank RsInventorySlotNumber|nil If not nil, this will be priority clicked before any new stack is split
 ---@field priorityMovePlayer RsInventorySlotNumber|nil If not nil, this will be priority clicked before any new stack is split
----@field BACKPACK_CONTAINER number
----@field BANK_CONTAINER number
----@field PLAYER_BAGS RsBagIdList
----@field PLAYER_BAGS_REVERSED RsBagIdList
----@field BANK_BAGS RsBagIdList
----@field BANK_BAGS_REVERSED RsBagIdList
+---@field BACKPACK_CONTAINER number Index of backpack container
+---@field BANK_CONTAINER number Index of main bank container
+---@field PLAYER_BAGS RsBagId[] Indexes of player bags
+---@field PLAYER_BAGS_REVERSED RsBagId[]
+---@field BANK_BAGS RsBagId[]
+---@field BANK_BAGS_REVERSED RsBagId[]
 
 local bagModule = RsModule.bagModule ---@type RsBagModule
 local itemModule = RsModule.itemModule ---@type RsItemModule
@@ -19,10 +19,10 @@ bagModule.BANK_CONTAINER = -1
 bagModule.PLAYER_BAGS = {}
 bagModule.PLAYER_BAGS_REVERSED = {}
 
----@alias RsBagIdList number[]
+---@alias RsBagId number
 
-bagModule.BANK_BAGS = --[[---@type RsBagIdList ]] {} -- set up in RS.SetupBankConstants
-bagModule.BANK_BAGS_REVERSED = --[[---@type RsBagIdList ]] {} -- set up in RS.SetupBankConstants
+bagModule.BANK_BAGS = --[[---@type RsBagId[] ]] {} -- set up in RS.SetupBankConstants
+bagModule.BANK_BAGS_REVERSED = --[[---@type RsBagId[] ]] {} -- set up in RS.SetupBankConstants
 
 function bagModule:ResetBankRestocker()
   bagModule.priorityMoveBankBag = nil
@@ -33,7 +33,7 @@ end
 
 function bagModule.OnModuleInit()
   -- -1 bank container, 0 backpack, 1234 bags, 5-10 or 5-11 is TBC bank
-  if RS.IsTBC then
+  if RS.HaveTBC then
     bagModule.BANK_BAGS = { bagModule.BANK_CONTAINER, 5, 6, 7, 8, 9, 10, 11 }
     bagModule.BANK_BAGS_REVERSED = { 11, 10, 9, 8, 7, 6, 5, bagModule.BANK_CONTAINER }
   else

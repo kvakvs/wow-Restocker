@@ -273,7 +273,7 @@ function RS:addItem(text)
     end
   end
 
-  local buyItem = --[[---@type RsBuyItem]] {}
+  local buyItem = --[[---@type RsBuyCommand]] {}
 
   buyItem.itemName = (--[[---@not nil]] itemInfo).itemName
   buyItem.itemLink = (--[[---@not nil]] itemInfo).itemLink

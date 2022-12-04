@@ -1,11 +1,13 @@
 --local _TOCNAME, _ADDONPRIVATE = ... ---@type RestockerAddon
 --local RS = RS_ADDON ---@type RestockerAddon
 
+---A row of controls one row per item to restock or stash
 ---@class RsReusableFrame: WowControl
 ---@field isInUse boolean
 ---@field index number
----@field text WowFontString
----@field editBox WowControl
+---@field text WowFontString The item name label
+---@field editBox WowControl The item count editbox
+---@field reactionBox WowControl The required vendor reputation standing
 
 ---@class RestockerAddon
 ---@field RegisterEvent function
@@ -23,11 +25,6 @@
 ---@field HaveTBC boolean Whether we are running on or after TBC
 ---@field HaveWotLK boolean
 ---@field hiddenFrame WowControl An UI frame
----@field IsClassic boolean Whether we are running on Classic or Season of Mastery
----@field IsEra boolean
----@field IsSoM boolean
----@field IsTBC boolean Whether we are running on TBC
----@field IsWotLK boolean
 ---@field loaded boolean
 ---@field MainFrame table Main frame of the addon
 ---@field merchantIsOpen boolean
@@ -51,10 +48,10 @@
 ---@field color string
 ---@field slash string
 
----@alias RsProfile RsBuyItem[]
+---@alias RsProfile RsBuyCommand[]
 
 ---@shape RsProfileCollection
----@field [string] RsProfile
+---@field [string] RsProfile|nil
 ---@field default RsProfile|nil
 
 ---@class RsSettings

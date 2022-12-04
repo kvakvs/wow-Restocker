@@ -10,8 +10,9 @@ local RS = RS_ADDON ---@type RestockerAddon
 ---@class RsBuyIngredientsModule
 ---@field buyIngredients RsCraftingBookItemName
 ---@field buyIngredientsWait RsCraftingBookItemId
-local buyIngredientsModule = RsModule.buyIngredientsModule ---@type RsBuyIngredientsModule
+local buyIngredientsModule = RsModule.buyIngredientsModule
 ---
+local envModule = KvModuleManager.envModule
 local restockerModule = RsModule.restockerModule ---@type RsRestockerModule
 local itemModule = RsModule.itemModule ---@type RsItemModule
 local recipeModule = RsModule.recipeModule ---@type RsRecipeModule
@@ -90,7 +91,7 @@ end
 ---@param reagent2 RsIngredient|nil
 ---@param reagent3 RsIngredient|nil
 function buyIngredientsModule:TbcRecipe(item, reagent1, reagent2, reagent3)
-  if RS.IsTBC then
+  if envModule.haveTBC then
     self:Recipe(item, reagent1, reagent2, reagent3)
   end
 end
@@ -100,13 +101,13 @@ end
 ---@param reagent2 RsIngredient|nil
 ---@param reagent3 RsIngredient|nil
 function buyIngredientsModule:ClassicRecipe(item, reagent1, reagent2, reagent3)
-  if RS.IsSoM or RS.IsClassic then
+  if envModule.isClassic then
     self:Recipe(item, reagent1, reagent2, reagent3)
   end
 end
 
 function buyIngredientsModule:SetupAutobuyIngredients()
-  if RS.IsWotLK then
+  if envModule.haveWotLK then
     return -- in WotLK poisons are buyable pre-crafted
   end
 
@@ -232,7 +233,9 @@ function buyIngredientsModule:CraftingPurchaseOrder()
   local settings = restockerModule.settings
 
   -- Check auto-buy reagents table
-  for _, item in ipairs(settings.profiles[settings.currentProfile]) do
+  local profile = settings.profiles[settings.currentProfile]
+
+  for _, item in ipairs(--[[---@not nil]] profile) do
     if buyIngredientsModule.buyIngredients[item.itemName] ~= nil then
       local craftedName = item.itemName
       local craftedRestockAmount = item.amount

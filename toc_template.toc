@@ -12,11 +12,13 @@
 # --- load first ---
 embeds.xml
 Src\Module.lua
-Src\Restocker.lua
+KvLib\Env.lua
 # --- end load first ---
 
+Src\Restocker.lua
+
 Classes\RestockerClass.lua
-Classes\BuyItem.lua
+Classes\BuyCommand.lua
 Classes\RestockerConf.lua
 Classes\Recipe.lua
 
