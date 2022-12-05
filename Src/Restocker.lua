@@ -5,7 +5,7 @@ local TOCNAME, _ADDONPRIVATE = ... ---@type string, RestockerAddon
 local restockerModule = RsModule.restockerModule
 restockerModule.settings = --[[---@type RsSettings]] {}
 
-local restockItemList = {} ---@type RsBuyCommand[]
+local restockItemList = {} ---@type RsTradeCommand[]
 
 local mainFrameModule = RsModule.mainFrameModule
 local bankModule = RsModule.bankModule
@@ -152,7 +152,7 @@ function RS:Update()
     f:Hide()
   end
 
-  ---@param item RsBuyCommand
+  ---@param item RsTradeCommand
   for _, item in ipairs(restockItemList) do
     local f = RS:GetFirstEmpty()
     f:SetParent(RS.MainFrame.scrollChild)
@@ -195,7 +195,7 @@ end
 function RS:AddProfile(newProfile)
   local settings = restockerModule.settings
   settings.currentProfile = newProfile ---@type string
-  settings.profiles[newProfile] = {} ---@type RsBuyCommand
+  settings.profiles[newProfile] = {} ---@type RsTradeCommand
 
   local menu = RS.MainFrame or mainFrameModule:CreateMenu()
   menu:Show()
@@ -298,7 +298,7 @@ function RS:loadSettings()
   settings.profiles = settings.profiles or --[[---@type RsProfileCollection]] {}
 
   if settings.profiles.default == nil then
-    ---@type table<string, RsBuyCommand>
+    ---@type table<string, RsTradeCommand>
     settings.profiles.default = {}
   end
 

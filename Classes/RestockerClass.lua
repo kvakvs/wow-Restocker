@@ -48,7 +48,7 @@
 ---@field color string
 ---@field slash string
 
----@alias RsProfile RsBuyCommand[]
+---@alias RsProfile RsTradeCommand[]
 
 ---@shape RsProfileCollection
 ---@field [string] RsProfile|nil
@@ -62,12 +62,10 @@
 ---@field framePos table
 ---@field loginMessage boolean Show restocker hello message
 ---@field profiles RsProfileCollection
----@field restockFromMerchant boolean
----@field restockSell boolean
----@field restockToBank boolean
----@field restockFromBank boolean
--- See RS.sortListAlphabetically -@field sortListAlphabetically boolean
--- See RS.sortListNumerically -@field sortListNumerically boolean
+-- -@field restockFromMerchant boolean
+-- -@field restockSell boolean
+-- -@field restockToBank boolean
+-- -@field restockFromBank boolean
 
 ---@shape RsInventorySlotNumber
 ---@field bag number

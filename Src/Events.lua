@@ -31,7 +31,19 @@ function eventsModule.OnMerchantShow()
   end -- If shiftkey is down return
 
   merchantModule.merchantIsOpen = true
-  merchantModule:Restock()
+
+  -- If any sort of restocking is enabled
+  if restockerModule.settings.restockFromMerchant
+      or restockerModule.settings.restockSell
+  then
+    --local state = bagModule:NewRestockState()
+    if restockerModule.settings.restockFromMerchant then
+      merchantModule:Restock()
+    end
+    --if restockerModule.settings.restockSell then
+    --  merchantModule:SellExtras()
+    --end
+  end
 end
 
 function eventsModule.OnMerchantClose()

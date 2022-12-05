@@ -12,6 +12,24 @@ local bagModule = RsModule.bagModule ---@type RsBagModule
 
 bankModule.didBankStuff = false
 
+-- -@shape RsInventorySlot
+-- -@field bag number
+-- -@field slot number
+-- -@field itemName string
+-- -@field itemID WowItemId
+-- -@field count number
+-- -@field maxStack number
+
+---@alias RsInventoryByItemName {[string]: number} Items in the bag by name
+
+---@class BankRestockCoroState
+---@field itemsInBags RsInventoryByItemName How many items in bags, name is key, count is value
+---@field itemsInBank RsInventoryByItemName How many items in bank, name is key, count is value
+---@field currentProfile RsProfile
+---@field task RsBuyTask What item, and how many to move (negative = move to bank)
+
+---@alias RsBuyTask {[string]: number} Item name is key, amount to buy is value
+
 ---Called once on Addon creation. Sets up constants for bank bags
 function bankModule.OnModuleInit()
 end
@@ -41,16 +59,6 @@ local function coroBankToBagExchange(state)
     end
   end
 end
-
----@alias RsInventory {[string]: number} Items in the bag by name
-
----@class BankRestockCoroState
----@field itemsInBags RsInventory How many items in bags, name is key, count is value
----@field itemsInBank RsInventory How many items in bank, name is key, count is value
----@field currentProfile RsProfile
----@field task RsBuyTask What item, and how many to move (negative = move to bank)
-
----@alias RsBuyTask {[string]: number} Item name is key, amount to buy is value
 
 ---Go through the bags and see what's too much in our bag and must be sent to bank
 ---The values will be stored in dictionary with negative quantities

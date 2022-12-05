@@ -81,14 +81,14 @@ function bagModule:IsSomethingLocked()
   return false
 end
 
----@return RsInventory
+---@return RsInventoryByItemName
 function bagModule:GetItemsInBags()
-  local result = --[[---@type RsInventory]] {}
+  local result = --[[---@type RsInventoryByItemName]] {}
   for bag = self.BACKPACK_CONTAINER, NUM_BAG_SLOTS do
     for slot = 1, GetContainerNumSlots(bag) do
       local _, itemCount, locked, _, _, _, itemLink, _, _, itemID = GetContainerItemInfo(bag, slot)
-      local itemName = itemLink and string.match(itemLink, "%[(.*)%]")
-      if itemID then
+      if itemID and itemLink then
+        local itemName = --[[---@type string]] (string.match(itemLink, "%[(.*)%]"))
         result[itemName] = result[itemName] and result[itemName] + itemCount or itemCount
       end
     end
@@ -96,14 +96,29 @@ function bagModule:GetItemsInBags()
   return result
 end
 
----@return RsInventory
+---@param handler fun(bag: number, slot: number, itemName: string, itemID: number, itemCount: number)
+function bagModule:ForEachBagItem(handler)
+  local result = --[[---@type RsInventoryByItemName]] {}
+  for bag = self.BACKPACK_CONTAINER, NUM_BAG_SLOTS do
+    for slot = 1, GetContainerNumSlots(bag) do
+      local _, itemCount, locked, _, _, _, itemLink, _, _, itemID = GetContainerItemInfo(bag, slot)
+      if itemID and itemLink then
+        local itemName = --[[---@type string]] (string.match(itemLink, "%[(.*)%]"))
+        handler(bag, slot, itemName, itemID, itemCount)
+      end
+    end
+  end
+  return result
+end
+
+---@return RsInventoryByItemName
 function bagModule:GetItemsInBank()
-  local result = --[[---@type RsInventory]] {}
+  local result = --[[---@type RsInventoryByItemName]] {}
   for _, bag in ipairs(self.BANK_BAGS_REVERSED) do
     for slot = 1, GetContainerNumSlots(bag) do
       local _, itemCount, locked, _, _, _, itemLink, _, _, itemID = GetContainerItemInfo(bag, slot)
-      local itemName = itemLink and string.match(itemLink, "%[(.*)%]")
       if itemID then
+        local itemName = --[[---@type string]] string.match(itemLink, "%[(.*)%]")
         result[itemName] = result[itemName] and result[itemName] + itemCount or itemCount
       end
     end

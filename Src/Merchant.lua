@@ -11,11 +11,12 @@ local merchantModule = RsModule.merchantModule
 merchantModule.merchantIsOpen = false
 merchantModule.lastTimeRestocked = GetTime()
 
-local buyIngredientsModule = RsModule.buyIngredientsModule ---@type RsBuyIngredientsModule
-local buyItemModule = RsModule.buyCommandModule ---@type RsBuyCommandModule
+local bagModule = RsModule.bagModule
+local buyIngredientsModule = RsModule.buyIngredientsModule
+local buyItemModule = RsModule.buyCommandModule
 
 ---@param theTable table|nil
-local function countTableItems(theTable)
+function merchantModule:CountTableItems(theTable)
   if not theTable then
     return 0
   end
@@ -27,11 +28,33 @@ local function countTableItems(theTable)
   return count
 end
 
----@param purchaseOrders RsPurchaseOrders
----@param eachRestockRecord RsBuyCommand
+---@param sellOrders RsTradeCommandsByName
+---@param eachRestockRecord RsTradeCommand
+function merchantModule:BuildSellOrder(sellOrders, eachRestockRecord)
+  local haveInBag = GetItemCount(eachRestockRecord.itemName, false, false)
+  local amount = eachRestockRecord.amount or 0
+
+  if amount > 0 then
+    local toSell = haveInBag - amount
+
+    if toSell > 0 then
+      local sellOrder = sellOrders[eachRestockRecord.itemName]
+      if not sellOrder then
+        -- add new
+        sellOrders[eachRestockRecord.itemName] = buyItemModule:Create(
+            toSell, eachRestockRecord.itemName, eachRestockRecord.itemID, eachRestockRecord.itemLink)
+      else
+        sellOrder.amount = sellOrder.amount + toSell -- update amount, add more
+      end
+    end -- if tobuy > 0
+  end -- if amount
+end
+
+---@param purchaseOrders RsTradeCommandsByName
+---@param eachRestockRecord RsTradeCommand
 ---@param vendorReaction number
 function merchantModule:BuildPurchaseOrder(purchaseOrders, eachRestockRecord, vendorReaction)
-  local haveInBag = GetItemCount(eachRestockRecord.itemName, false)
+  local haveInBag = GetItemCount(eachRestockRecord.itemName, false, false)
   local amount = eachRestockRecord.amount or 0
   local requiredReaction = eachRestockRecord.reaction or 0
 
@@ -41,42 +64,33 @@ function merchantModule:BuildPurchaseOrder(purchaseOrders, eachRestockRecord, ve
     local toBuy = amount - haveInBag
 
     if toBuy > 0 then
-      if not purchaseOrders[eachRestockRecord.itemName] then
+      local purchaseOrder = purchaseOrders[eachRestockRecord.itemName]
+      if not purchaseOrder then
         -- add new
         purchaseOrders[eachRestockRecord.itemName] = buyItemModule:Create(
-              --[[---@type RsBuyCommand]] {
-              numNeeded = toBuy,
-              itemName  = eachRestockRecord.itemName,
-              itemID    = eachRestockRecord.itemID,
-              itemLink  = eachRestockRecord.itemLink,
-            })
+            toBuy, eachRestockRecord.itemName, eachRestockRecord.itemID, eachRestockRecord.itemLink)
       else
         -- update amount, add more
-        local purchase = purchaseOrders[eachRestockRecord.itemName]
-        purchase.numNeeded = purchase.numNeeded + toBuy
+        purchaseOrder.amount = purchaseOrder.amount + toBuy
       end
     end -- if tobuy > 0
   end -- if amount
 end
 
----@param purchaseOrders RsPurchaseOrders
+---@param purchaseOrders RsTradeCommandsByName
 ---@param ingredientName string Name of ingredient to add to purchaseOrders
 ---@param toBuy number Requested amount
 function merchantModule:UpdatePurchaseOrdersWithCraftingReagents(purchaseOrders, ingredientName, toBuy)
   if not purchaseOrders[ingredientName] then
-    purchaseOrders[ingredientName] = buyItemModule:Create(
-          --[[---@type RsBuyCommand]] {
-          numNeeded = toBuy,
-          itemName  = ingredientName,
-        })
+    purchaseOrders[ingredientName] = buyItemModule:Create(toBuy, ingredientName, nil, nil)
   else
     local purchase = purchaseOrders[ingredientName]
-    purchase.numNeeded = purchase.numNeeded + toBuy
+    purchase.amount = purchase.amount + toBuy
   end
 end
 
 ---@param i number Merchant item index
----@param purchaseOrders RsPurchaseOrders
+---@param purchaseOrders RsTradeCommandsByName
 ---@param numPurchases number Counter for purchases done
 function merchantModule:PurchaseMerchantItem(i, purchaseOrders, numPurchases)
   local itemName, _, _, _, merchantAvailable, _, _ = GetMerchantItemInfo(i)
@@ -88,11 +102,11 @@ function merchantModule:PurchaseMerchantItem(i, purchaseOrders, numPurchases)
   if buyItem then
     local itemInfo = RS.GetItemInfo(itemLink)
 
-    if buyItem.numNeeded > merchantAvailable and merchantAvailable > 0 then
+    if buyItem.amount > merchantAvailable and merchantAvailable > 0 then
       BuyMerchantItem(i, merchantAvailable)
       numPurchases = numPurchases + 1
     else
-      for n = buyItem.numNeeded, 1, -(--[[---@not nil]] itemInfo).itemStackCount do
+      for n = buyItem.amount, 1, -(--[[---@not nil]] itemInfo).itemStackCount do
         if n > (--[[---@not nil]] itemInfo).itemStackCount then
           BuyMerchantItem(i, (--[[---@not nil]] itemInfo).itemStackCount)
           numPurchases = numPurchases + 1
@@ -107,12 +121,40 @@ function merchantModule:PurchaseMerchantItem(i, purchaseOrders, numPurchases)
   return numPurchases
 end
 
----@alias RsPurchaseOrders {[string]: RsBuyCommand}
+---@alias RsTradeCommandsByName {[string]: RsTradeCommand}
+
+-- ---@param sell RsTradeCommand
+--function merchantModule:TrySellItem(sell)
+--  bagModule:ForEachBagItem(function(bag, slot, itemName, itemID, count)
+--    if itemID == sell.itemID or itemName == sell.itemName then
+--      --UseContainerItem(bag, slot)
+--      --RS:Print(string.format("Sold %s", sell.itemName))
+--    end
+--  end)
+--end
+
+--function merchantModule:SellExtras()
+--  local settings = restockerModule.settings
+--  if self:CountTableItems(settings.profiles[settings.currentProfile]) == 0 then
+--    return
+--  end -- If profile is emtpy then return
+--
+--  local restockList = settings.profiles[settings.currentProfile]
+--  local sellOrders = --[[---@type RsTradeCommandsByName]] {}
+--
+--  -- Build the Purchase Orders table used for buying items
+--  for _, eachRestockRecord in ipairs(--[[---@not nil]] restockList) do
+--    self:BuildSellOrder(sellOrders, eachRestockRecord)
+--  end
+--
+--  for _, eachSell in pairs(sellOrders) do
+--    self:TrySellItem(eachSell)
+--  end
+--end
 
 function merchantModule:Restock()
   local settings = restockerModule.settings
-
-  if countTableItems(settings.profiles[settings.currentProfile]) == 0 then
+  if self:CountTableItems(settings.profiles[settings.currentProfile]) == 0 then
     return
   end -- If profile is emtpy then return
 
@@ -128,10 +170,7 @@ function merchantModule:Restock()
   end
 
   local craftingPurchaseOrder = buyIngredientsModule:CraftingPurchaseOrder() or {}
-
-  ---@type RsPurchaseOrders
-  local purchaseOrders = {}
-
+  local purchaseOrders = --[[---@type RsTradeCommandsByName]] {}
   local restockList = settings.profiles[settings.currentProfile]
   local vendorReaction = UnitReaction("target", "player") or 0
 

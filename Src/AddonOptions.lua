@@ -23,19 +23,19 @@ addonOptionsModule.language = --[[---@type {[string]:string} ]] {
   ["options.sortList.alphabetic"] = "Alphabetically (by name)",
   ["options.sortList.numeric"] = "Numerically (by item id)",
 
-  ["options.category.Restocking"] = "Restocking",
-
-  ["options.short.restockFromMerchant"] = "Restock from merchants",
-  ["options.long.restockFromMerchant"] = "When visiting a merchant, attempt to buy missing items (given the reputation standing with the vendor is good enough)",
-
-  ["options.short.restockSell"] = "Sell extra to merchants",
-  ["options.long.restockSell"] = "When visiting a merchant and the player has too many of that item, extras will be sold. Use 0 as quantity to always sell all.",
-
-  ["options.short.restockToBank"] = "Stash extra to bank",
-  ["options.long.restockToBank"] = "When visiting a bank, extra items will be sent to the bank bags. Use 0 as quantity to stash all.",
-
-  ["options.short.restockFromBank"] = "Restock from bank",
-  ["options.long.restockFromBank"] = "When visiting a bank, take items from bank attempting to maintain the necessary quantity in bags",
+  --["options.category.Restocking"] = "Restocking",
+  --
+  --["options.short.restockFromMerchant"] = "Restock from merchants",
+  --["options.long.restockFromMerchant"] = "When visiting a merchant, attempt to buy missing items (given the reputation standing with the vendor is good enough)",
+  --
+  --["options.short.restockSell"] = "Sell extra to merchants",
+  --["options.long.restockSell"] = "When visiting a merchant and the player has too many of that item, extras will be sold. Use 0 as quantity to always sell all.",
+  --
+  --["options.short.restockToBank"] = "Stash extra to bank",
+  --["options.long.restockToBank"] = "When visiting a bank, extra items will be sent to the bank bags. Use 0 as quantity to stash all.",
+  --
+  --["options.short.restockFromBank"] = "Restock from bank",
+  --["options.long.restockFromBank"] = "When visiting a bank, take items from bank attempting to maintain the necessary quantity in bags",
 }
 
 ---@param key string
@@ -91,7 +91,7 @@ end
 function addonOptionsModule:CreateGeneralOptions()
   return {
     type = "group",
-    name = "1. " .. _t("options.category.General"),
+    name = _t("options.category.General"),
     args = {
       displayLoginMessage = self:TemplateCheckbox("loginMessage", nil, nil, nil),
       autoOpenMerchant = self:TemplateCheckbox("autoOpenAtMerchant", nil, nil, nil),
@@ -115,18 +115,18 @@ function addonOptionsModule:CreateGeneralOptions()
   }
 end
 
-function addonOptionsModule:CreateRestockingOptions()
-  return {
-    type = "group",
-    name = "2. " .. _t("options.category.Restocking"),
-    args = {
-      restockFromMerchant = self:TemplateCheckbox("restockFromMerchant", nil, nil, nil),
-      restockSell = self:TemplateCheckbox("restockSell", nil, nil, nil),
-      restockToBank = self:TemplateCheckbox("restockToBank", nil, nil, nil),
-      restockFromBank = self:TemplateCheckbox("restockFromBank", nil, nil, nil),
-    }
-  }
-end
+--function addonOptionsModule:CreateRestockingOptions()
+--  return {
+--    type = "group",
+--    name = _t("options.category.Restocking"),
+--    args = {
+--      restockFromMerchant = self:TemplateCheckbox("restockFromMerchant", nil, nil, nil),
+--      restockSell = self:TemplateCheckbox("restockSell", nil, nil, nil),
+--      restockToBank = self:TemplateCheckbox("restockToBank", nil, nil, nil),
+--      restockFromBank = self:TemplateCheckbox("restockFromBank", nil, nil, nil),
+--    }
+--  }
+--end
 
 function addonOptionsModule:CreateOptionsTable()
   kvOptionsModule.optionsOrder = 0
@@ -135,7 +135,7 @@ function addonOptionsModule:CreateOptionsTable()
     type = "group",
     args = {
       generalOptions = self:CreateGeneralOptions(),
-      restockingOptions = self:CreateRestockingOptions(),
+      --restockingOptions = self:CreateRestockingOptions(),
     } -- end args
   } -- end
 end
@@ -145,8 +145,8 @@ function addonOptionsModule:ResetDefaultOptions()
   restockerModule.settings.loginMessage = true
   restockerModule.settings.autoOpenAtMerchant = false
   restockerModule.settings.autoOpenAtBank = false
-  restockerModule.settings.restockFromBank = true
-  restockerModule.settings.restockToBank = false
-  restockerModule.settings.restockFromMerchant = true
-  restockerModule.settings.restockSell = false
+  --restockerModule.settings.restockFromBank = true
+  --restockerModule.settings.restockToBank = false
+  --restockerModule.settings.restockFromMerchant = true
+  --restockerModule.settings.restockSell = false
 end

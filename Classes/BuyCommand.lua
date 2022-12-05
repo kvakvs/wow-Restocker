@@ -4,9 +4,9 @@
 ---@class RsBuyCommandModule
 local buyCommandModule = RsModule.buyCommandModule
 
----@shape RsBuyCommand
+---Order to bank-get, bank-put, buy or sell items depending on context
+---@shape RsTradeCommand
 ---@field amount number
----@field numNeeded number
 ---@field itemName string
 ---@field itemLink string
 ---@field itemID number
@@ -15,10 +15,17 @@ local buyCommandModule = RsModule.buyCommandModule
 local buyItemClass = {}
 buyItemClass.__index = buyItemClass
 
----@param fields RsBuyCommand
----@return RsBuyCommand
-function buyCommandModule:Create(fields)
-  fields = fields or {}
+---@param amount number
+---@param itemName string
+---@param itemID number|nil
+---@return RsTradeCommand
+---@param itemLink string|nil
+function buyCommandModule:Create(amount, itemName, itemID, itemLink)
+  local fields = --[[---@type RsTradeCommand]] {}
+  fields.amount = amount
+  fields.itemName = itemName
+  fields.itemID = itemID or 0
+  fields.itemLink = itemLink or ""
   setmetatable(fields, buyItemClass)
   return fields
 end
