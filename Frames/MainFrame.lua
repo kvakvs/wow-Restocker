@@ -21,6 +21,7 @@ RS.hiddenFrame:Hide()
 ---@field scrollFrame RsControl
 ---@field scrollChild RsControl
 ---@field title RsControl
+---@field reactionBox RsControl
 
 function mainFrameModule:CreateMenu()
   --[[

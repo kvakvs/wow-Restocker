@@ -4,12 +4,12 @@
   taken from bank, or extras stashed to bank. Set restock amount to zero to always stash
   all to bank.
 - Options window reworked with AceConfig
-- [Bug] bag 11 (last bank bag) was not showing in WotLK despite being available
+- `[Bug]` bag 11 (last bank bag) was not showing in WotLK despite being available
 
 ## Restocker 2022.7.1
 
 - WotLK compatibility check
-- [WotLK] Rogue poisons in WotLK are not craftable but buyable
+- `[WotLK]` Rogue poisons in WotLK are not craftable but buyable
 - Merging addon versions for Classic, TBC and WotLK into one. Attempting to 
   import old settings too. This creates a dummy "RestockerTBC" addon which can be 
   deleted or ignored.

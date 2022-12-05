@@ -48,11 +48,9 @@
 ---@field color string
 ---@field slash string
 
----@alias RsProfile RsTradeCommand[]
-
 ---@shape RsProfileCollection
----@field [string] RsProfile|nil
----@field default RsProfile|nil
+---@field [string] RsTradeCommand[]|nil
+---@field default RsTradeCommand[]|nil
 
 ---@class RsSettings
 ---@field autoBuy boolean

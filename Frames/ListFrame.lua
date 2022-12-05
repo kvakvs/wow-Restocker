@@ -5,13 +5,26 @@ local bankModule = RsModule.bankModule ---@type RsBankModule
 local restockerModule = RsModule.restockerModule ---@type RsRestockerModule
 local eventsModule = RsModule.eventsModule ---@type RsEventsModule
 
+local function rsTooltip(control, text)
+  control:SetScript("OnEnter", function(self)
+    GameTooltip:SetOwner(self, "ANCHOR_TOP")
+    GameTooltip:SetText(text)
+    GameTooltip:Show()
+  end)
+  control:SetScript("OnLeave", function(self, motion)
+    GameTooltip:Hide()
+  end)
+end
+
 ---Create an amount edit box, aligning to the left of alignFrame
-local function rsAmountEditBox(frame, alignFrame)
+---@param frame RsRestockerFrame
+---@param chainTo RsRestockerFrame
+local function rsAmountEditBox(frame, chainTo)
   local settings = restockerModule.settings
   local editBox = --[[---@type WowInputBox]] CreateFrame("EditBox", nil, frame, "InputBoxTemplate");
 
   editBox:SetSize(40, 20)
-  editBox:SetPoint("RIGHT", alignFrame, "LEFT", 3, 0);
+  editBox:SetPoint("RIGHT", chainTo, "LEFT", 3, 0);
   editBox:SetAutoFocus(false);
   editBox:SetScript("OnEnterPressed", function(self)
     local amount = self:GetText()
@@ -52,15 +65,8 @@ local function rsAmountEditBox(frame, alignFrame)
         end
       end)
 
-  editBox:SetScript("OnEnter", function(self)
-    GameTooltip:SetOwner(self, "ANCHOR_TOP")
-    GameTooltip:SetText("Amount to restock")
-    GameTooltip:AddLine("Press Enter when finished editing")
-    GameTooltip:Show()
-  end)
-  editBox:SetScript("OnLeave", function(self, motion)
-    GameTooltip:Hide()
-  end)
+  rsTooltip(editBox, "Amount to restock|n"
+      .. restockerModule:Color("ffffff", "Press Enter when finished editing"))
 
   frame.editBox = editBox
   frame.isInUse = true
@@ -69,25 +75,16 @@ local function rsAmountEditBox(frame, alignFrame)
   return editBox;
 end
 
-local function rsTooltip(control, text)
-  control:SetScript("OnEnter", function(self)
-    GameTooltip:SetOwner(self, "ANCHOR_TOP")
-    GameTooltip:SetText(text)
-    GameTooltip:Show()
-  end)
-  control:SetScript("OnLeave", function(self, motion)
-    GameTooltip:Hide()
-  end)
-end
-
 -- Add a small edit box defaulting to empty value, aligning to the left of alignFrame.
 ---Will check faction reaction on vendor if not empty.
-local function rsRequireReactionEditBox(frame, alignFrame)
+---@param frame RsRestockerFrame
+---@param chainTo RsRestockerFrame
+local function rsRequireReactionEditBox(frame, chainTo)
   local settings = restockerModule.settings
   local reactionBox = --[[---@type WowInputBox]] CreateFrame("EditBox", nil, frame, "InputBoxTemplate");
 
   reactionBox:SetSize(20, 20)
-  reactionBox:SetPoint("RIGHT", alignFrame, "LEFT", 0, 0);
+  reactionBox:SetPoint("RIGHT", chainTo, "LEFT", -4, 0);
   reactionBox:SetAutoFocus(false);
   reactionBox:SetTextColor(0.8, 0.5, 0.3)
 
@@ -109,7 +106,8 @@ local function rsRequireReactionEditBox(frame, alignFrame)
         reactionBox:ClearFocus()
         self:SetText(tonumber(reaction));
         RS:Update()
-      end);
+      end)
+
   reactionBox:SetScript("OnKeyUp",
       function(self)
         local reaction = self:GetText()
@@ -132,7 +130,7 @@ local function rsRequireReactionEditBox(frame, alignFrame)
       restockerModule:Color("ffffff", "Required vendor reputation (default 0 or empty)") .. "|n"
           .. "Check player's reputation standing with the vendor before you buy|n"
           .. "Neutral=4, Friendly=5, Honored=6, Revered=7, Exalted=8|n"
-          .. "Press Enter when finished editing")
+          .. restockerModule:Color("ffffff", "Press Enter when finished editing"))
 
   -- Save the value
   frame.reactionBox = reactionBox
@@ -182,7 +180,8 @@ local function rsBuyFromMerchantButton(frame, chainTo, item)
     end
     RS:UpdateRestockListRow(frame, item)
   end)
-  rsTooltip(btn, "Buy necessary quantity from merchant, when merchant window is open")
+  rsTooltip(btn, restockerModule:Color("ffffff", "Buy from merchant") .. "|n"
+      .. "Buy necessary quantity from merchant, when merchant window is open")
   return btn
 end
 
@@ -197,7 +196,8 @@ local function rsStashToBankButton(frame, chainTo, item)
     item.stashTobank = not item.stashTobank
     RS:UpdateRestockListRow(frame, item)
   end)
-  rsTooltip(btn, "Store extra items in bank, when bank is open. Use 0 to store all")
+  rsTooltip(btn, restockerModule:Color("ffffff", "Stash to bank") .. "|n"
+      .. "Store extra items in bank, when bank is open. Use 0 to store all")
   return btn
 end
 
@@ -212,7 +212,8 @@ local function rsRestockFromBankButton(frame, chainTo, item)
     item.restockFromBank = not item.restockFromBank
     RS:UpdateRestockListRow(frame, item)
   end)
-  rsTooltip(btn, "Take necessary items items from bank, when bank is open")
+  rsTooltip(btn, restockerModule:Color("ffffff", "Restock from bank") .. "|n"
+      .. "Take necessary items items from bank, when bank is open")
   return btn
 end
 

@@ -21,26 +21,41 @@ bankModule.didBankStuff = false
 -- -@field maxStack number
 
 ---@alias RsInventoryByItemName {[string]: number} Items in the bag by name
+---@alias RsMoveItemTask {[string]: number} Item name is key, amount to buy is value
 
 ---@class BankRestockCoroState
 ---@field itemsInBags RsInventoryByItemName How many items in bags, name is key, count is value
 ---@field itemsInBank RsInventoryByItemName How many items in bank, name is key, count is value
----@field currentProfile RsProfile
----@field task RsBuyTask What item, and how many to move (negative = move to bank)
+---@field currentProfile RsTradeCommand[]
+---@field task RsMoveItemTask What item, and how many to move (negative = move to bank)
+---@field moveCount number
+local coroStateClass = {}
+coroStateClass.__index = coroStateClass
 
----@alias RsBuyTask {[string]: number} Item name is key, amount to buy is value
+function bankModule:NewCoroState()
+  local fields = --[[---@type BankRestockCoroState]] {}
+  local settings = restockerModule.settings
+
+  fields.itemsInBags = bagModule:GetItemsInBags()
+  fields.itemsInBank = bagModule:GetItemsInBank()
+  fields.currentProfile = --[[---@not nil]] settings.profiles[settings.currentProfile]
+  fields.task = --[[---@type RsMoveItemTask]] {}
+  fields.moveCount = 0
+
+  setmetatable(fields, coroStateClass)
+  return fields
+end
 
 ---Called once on Addon creation. Sets up constants for bank bags
 function bankModule.OnModuleInit()
 end
 
 ---Try move full stacks in or out of bank, if not possible, then try move 1 item at a time.
----@param state BankRestockCoroState
-local function coroBagToBankExchange(state)
-  for moveName, moveAmount in pairs(state.task) do
+function coroStateClass:StashToBank()
+  for moveName, moveAmount in pairs(self.task) do
     -- Negative for take from bag, positive for take from bank
     if moveAmount < 0 then
-      if bagModule:MoveFromPlayerToBank(state.task, moveName, math.abs(moveAmount)) then
+      if bagModule:MoveFromPlayerToBank(self.task, moveName, math.abs(moveAmount)) then
         return -- DONE one step
       end
     end
@@ -48,12 +63,11 @@ local function coroBagToBankExchange(state)
 end
 
 ---Try move full stacks out of bank, if not possible, then try move 1 item at a time.
----@param state BankRestockCoroState
-local function coroBankToBagExchange(state)
-  for moveName, moveAmount in pairs(state.task) do
+function coroStateClass:RestockFromBank()
+  for moveName, moveAmount in pairs(self.task) do
     -- Negative for take from bag, positive for take from bank
     if moveAmount > 0 then
-      if bagModule:MoveFromBankToPlayer(state.task, moveName, moveAmount) then
+      if bagModule:MoveFromBankToPlayer(self.task, moveName, moveAmount) then
         return
       end
     end
@@ -61,97 +75,88 @@ local function coroBankToBagExchange(state)
 end
 
 ---Go through the bags and see what's too much in our bag and must be sent to bank
----The values will be stored in dictionary with negative quantities
----(i.e. remove from backpack)
----@param state BankRestockCoroState
----@return number, RsBuyTask Count of items to move and table of item names to move
-local function rsCountMoveItems(state)
-  local task = --[[---@type RsBuyTask]] {}
-  local moveCount = 0
-
-  for i, eachItem in pairs(state.currentProfile) do
-    local haveInBackpack = state.itemsInBags[eachItem.itemName] or 0
-    local haveInBank = state.itemsInBank[eachItem.itemName] or 0
+function coroStateClass:CountItemsTooMany()
+  for i, eachItem in pairs(self.currentProfile) do
+    local haveInBackpack = self.itemsInBags[eachItem.itemName] or 0
 
     --If have more than in restocker config, move excess to bank
     if eachItem.amount < haveInBackpack
         and eachItem.stashTobank
     then
       -- Negative for take from bag, positive for take from bank
-      task[eachItem.itemName] = eachItem.amount - haveInBackpack
-      moveCount = moveCount + math.abs(task[eachItem.itemName])
-    else
-      -- if have in bank
-      if eachItem.amount > haveInBackpack
-          and haveInBank > 0
-          and eachItem.restockFromBank
-      then
-        -- Negative for take from bag, positive for take from bank
-        task[eachItem.itemName] = math.min(
-            eachItem.amount - haveInBackpack, -- don't move more than we need
-            haveInBank) -- but not more than have in bank
-        moveCount = moveCount + math.abs(task[eachItem.itemName])
-      end
+      self.task[eachItem.itemName] = eachItem.amount - haveInBackpack
+      self.moveCount = self.moveCount + math.abs(self.task[eachItem.itemName])
     end
   end -- for all items in restock list
+end
 
-  return moveCount, task
+---Go through the bags and see what's too much in our bag and must be sent to bank
+function coroStateClass:CountItemsTooFew()
+  for i, eachItem in pairs(self.currentProfile) do
+    local haveInBackpack = self.itemsInBags[eachItem.itemName] or 0
+    local haveInBank = self.itemsInBank[eachItem.itemName] or 0
+
+    if eachItem.amount > haveInBackpack
+        and haveInBank > 0
+        and eachItem.restockFromBank
+    then
+      -- Negative for take from bag, positive for take from bank
+      self.task[eachItem.itemName] = math.min(
+          eachItem.amount - haveInBackpack, -- don't move more than we need
+          haveInBank) -- but not more than have in bank
+      self.moveCount = self.moveCount + math.abs(self.task[eachItem.itemName])
+    end
+  end -- for all items in restock list
 end
 
 ---Coroutine function to unload extra goods into bank and load goods from bank
-local function coroutineBank()
-  if not bankModule.bankIsOpen then
-    bankModule.currentlyRestocking = false
+function bankModule:coroutineBank()
+  if not self.bankIsOpen then
+    self.currentlyRestocking = false
     RS:Print("Bank is not open")
     return
   end
 
-  local settings = restockerModule.settings
+  local state = self:NewCoroState()
+  state:CountItemsTooMany() -- to store extras to bank
+  state:CountItemsTooFew() -- to restock from bank
 
-  local state = --[[---@type BankRestockCoroState]] {
-    itemsInBags = bagModule:GetItemsInBags(),
-    itemsInBank = bagModule:GetItemsInBank(),
-    currentProfile = settings.profiles[settings.currentProfile],
-    task = {}
-  }
-  local moveCount = 0
-  moveCount, state.task = rsCountMoveItems(state)
-
-  if moveCount < 1 then
-    bankModule.currentlyRestocking = false
+  if state.moveCount < 1 then
+    self.currentlyRestocking = false
     RS:Print("Finished restocking. Hold Shift to skip next time.")
     return
   end
 
   local bagCheck = bagModule:CheckBankBagSpace()
   if bagCheck == "both" then
-    bankModule.currentlyRestocking = false
+    self.currentlyRestocking = false
     RS:Print("Both bag and bank are full, need 1 free slot to begin")
     return
   elseif bagCheck == "bank" then
-    bankModule.currentlyRestocking = false
+    self.currentlyRestocking = false
     RS:Print("Bank is full, need 1 free slot to begin")
     return
   elseif bagCheck == "bag" then
-    bankModule.currentlyRestocking = false
+    self.currentlyRestocking = false
     RS:Print("Bag is full, need 1 free slot to begin")
     return
   end
 
-  coroBagToBankExchange(state)
-  coroBankToBagExchange(state)
+  state:StashToBank()
+  state:RestockFromBank()
 end
 
----For debugging restocking coroutine do the scriptErrors once, then run xxx() like so
----/console scriptErrors 1
----/run RS_ADDON.xxx()
-local function testCoroutineBank()
+--- For debugging restocking coroutine do the scriptErrors once, then run xxx() like so
+--- /console scriptErrors 1
+--- /run RS_ADDON.testBank()
+function RS.testBank()
   bankModule.currentlyRestocking = true
-  coroutineBank()
+  bankModule:coroutineBank()
 end
 
---RS.xxx = testCoroutineBank
-local restockerCoroutine = coroutine.create(coroutineBank)
+local restockerCoroutine = coroutine.create(function()
+  bankModule:coroutineBank()
+end)
 
 
 --
@@ -159,11 +164,11 @@ local restockerCoroutine = coroutine.create(coroutineBank)
 --
 
 local rsUpdateTimer = 0
-local function rsBankUpdateFn(self, elapsed)
+function bankModule.BankUpdateFn(self, elapsed)
   rsUpdateTimer = rsUpdateTimer + elapsed
 
   -- Ping x 3 defines the click frequency. But never go faster than 140 ms
-  local _down, _up, pingHome, pingWorld = GetNetStats();
+  local _down, _up, pingHome, pingWorld = GetNetStats()
   local maxPing = math.max(pingHome, pingWorld)
   local updateInterval = math.max(0.140, (maxPing * 3) / 1000)
 
@@ -182,11 +187,13 @@ local function rsBankUpdateFn(self, elapsed)
       local resume = coroutine.resume(restockerCoroutine)
 
       if resume == false then
-        restockerCoroutine = coroutine.create(coroutineBank)
+        restockerCoroutine = coroutine.create(function()
+          bankModule:coroutineBank()
+        end)
       end
     end
   end
 end
 
 RS.onUpdateFrame = CreateFrame("Frame")
-RS.onUpdateFrame:SetScript("OnUpdate", rsBankUpdateFn)
+RS.onUpdateFrame:SetScript("OnUpdate", bankModule.BankUpdateFn)
