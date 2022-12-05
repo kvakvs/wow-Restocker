@@ -69,23 +69,28 @@ local function rsCountMoveItems(state)
   local task = --[[---@type RsBuyTask]] {}
   local moveCount = 0
 
-  for i, rs in pairs(state.currentProfile) do
-    local haveInBackpack = state.itemsInBags[rs.itemName] or 0
-    local haveInBank = state.itemsInBank[rs.itemName] or 0
+  for i, eachItem in pairs(state.currentProfile) do
+    local haveInBackpack = state.itemsInBags[eachItem.itemName] or 0
+    local haveInBank = state.itemsInBank[eachItem.itemName] or 0
 
     --If have more than in restocker config, move excess to bank
-    if rs.amount < haveInBackpack then
+    if eachItem.amount < haveInBackpack
+        and eachItem.stashTobank
+    then
       -- Negative for take from bag, positive for take from bank
-      task[rs.itemName] = rs.amount - haveInBackpack
-      moveCount = moveCount + math.abs(task[rs.itemName])
+      task[eachItem.itemName] = eachItem.amount - haveInBackpack
+      moveCount = moveCount + math.abs(task[eachItem.itemName])
     else
       -- if have in bank
-      if rs.amount > haveInBackpack and haveInBank > 0 then
+      if eachItem.amount > haveInBackpack
+          and haveInBank > 0
+          and eachItem.restockFromBank
+      then
         -- Negative for take from bag, positive for take from bank
-        task[rs.itemName] = math.min(
-            rs.amount - haveInBackpack, -- don't move more than we need
+        task[eachItem.itemName] = math.min(
+            eachItem.amount - haveInBackpack, -- don't move more than we need
             haveInBank) -- but not more than have in bank
-        moveCount = moveCount + math.abs(task[rs.itemName])
+        moveCount = moveCount + math.abs(task[eachItem.itemName])
       end
     end
   end -- for all items in restock list
@@ -104,10 +109,10 @@ local function coroutineBank()
   local settings = restockerModule.settings
 
   local state = --[[---@type BankRestockCoroState]] {
-    itemsInBags    = bagModule:GetItemsInBags(),
-    itemsInBank    = bagModule:GetItemsInBank(),
+    itemsInBags = bagModule:GetItemsInBags(),
+    itemsInBank = bagModule:GetItemsInBank(),
     currentProfile = settings.profiles[settings.currentProfile],
-    task           = {}
+    task = {}
   }
   local moveCount = 0
   moveCount, state.task = rsCountMoveItems(state)

@@ -154,12 +154,10 @@ function RS:Update()
 
   ---@param item RsTradeCommand
   for _, item in ipairs(restockItemList) do
-    local f = RS:GetFirstEmpty()
+    local f = RS:GetFirstEmpty(item)
     f:SetParent(RS.MainFrame.scrollChild)
     f.isInUse = true
-    f.editBox:SetText(tostring(item.amount or 0))
-    f.reactionBox:SetText(tostring(item.reaction or 0))
-    f.text:SetText(item.itemName)
+    self:UpdateRestockListRow(f, item)
     f:Show()
   end
 
@@ -176,14 +174,15 @@ end
 --[[
   GET FIRST UNUSED SCROLLCHILD FRAME
 ]]
----@return RsReusableFrame
-function RS:GetFirstEmpty()
+---@return RsRestockingListRow
+---@param item RsTradeCommand
+function RS:GetFirstEmpty(item)
   for i, frame in ipairs(RS.framepool) do
     if not frame.isInUse then
       return frame
     end
   end
-  return RS:addListFrame()
+  return self:CreateRestockListRow(item)
 end
 
 
@@ -345,7 +344,7 @@ function RS:OnEnable()
   restockerModule.settings = RestockerSettings
 
   self.restockedItems = false
-  self.framepool = {}
+  self.framepool = --[[---@type RsRestockingListRow[] ]] {}
   self.hiddenFrame = CreateFrame("Frame", nil, --[[---@type WowControl]] UIParent)
   self.hiddenFrame:Hide()
   self:loadSettings()
@@ -410,4 +409,8 @@ end
 
 ---AceAddon handler
 function RS:OnDisable()
+end
+
+function restockerModule:Color(hex, text)
+  return "|cff" .. hex .. text .. "|r"
 end

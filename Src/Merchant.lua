@@ -176,7 +176,9 @@ function merchantModule:Restock()
 
   -- Build the Purchase Orders table used for buying items
   for _, eachRestockRecord in ipairs(--[[---@not nil]] restockList) do
-    self:BuildPurchaseOrder(purchaseOrders, eachRestockRecord, vendorReaction)
+    if eachRestockRecord.buyFromMerchant or eachRestockRecord.buyFromMerchant == nil then -- nil defaults to true
+      self:BuildPurchaseOrder(purchaseOrders, eachRestockRecord, vendorReaction)
+    end
   end
 
   -- Insert craft reagents for missing items into purchase orders, or add

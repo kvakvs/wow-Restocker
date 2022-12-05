@@ -2,7 +2,7 @@
 --local RS = RS_ADDON ---@type RestockerAddon
 
 ---A row of controls one row per item to restock or stash
----@class RsReusableFrame: WowControl
+---@shape RsReusableFrame: WowControl
 ---@field isInUse boolean
 ---@field index number
 ---@field text WowFontString The item name label

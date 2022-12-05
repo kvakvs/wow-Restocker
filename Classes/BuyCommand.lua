@@ -11,6 +11,9 @@ local buyCommandModule = RsModule.buyCommandModule
 ---@field itemLink string
 ---@field itemID number
 ---@field reaction number UnitReaction required to buy from vendor (4 neutral, 5 friendly, ... 8 exalted)
+---@field buyFromMerchant boolean|nil Nil default true
+---@field stashTobank boolean|nil Nil default false
+---@field restockFromBank boolean|nil Nil default false
 
 local buyItemClass = {}
 buyItemClass.__index = buyItemClass

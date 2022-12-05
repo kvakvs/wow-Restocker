@@ -69,6 +69,17 @@ local function rsAmountEditBox(frame, alignFrame)
   return editBox;
 end
 
+local function rsTooltip(control, text)
+  control:SetScript("OnEnter", function(self)
+    GameTooltip:SetOwner(self, "ANCHOR_TOP")
+    GameTooltip:SetText(text)
+    GameTooltip:Show()
+  end)
+  control:SetScript("OnLeave", function(self, motion)
+    GameTooltip:Hide()
+  end)
+end
+
 -- Add a small edit box defaulting to empty value, aligning to the left of alignFrame.
 ---Will check faction reaction on vendor if not empty.
 local function rsRequireReactionEditBox(frame, alignFrame)
@@ -117,17 +128,11 @@ local function rsRequireReactionEditBox(frame, alignFrame)
       end)
 
   -- Tooltip
-  reactionBox:SetScript("OnEnter", function(self)
-    GameTooltip:SetOwner(self, "ANCHOR_TOP")
-    GameTooltip:SetText("Required vendor reputation (default 0 or empty)")
-    GameTooltip:AddLine("Check player's reputation standing with the vendor before you buy")
-    GameTooltip:AddLine("Neutral=4, Friendly=5, Honored=6, Revered=7, Exalted=8")
-    GameTooltip:AddLine("Press Enter when finished editing")
-    GameTooltip:Show()
-  end)
-  reactionBox:SetScript("OnLeave", function(self, motion)
-    GameTooltip:Hide()
-  end)
+  rsTooltip(reactionBox,
+      restockerModule:Color("ffffff", "Required vendor reputation (default 0 or empty)") .. "|n"
+          .. "Check player's reputation standing with the vendor before you buy|n"
+          .. "Neutral=4, Friendly=5, Honored=6, Revered=7, Exalted=8|n"
+          .. "Press Enter when finished editing")
 
   -- Save the value
   frame.reactionBox = reactionBox
@@ -136,32 +141,82 @@ local function rsRequireReactionEditBox(frame, alignFrame)
   return reactionBox;
 end
 
----Create a X button which on click will remove the restocking item row
-local function rsDeleteButton(frame)
+local function rsOnDeleteButtonClick(self)
+  local parent = self:GetParent()
+  local text = parent.text:GetText()
   local settings = restockerModule.settings
-  local delBtn = CreateFrame("Button", nil, frame, "UIPanelCloseButton");
+  local profile = --[[---@not nil]] settings.profiles[settings.currentProfile]
 
-  delBtn:SetPoint("RIGHT", frame, "RIGHT", 8, 0);
-  delBtn:SetSize(30, 30);
-  delBtn:SetScript("OnClick",
-      function(self)
-        local parent = self:GetParent();
-        local text = parent.text:GetText();
-
-        for i, item in ipairs(settings.profiles[settings.currentProfile]) do
-          if item.itemName == text then
-            tremove(settings.profiles[settings.currentProfile], i)
-            RS:Update();
-            break
-          end
-        end
-      end);
-  return delBtn;
+  for i, item in ipairs(profile) do
+    if item.itemName == text then
+      tremove(settings.profiles[settings.currentProfile], i)
+      RS:Update();
+      break
+    end
+  end
 end
 
----Create UI row for items
----@return RsReusableFrame
-function RS:addListFrame()
+---Create a X button which on click will remove the restocking item row
+local function rsDeleteButton(frame)
+  local btn = CreateFrame("Button", nil, frame, "UIPanelCloseButton")
+
+  btn:SetPoint("RIGHT", frame, "RIGHT", 8, 0)
+  btn:SetSize(30, 30)
+  btn:SetScript("OnClick", rsOnDeleteButtonClick)
+  rsTooltip(btn, "Remove this item from the maintained list")
+  return btn
+end
+
+---Create a button to toggle buying from merchants
+---@param item RsTradeCommand
+local function rsBuyFromMerchantButton(frame, chainTo, item)
+  local btn = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
+
+  btn:SetPoint("RIGHT", chainTo, "LEFT", 3, 0);
+  btn:SetSize(24, 24)
+  btn:SetScript("OnClick", function()
+    if item.buyFromMerchant == nil then
+      item.buyFromMerchant = false -- nil default to true, so toggle to false
+    else
+      item.buyFromMerchant = not item.buyFromMerchant
+    end
+    RS:UpdateRestockListRow(frame, item)
+  end)
+  rsTooltip(btn, "Buy necessary quantity from merchant, when merchant window is open")
+  return btn
+end
+
+---Create a button to toggle storing to bank
+---@param item RsTradeCommand
+local function rsStashToBankButton(frame, chainTo, item)
+  local btn = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
+
+  btn:SetPoint("RIGHT", chainTo, "LEFT", 3, 0);
+  btn:SetSize(36, 24)
+  btn:SetScript("OnClick", function()
+    item.stashTobank = not item.stashTobank
+    RS:UpdateRestockListRow(frame, item)
+  end)
+  rsTooltip(btn, "Store extra items in bank, when bank is open. Use 0 to store all")
+  return btn
+end
+
+---Create a button to toggle restocking from bank
+---@param item RsTradeCommand
+local function rsRestockFromBankButton(frame, chainTo, item)
+  local btn = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
+
+  btn:SetPoint("RIGHT", chainTo, "LEFT", 3, 0);
+  btn:SetSize(36, 24)
+  btn:SetScript("OnClick", function()
+    item.restockFromBank = not item.restockFromBank
+    RS:UpdateRestockListRow(frame, item)
+  end)
+  rsTooltip(btn, "Take necessary items items from bank, when bank is open")
+  return btn
+end
+
+function RS:CreateFrame()
   local frame = --[[---@type RsReusableFrame]] CreateFrame("Frame", nil, RS.hiddenFrame, nil)
   frame.index = #RS.framepool + 1
   frame:SetSize(RS.MainFrame.scrollChild:GetWidth(), 20);
@@ -173,6 +228,24 @@ function RS:addListFrame()
   end
 
   RS.MainFrame.scrollChild:SetHeight(#RS.framepool * 20)
+  return frame
+end
+
+---@shape RsRestockingListRow: RsControl
+---@field text WowFontString
+---@field editBox WowInputBox
+---@field delBtn WowControl
+---@field buyBtn WowControl
+---@field toBankBtn WowControl
+---@field fromBankBtn WowControl
+---@field amountBox WowControl
+---@field reactionBox WowControl
+
+---Create UI row for items
+---@return RsRestockingListRow
+---@param item RsTradeCommand
+function RS:CreateRestockListRow(item)
+  local frame = --[[---@type RsRestockingListRow]] self:CreateFrame()
 
   -- ITEM TEXT
   local text = frame:CreateFontString(nil, "OVERLAY", nil);
@@ -180,22 +253,51 @@ function RS:addListFrame()
   text:SetPoint("LEFT", frame, "LEFT");
   frame.text = text
 
-  -- BUTTON
-  local delBtn = rsDeleteButton(frame)
+  -- BUTTONS (reverse order right to left)
+  frame.delBtn = rsDeleteButton(frame)
+  frame.buyBtn = rsBuyFromMerchantButton(frame, frame.delBtn, item)
+  frame.toBankBtn = rsStashToBankButton(frame, frame.buyBtn, item)
+  frame.fromBankBtn = rsRestockFromBankButton(frame, frame.toBankBtn, item)
 
   -- EDITBOX
-  local amountBox = rsAmountEditBox(frame, delBtn)
-  local reactionBox = rsRequireReactionEditBox(frame, amountBox)
+  frame.amountBox = rsAmountEditBox(frame, frame.fromBankBtn)
+  frame.reactionBox = rsRequireReactionEditBox(frame, frame.amountBox)
 
   table.insert(RS.framepool, frame)
   return frame
 end
 
+---@param row RsRestockingListRow
+---@param item RsTradeCommand
+function RS:UpdateRestockListRow(row, item)
+  if item.buyFromMerchant == nil or item.buyFromMerchant then
+    -- nil default to true
+    row.buyBtn:SetText("$")
+  else
+    row.buyBtn:SetText("-")
+  end
+  if item.stashTobank then
+    row.toBankBtn:SetText(">B")
+  else
+    row.toBankBtn:SetText("-")
+  end
+  if item.restockFromBank then
+    row.fromBankBtn:SetText("B>")
+  else
+    row.fromBankBtn:SetText("-")
+  end
+
+  row.editBox:SetText(tostring(item.amount or 0))
+  row.reactionBox:SetText(tostring(item.reaction or 0))
+  row.text:SetText(item.itemName)
+end
+
 function RS:addListFrames()
   local settings = restockerModule.settings
+  local profile = --[[---@not nil]] settings.profiles[settings.currentProfile]
 
-  for _, item in ipairs(settings.profiles[settings.currentProfile]) do
-    local frame = RS:addListFrame()
+  for _, item in ipairs(profile) do
+    local frame = RS:CreateRestockListRow(item)
     frame.text:SetText(item.itemName)
     frame.editBox:SetText(tostring(item.amount))
   end

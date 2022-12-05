@@ -8,14 +8,28 @@ local restockerModule = RsModule.restockerModule ---@type RsRestockerModule
 RS.hiddenFrame = CreateFrame("Frame", nil, UIParent)
 RS.hiddenFrame:Hide()
 
+---@shape RsControl: WowControl
+---@field width number
+---@field height number
+
+---@shape RsRestockerFrame: RsControl
+---@field profileDropDownMenu WowControl
+---@field editBox RsControl
+---@field addBtn RsControl
+---@field addGrp RsControl
+---@field listInset RsControl
+---@field scrollFrame RsControl
+---@field scrollChild RsControl
+---@field title RsControl
+
 function mainFrameModule:CreateMenu()
   --[[
     FRAME
   ]]
   local settings = restockerModule.settings
 
-  local addonFrame = CreateFrame("Frame", "RestockerMainFrame", UIParent, "BasicFrameTemplate");
-  addonFrame.width = 300
+  local addonFrame = --[[---@type RsRestockerFrame]] CreateFrame("Frame", "RestockerMainFrame", UIParent, "BasicFrameTemplate");
+  addonFrame.width = 350
   addonFrame.height = 400
   addonFrame:SetSize(addonFrame.width, addonFrame.height);
   addonFrame:SetPoint(settings.framePos.point or "RIGHT",
@@ -32,9 +46,9 @@ function mainFrameModule:CreateMenu()
   --[[
     INSET
   ]]
-  local listInset = CreateFrame("Frame", nil, addonFrame, "InsetFrameTemplate3");
+  local listInset = --[[---@type RsControl]] CreateFrame("Frame", nil, addonFrame, "InsetFrameTemplate3");
   listInset.width = addonFrame.width - 6
-  listInset.height = addonFrame.height - 76
+  listInset.height = addonFrame.height - 60
   listInset:SetSize(listInset.width, listInset.height);
   listInset:SetPoint("TOPLEFT", addonFrame, "TOPLEFT", 2, -22);
   addonFrame.listInset = listInset
@@ -42,7 +56,7 @@ function mainFrameModule:CreateMenu()
   --[[
     SCROLL FRAME
   ]]
-  local scrollFrame = CreateFrame("ScrollFrame", nil, addonFrame, "UIPanelScrollFrameTemplate")
+  local scrollFrame = --[[---@type RsControl]] CreateFrame("ScrollFrame", nil, addonFrame, "UIPanelScrollFrameTemplate")
   scrollFrame.width = addonFrame.listInset.width - 4
   scrollFrame.height = addonFrame.listInset.height - 32
   scrollFrame:SetSize(scrollFrame.width - 30, scrollFrame.height);
@@ -52,7 +66,7 @@ function mainFrameModule:CreateMenu()
   --[[
     SCROLL CHILD
   ]]
-  local scrollChild = CreateFrame("Frame", nil, ScrollFrame)
+  local scrollChild = --[[---@type RsControl]] CreateFrame("Frame", nil, ScrollFrame)
   scrollChild.width = scrollFrame:GetWidth()
   scrollChild.height = scrollFrame:GetHeight()
   scrollChild:SetWidth(scrollChild.width)
@@ -67,7 +81,7 @@ function mainFrameModule:CreateMenu()
   --[[
     TITLE
   ]]
-  local title = addonFrame:CreateFontString(nil, "OVERLAY");
+  local title = --[[---@type WowFontString]] addonFrame:CreateFontString(nil, "OVERLAY");
   title:SetFontObject("GameFontHighlightLarge");
   title:SetPoint("CENTER", addonFrame.TitleBg, "CENTER", 0, 0);
   title:SetText("Restocker");
@@ -77,7 +91,7 @@ function mainFrameModule:CreateMenu()
   --[[
     EDITBOX & ADD BUTTON GROUP
   ]]
-  local addGrp = CreateFrame("Frame", nil, addonFrame);
+  local addGrp = --[[---@type RsControl]] CreateFrame("Frame", nil, addonFrame);
   addGrp:SetPoint("BOTTOM", addonFrame.listInset, "BOTTOM", 0, 2);
   addGrp:SetSize(listInset.width - 5, 25);
   addonFrame.addGrp = addGrp
@@ -86,7 +100,7 @@ function mainFrameModule:CreateMenu()
 
 
   -- Add button
-  local addBtn = CreateFrame("Button", nil, addonFrame.addGrp, "GameMenuButtonTemplate");
+  local addBtn = --[[---@type RsControl]] CreateFrame("Button", nil, addonFrame.addGrp, "GameMenuButtonTemplate");
   addBtn:SetPoint("BOTTOMRIGHT", addonFrame.addGrp, "BOTTOMRIGHT");
   addBtn:SetSize(60, 25);
   addBtn:SetText("Add");
@@ -147,49 +161,49 @@ function mainFrameModule:CreateMenu()
 
 
 
-  --[[
-    AUTOBUY CHECKBOX
-  ]]
+  ----[[
+  --  AUTOBUY CHECKBOX
+  --]]
+  --
+  ---- Checkbox for autobuy
+  --local checkbox = CreateFrame("CheckButton", nil, addonFrame, "UICheckButtonTemplate");
+  --checkbox:SetPoint("TOPLEFT", addonFrame.listInset, "BOTTOMLEFT", 2, -1)
+  --checkbox:SetSize(25, 25)
+  --checkbox:SetChecked(settings.autoBuy);
+  --checkbox:SetScript("OnClick", function(self, button, down)
+  --  settings.autoBuy = checkbox:GetChecked()
+  --end);
+  --addonFrame.checkbox = checkbox
+  --
+  ---- Auto buy text
+  --local checkboxText = addonFrame:CreateFontString(nil, "OVERLAY");
+  --checkboxText:SetFontObject("GameFontHighlight");
+  --checkboxText:SetPoint("LEFT", checkbox, "RIGHT", 1, 1);
+  --checkboxText:SetText("Auto buy items");
+  --addonFrame.checkboxText = checkboxText
+  ---- // AUTOBUY
 
-  -- Checkbox for autobuy
-  local checkbox = CreateFrame("CheckButton", nil, addonFrame, "UICheckButtonTemplate");
-  checkbox:SetPoint("TOPLEFT", addonFrame.listInset, "BOTTOMLEFT", 2, -1)
-  checkbox:SetSize(25, 25)
-  checkbox:SetChecked(settings.autoBuy);
-  checkbox:SetScript("OnClick", function(self, button, down)
-    settings.autoBuy = checkbox:GetChecked()
-  end);
-  addonFrame.checkbox = checkbox
 
-  -- Auto buy text
-  local checkboxText = addonFrame:CreateFontString(nil, "OVERLAY");
-  checkboxText:SetFontObject("GameFontHighlight");
-  checkboxText:SetPoint("LEFT", checkbox, "RIGHT", 1, 1);
-  checkboxText:SetText("Auto buy items");
-  addonFrame.checkboxText = checkboxText
-  -- // AUTOBUY
-
-
-  --[[
-    AUTO RESTOCK FROM BANK
-  ]]
-  -- Checkbox for auto restock from bank
-  local checkboxBank = CreateFrame("CheckButton", nil, addonFrame, "UICheckButtonTemplate");
-  checkboxBank:SetPoint("LEFT", addonFrame.checkbox, "RIGHT", 100, 0)
-  checkboxBank:SetSize(25, 25)
-  checkboxBank:SetChecked(settings.restockFromBank);
-  checkboxBank:SetScript("OnClick", function(self, button, down)
-    settings.restockFromBank = checkboxBank:GetChecked()
-  end);
-  addonFrame.checkboxBank = checkboxBank
-
-  -- Auto restock from bank text
-  local checkboxBankText = addonFrame:CreateFontString(nil, "OVERLAY");
-  checkboxBankText:SetFontObject("GameFontHighlight");
-  checkboxBankText:SetPoint("LEFT", checkboxBank, "RIGHT", 1, 1);
-  checkboxBankText:SetText("Restock from bank");
-  addonFrame.checkboxBank = checkboxBankText
-  -- // AUTOBUY
+  ----[[
+  --  AUTO RESTOCK FROM BANK
+  --]]
+  ---- Checkbox for auto restock from bank
+  --local checkboxBank = CreateFrame("CheckButton", nil, addonFrame, "UICheckButtonTemplate");
+  --checkboxBank:SetPoint("LEFT", addonFrame.checkbox, "RIGHT", 100, 0)
+  --checkboxBank:SetSize(25, 25)
+  --checkboxBank:SetChecked(settings.restockFromBank);
+  --checkboxBank:SetScript("OnClick", function(self, button, down)
+  --  settings.restockFromBank = checkboxBank:GetChecked()
+  --end);
+  --addonFrame.checkboxBank = checkboxBank
+  --
+  ---- Auto restock from bank text
+  --local checkboxBankText = addonFrame:CreateFontString(nil, "OVERLAY");
+  --checkboxBankText:SetFontObject("GameFontHighlight");
+  --checkboxBankText:SetPoint("LEFT", checkboxBank, "RIGHT", 1, 1);
+  --checkboxBankText:SetText("Restock from bank");
+  --addonFrame.checkboxBank = checkboxBankText
+  ---- // AUTOBUY
 
 
 
