@@ -1,6 +1,6 @@
 # Restocker TBC
 
-Revived a discontinued project for TBC. Old name: Auto Restocker by
+Revived a discontinued project for TBC and now WotLK. Old name: Auto Restocker by
 rainfordays @github / ChiliFajita @curseforge.
 
 #### Restocks items on the list automatically (if checked)
