@@ -22,8 +22,6 @@
 ---@field defaults RsAddonDefaults
 ---@field EventFrame WowControl Hidden frame for addon events
 ---@field framepool RsReusableFrame[] A collection of UI frames
----@field HaveTBC boolean Whether we are running on or after TBC
----@field HaveWotLK boolean
 ---@field hiddenFrame WowControl An UI frame
 ---@field loaded boolean
 ---@field MainFrame table Main frame of the addon

@@ -13,6 +13,7 @@ local RS = RS_ADDON ---@type RestockerAddon
 
 local bagModule = RsModule.bagModule ---@type RsBagModule
 local itemModule = RsModule.itemModule ---@type RsItemModule
+local kvEnvModule = KvModuleManager.envModule
 
 bagModule.BACKPACK_CONTAINER = 0
 bagModule.BANK_CONTAINER = -1
@@ -33,7 +34,7 @@ end
 
 function bagModule.OnModuleInit()
   -- -1 bank container, 0 backpack, 1234 bags, 5-10 or 5-11 is TBC bank
-  if RS.HaveTBC then
+  if kvEnvModule.haveTBC then
     bagModule.BANK_BAGS = { bagModule.BANK_CONTAINER, 5, 6, 7, 8, 9, 10, 11 }
     bagModule.BANK_BAGS_REVERSED = { 11, 10, 9, 8, 7, 6, 5, bagModule.BANK_CONTAINER }
   else

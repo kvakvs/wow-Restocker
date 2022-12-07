@@ -1,4 +1,4 @@
-## Restocker 2022.12.0
+## Restocker 2022.12.1
 
 - Can individually set behaviour per item: each item can be restocked from vendor, 
   taken from bank, or extras stashed to bank. Set restock amount to zero to always stash
