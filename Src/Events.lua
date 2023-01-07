@@ -61,16 +61,12 @@ function eventsModule.OnBankOpen(isMinor)
   bankModule.bankIsOpen = true
   bankModule.currentlyRestocking = true
   RS.onUpdateFrame:Show()
-
-  bagModule:ResetBankRestocker()
 end
 
 function eventsModule.OnBankClose()
   bankModule.bankIsOpen = false
   bankModule.currentlyRestocking = false
   RS:Hide()
-
-  bagModule:ResetBankRestocker()
 end
 
 ---@param itemID number

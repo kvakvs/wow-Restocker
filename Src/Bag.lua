@@ -2,8 +2,6 @@
 local RS = RS_ADDON ---@type RestockerAddon
 
 ---@class RsBagModule
----@field priorityMoveBank RsInventorySlotNumber|nil If not nil, this will be priority clicked before any new stack is split
----@field priorityMovePlayer RsInventorySlotNumber|nil If not nil, this will be priority clicked before any new stack is split
 ---@field BACKPACK_CONTAINER number Index of backpack container
 ---@field BANK_CONTAINER number Index of main bank container
 ---@field PLAYER_BAGS RsBagId[] Indexes of player bags
@@ -25,11 +23,45 @@ bagModule.PLAYER_BAGS_REVERSED = {}
 bagModule.BANK_BAGS = --[[---@type RsBagId[] ]] {} -- set up in RS.SetupBankConstants
 bagModule.BANK_BAGS_REVERSED = --[[---@type RsBagId[] ]] {} -- set up in RS.SetupBankConstants
 
-function bagModule:ResetBankRestocker()
-  bagModule.priorityMoveBankBag = nil
-  bagModule.priorityMoveBankSlot = nil
-  bagModule.priorityMovePlayerBag = nil
-  bagModule.priorityMovePlayerSlot = nil
+local inventoryClass = {}
+inventoryClass.__index = inventoryClass
+
+local slotClass = {}
+slotClass.__index = slotClass
+
+---@return RsInventory
+function bagModule:NewInventory()
+  local inv = --[[---@type RsInventory]] {
+    summary = {},
+    slots = {},
+  }
+  setmetatable(inv, inventoryClass)
+  return inv
+end
+
+---Sorts bag slots for each item, with smallest stacks first
+---@param self RsInventory
+function inventoryClass.SortSlots(self)
+  local sortFn = function(a, b)
+    return a.count < b.count
+  end
+  for _key, eachItemSlots in pairs(self.slots) do
+    table.sort(eachItemSlots, sortFn)
+  end
+end
+
+---@return RsSlot
+---@param bag number
+---@param slot number
+---@param itemCount number
+function bagModule:NewSlot(bag, slot, itemCount)
+  local slotObj = --[[---@type RsSlot]] {
+    bag = bag,
+    slot = slot,
+    count = itemCount,
+  }
+  setmetatable(slotObj, slotClass)
+  return slotObj
 end
 
 function bagModule.OnModuleInit()
@@ -82,24 +114,35 @@ function bagModule:IsSomethingLocked()
   return false
 end
 
----@return RsInventoryByItemName
-function bagModule:GetItemsInBags()
-  local result = --[[---@type RsInventoryByItemName]] {}
+---@param predicate fun(s: string): boolean|nil
+---@return RsInventory
+function bagModule:GetItemsInBags(predicate)
+  local result = self:NewInventory()
+
   for bag = self.BACKPACK_CONTAINER, NUM_BAG_SLOTS do
     for slot = 1, GetContainerNumSlots(bag) do
       local _, itemCount, locked, _, _, _, itemLink, _, _, itemID = GetContainerItemInfo(bag, slot)
       if itemID and itemLink then
         local itemName = --[[---@type string]] (string.match(itemLink, "%[(.*)%]"))
-        result[itemName] = result[itemName] and result[itemName] + itemCount or itemCount
+
+        -- Allow filtering by predicate
+        if predicate == nil or predicate(itemName) == true then
+          result.summary[itemName] = (result.summary[itemName] and result.summary[itemName] + itemCount) or itemCount
+
+          result.slots[itemName] = result.slots[itemName] or {}
+          table.insert(result.slots[itemName], self:NewSlot(bag, slot, itemCount))
+        end
       end
     end
   end
+
+  result:SortSlots()
   return result
 end
 
 ---@param handler fun(bag: number, slot: number, itemName: string, itemID: number, itemCount: number)
 function bagModule:ForEachBagItem(handler)
-  local result = --[[---@type RsInventoryByItemName]] {}
+  local result = --[[---@type RsInventoryCountByItemName]] {}
   for bag = self.BACKPACK_CONTAINER, NUM_BAG_SLOTS do
     for slot = 1, GetContainerNumSlots(bag) do
       local _, itemCount, locked, _, _, _, itemLink, _, _, itemID = GetContainerItemInfo(bag, slot)
@@ -112,19 +155,29 @@ function bagModule:ForEachBagItem(handler)
   return result
 end
 
----@return RsInventoryByItemName
-function bagModule:GetItemsInBank()
-  local result = --[[---@type RsInventoryByItemName]] {}
+---@param predicate fun(s: string): boolean|nil
+---@return RsInventory
+function bagModule:GetItemsInBank(predicate)
+  local result = self:NewInventory()
+
   for _, bag in ipairs(self.BANK_BAGS_REVERSED) do
     for slot = 1, GetContainerNumSlots(bag) do
       local _, itemCount, locked, _, _, _, itemLink, _, _, itemID = GetContainerItemInfo(bag, slot)
       if itemID then
         local itemName = --[[---@type string]] string.match(itemLink, "%[(.*)%]")
-        result[itemName] = result[itemName] and result[itemName] + itemCount or itemCount
+
+        -- Allow filtering by predicate
+        if predicate == nil or predicate(itemName) == true then
+          result.summary[itemName] = (result.summary[itemName] and result.summary[itemName] + itemCount) or itemCount
+
+          result.slots[itemName] = result.slots[itemName] or {}
+          table.insert(result.slots[itemName], self:NewSlot(bag, slot, itemCount))
+        end
       end
     end
   end
 
+  result:SortSlots()
   return result
 end
 
@@ -183,28 +236,10 @@ function bagModule:CheckSpace(bags)
   return false
 end
 
----Called to check if priority move is requested (i.e. a stack was split for move earlier)
----The item must not be locked
----@return boolean Move successful, bag and slot can be reset
-function bagModule:PriorityMove(bag, slot)
-  if bag == nil or slot == nil then
-    return false
-  end
-
-  local containerItemInfo = itemModule:GetContainerItemInfo(bag, slot)
-
-  if containerItemInfo.locked then
-    return false
-  end
-
-  UseContainerItem(bag, slot)
-  return true
-end
-
 ---From bags list, retrieve items which are not locked and match predicate
 ---@param bags number[] List of bags from bagModule.* constants
 ---@param predicate function
----@return RsContainerItemInfo[]|nil
+---@return RsContainerItemInfo[]
 function bagModule:ScanBagsFor(bags, predicate)
   local itemCandidates = --[[---@type RsContainerItemInfo[] ]] {}
 
@@ -213,7 +248,7 @@ function bagModule:ScanBagsFor(bags, predicate)
       local containerItemInfo = itemModule:GetContainerItemInfo(bag, slot)
 
       if containerItemInfo.locked then
-        return nil -- can't do nothing now, something is locked, try in 0.1 sec
+        return {} -- can't do nothing now, something is locked, try in 0.1 sec
       end
 
       if predicate(containerItemInfo) then
@@ -225,6 +260,7 @@ function bagModule:ScanBagsFor(bags, predicate)
   return itemCandidates
 end
 
+-- TODO: Drop old algorithm below, use RsInventory.slots to pick smallest stack of specific item
 ---Filter function for ScanBagsFor, which matches the name
 local function rsContainerItemInfoMatchName(name)
   return function(itemInfo)
@@ -261,9 +297,7 @@ function bagModule:MoveFromBankToPlayer_1(task, candidates, moveAmount)
       local itemInfo = RS.GetItemInfo(containerItemInfo.itemId)
 
       SplitContainerItem(containerItemInfo.bag, containerItemInfo.slot, moveAmount)
-      --rsPutSplitItemIntoBags(itemInfo, 1, BANK_BAGS, PLAYER_BAGS)
-      -- Now these slots will be priority clicked and cleared before next stack is produced
-      self.priorityMoveBank = bagModule:SplitSwapCursorItem(
+      bagModule:SplitSwapCursorItem(
           itemModule:FromCachedItem(--[[---@not nil]] itemInfo),
           bagModule.BANK_BAGS)
 
@@ -279,16 +313,13 @@ end
 ---@param moveName string
 ---@param moveAmount number Negative for take from bag, positive for take from bank
 function bagModule:MoveFromBankToPlayer(task, moveName, moveAmount)
-  if self:PriorityMove(self.priorityMoveBankBag, self.priorityMoveBankSlot) then
-    self.priorityMoveBankBag, self.priorityMoveBankSlot = nil, nil
-  end
-
   local bankBagsReverse = self:GetBankBags(true)
 
   -------------------------------------------
   -- Try move from all bank bags in reverse
   -------------------------------------------
   for _index0, bag in ipairs(bankBagsReverse) do
+    -- TODO: Drop old algorithm below, use RsInventory.slots
     -- Build list of move candidates. Sort them to contain smallest stacks first.
     local moveCandidates = self:ScanBagsFor(
         { bag }, rsContainerItemInfoMatchName(moveName))
@@ -323,7 +354,7 @@ function bagModule:MoveFromPlayerToBank_1(task, candidates, moveAmount)
 
       SplitContainerItem(containerItemInfo.bag, containerItemInfo.slot, moveAmount)
       --rsPutSplitItemIntoBags(itemInfo, 1, PLAYER_BAGS, BANK_BAGS)
-      self.priorityMovePlayer = bagModule:SplitSwapCursorItem(
+      local splitSlot = bagModule:SplitSwapCursorItem(
           itemModule:FromCachedItem(--[[---@not nil]] itemInfo),
           bagModule.PLAYER_BAGS)
 
@@ -339,16 +370,13 @@ end
 ---@param moveName string
 ---@param moveAmount number Negative for take from bag, positive for take from bank
 function bagModule:MoveFromPlayerToBank(task, moveName, moveAmount)
-  if self:PriorityMove(self.priorityMovePlayerBag, self.priorityMovePlayerSlot) then
-    self.priorityMovePlayerBag, self.priorityMovePlayerSlot = nil, nil
-  end
-
   local playerBags = self:GetPlayerBags(false)
 
   -------------------------------------------
   -- Try move from all player bags
   -------------------------------------------
   for _index0, bag in ipairs(playerBags) do
+    -- TODO: Drop old algorithm below, use RsInventory.slots
     -- Build list of move candidates. Sort them to contain smallest stacks first.
     local moveCandidates = self:ScanBagsFor(
         { bag }, rsContainerItemInfoMatchName(moveName))

@@ -12,6 +12,9 @@ addonOptionsModule.language = --[[---@type {[string]:string} ]] {
   ["options.short.loginMessage"] = "Display login message",
   ["options.long.loginMessage"] = "Print a message in chat when Restocker is loaded and activated. Disable this to reduce chat noise",
 
+  ["options.short.debugMessages"] = "Development debug messages (noisy!)",
+  ["options.long.debugMessages"] = "Noisy output used for addon development, do not use",
+
   ["options.short.autoOpenAtMerchant"] = "Open Restocker at merchant",
   ["options.long.autoOpenAtMerchant"] = "When visiting a merchant, Restocker window will open",
 
@@ -111,6 +114,7 @@ function addonOptionsModule:CreateGeneralOptions()
             end
             return "numeric"
           end),
+      debugMessages = self:TemplateCheckbox("debugMessages", nil, nil, nil),
     }
   }
 end

@@ -19,7 +19,7 @@ ADDON_TITLE_CLASSIC = ADDON_NAME  # Title field in TOC
 
 UI_VERSION_CLASSIC = '11403'  # patch 1.14.3
 UI_VERSION_CLASSIC_TBC = '20504'  # patch 2.5.4 Phase 4 and 5 TBC
-UI_VERSION_CLASSIC_WOTLK = '30400'  # patch 3.4.0 WotLK
+UI_VERSION_CLASSIC_WOTLK = '30401'  # patch 3.4.1 WotLK (Ulduar)
 
 COPY_DIRS = ['Frames', 'Classes', 'Src', 'Ace3']
 COPY_FILES = ['embeds.xml']

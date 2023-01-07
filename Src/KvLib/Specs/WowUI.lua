@@ -7,7 +7,7 @@
 ---@field SetBlendMode fun(self: WowTexture, blendMode: string)
 ---@field SetColorTexture fun(self: WowTexture, r: number, g: number, b: number, a: number)
 ---@field SetDesaturated fun(self: WowTexture, desaturated: boolean)
----@field SetRotation fun(self: WowTexture, rotation: number, a: number|nil, b: number|nil)
+---@field SetRotation fun(self: WowTexture, rotation: number, point: number[])|fun(self: WowTexture, rotation: number)
 ---@field SetTexCoord fun(self: WowTexture, coord: WowTexCoord)
 ---@field SetTexture fun(self: WowTexture, texturePath: string|nil, a: nil, filterQuality: nil)
 ---@field SetPoint fun(self: WowTexture, point: string, x: number, y: number)

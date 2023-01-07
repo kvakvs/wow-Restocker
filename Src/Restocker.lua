@@ -286,14 +286,6 @@ end
 
 function RS:loadSettings()
   local settings = restockerModule.settings
-
-  if settings.autoBuy == nil then
-    settings.autoBuy = true
-  end
-  if settings.restockFromBank == nil then
-    settings.restockFromBank = true
-  end
-
   settings.profiles = settings.profiles or --[[---@type RsProfileCollection]] {}
 
   if settings.profiles.default == nil then
@@ -311,9 +303,10 @@ function RS:loadSettings()
   end
 end
 
-function RS.Dbg(t)
-  local name = "RsDbg"
-  DEFAULT_CHAT_FRAME:AddMessage("|cffbb3333" .. name .. "|r: " .. t)
+function RS:Debug(t)
+  if restockerModule.settings.debugMessages then
+    DEFAULT_CHAT_FRAME:AddMessage("|cffbb3333RS|r: " .. t)
+  end
 end
 
 RS.ICON_FORMAT = "|T%s:0:0:0:0:64:64:4:60:4:60|t"

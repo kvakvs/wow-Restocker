@@ -51,18 +51,10 @@
 ---@field default RsTradeCommand[]|nil
 
 ---@class RsSettings
----@field autoBuy boolean
 ---@field autoOpenAtBank boolean
 ---@field autoOpenAtMerchant boolean
 ---@field currentProfile string
 ---@field framePos table
 ---@field loginMessage boolean Show restocker hello message
 ---@field profiles RsProfileCollection
--- -@field restockFromMerchant boolean
--- -@field restockSell boolean
--- -@field restockToBank boolean
--- -@field restockFromBank boolean
-
----@shape RsInventorySlotNumber
----@field bag number
----@field slot number
+---@field debugMessages boolean

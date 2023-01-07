@@ -1,4 +1,8 @@
-## Restocker 2022.12.1
+## Restocker 2022.12.3
+
+- Bank operations code rewritten
+
+## Restocker 2022.12.1, 12.2
 
 - Can individually set behaviour per item: each item can be restocked from vendor, 
   taken from bank, or extras stashed to bank. Set restock amount to zero to always stash
