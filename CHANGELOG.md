@@ -1,3 +1,9 @@
+## Restocker 2023.1.0
+
+- Restored the manage profiles functionality: create profile, delete profile 
+now have their own settings tab.
+- A button to open settings from /rs main window.
+
 ## Restocker 2022.12.3
 
 - Bank operations code rewritten
