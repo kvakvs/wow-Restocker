@@ -10,6 +10,7 @@
 ---@field merchantModule RsMerchantModule
 ---@field recipeModule RsRecipeModule
 ---@field restockerModule RsRestockerModule
+---@field settingsModule RsSettingsModule
 local rsModule = {
   addonOptionsModule = {},
   bagModule = {},
@@ -22,6 +23,7 @@ local rsModule = {
   merchantModule = {},
   recipeModule = {},
   restockerModule = {},
+  settingsModule = {},
 }
 RsModule = rsModule
 

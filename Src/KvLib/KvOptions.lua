@@ -139,6 +139,9 @@ function optionsModule:TemplateSelect(name, values, style, dict, notifyFn, setFn
   }
 end
 
+---@alias RsInputValueType "string"|"float"|"integer"
+
+---@param type RsInputValueType
 ---@param dict table
 ---@param key string
 ---@param notify function|nil Call this with (key, value) on option change

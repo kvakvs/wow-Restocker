@@ -1,13 +1,20 @@
+local TOCNAME, _ADDONPRIVATE = ... ---@type string, RestockerAddon
+
 ---@class RsAddonOptionsModule
 ---@field language {[string]:string} TODO: Move this to languages module
+---@field createProfileName string Input value from the create profile input
+---@field deleteProfileName string Input value from the delete profile select
 local addonOptionsModule = RsModule.addonOptionsModule
+addonOptionsModule.createProfileName = ""
 
 local RS = RS_ADDON ---@type RestockerAddon
 local restockerModule = RsModule.restockerModule
 local kvOptionsModule = KvModuleManager.optionsModule
+local settingsModule = RsModule.settingsModule
 
 addonOptionsModule.language = --[[---@type {[string]:string} ]] {
   ["options.category.General"] = "General",
+  ["options.category.Profiles"] = "Profiles",
 
   ["options.short.loginMessage"] = "Display login message",
   ["options.long.loginMessage"] = "Print a message in chat when Restocker is loaded and activated. Disable this to reduce chat noise",
@@ -20,6 +27,13 @@ addonOptionsModule.language = --[[---@type {[string]:string} ]] {
 
   ["options.short.autoOpenAtBank"] = "Open Restocker at bank",
   ["options.long.autoOpenAtBank"] = "When visiting a banker, Restocker window will open",
+
+  ["options.short.profileName"] = "Create a new profile",
+  ["options.long.profileName"] = "Type a profile name then click Okay to create",
+  ["options.short.deleteProfileName"] = "Delete a profile",
+  ["options.long.deleteProfileName"] = "Select a profile and click the button to the right",
+  ["options.short.deleteProfileButton"] = "Delete",
+  ["options.long.deleteProfileButton"] = "Deletes the selected profile",
 
   ["options.short.sortList"] = "Sort items list",
   ["options.long.sortList"] = "Choose whether item list will be sorted by item name or by item id (numeric)",
@@ -119,18 +133,38 @@ function addonOptionsModule:CreateGeneralOptions()
   }
 end
 
---function addonOptionsModule:CreateRestockingOptions()
---  return {
---    type = "group",
---    name = _t("options.category.Restocking"),
---    args = {
---      restockFromMerchant = self:TemplateCheckbox("restockFromMerchant", nil, nil, nil),
---      restockSell = self:TemplateCheckbox("restockSell", nil, nil, nil),
---      restockToBank = self:TemplateCheckbox("restockToBank", nil, nil, nil),
---      restockFromBank = self:TemplateCheckbox("restockFromBank", nil, nil, nil),
---    }
---  }
---end
+function addonOptionsModule:CreateProfilesOptions()
+  local getProfileNames = function()
+    return settingsModule:GetProfileNames()
+  end
+  return {
+    type = "group",
+    name = _t("options.category.Profiles"),
+    args = {
+      createProfileName = self:TemplateInput("string", "profileName", addonOptionsModule, "createProfileName",
+          function(_key, value)
+            if settingsModule:AddProfile(value) then
+              --LibStub("AceConfigDialog-3.0"):NotifyChange(TOCNAME)
+            else
+              RS:Print("Did not create profile \"" .. tostring(value) .. "\"")
+            end
+          end),
+      --createProfileButton = self:TemplateButton("profileCreate", function(_key, value)
+      --  if settingsModule:AddProfile(value) then
+      --    LibStub("AceConfigDialog-3.0"):NotifyChange(TOCNAME)
+      --  else
+      --    RS:Print("Did not create profile \"" .. tostring(value) .. "\"")
+      --  end
+      --end),
+      deleteProfileList = self:TemplateSelect("deleteProfileName", getProfileNames,
+          "dropdown", addonOptionsModule, nil, nil, nil),
+      deleteProfileButton = self:TemplateButton("deleteProfileButton", function()
+        settingsModule:DeleteProfile(addonOptionsModule.deleteProfileName)
+        --LibStub("AceConfigDialog-3.0"):NotifyChange(TOCNAME)
+      end),
+    }
+  }
+end
 
 function addonOptionsModule:CreateOptionsTable()
   kvOptionsModule.optionsOrder = 0
@@ -139,7 +173,7 @@ function addonOptionsModule:CreateOptionsTable()
     type = "group",
     args = {
       generalOptions = self:CreateGeneralOptions(),
-      --restockingOptions = self:CreateRestockingOptions(),
+      profilesOptions = self:CreateProfilesOptions(),
     } -- end args
   } -- end
 end

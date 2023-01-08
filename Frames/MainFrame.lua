@@ -1,4 +1,4 @@
-local _TOCNAME, _ADDONPRIVATE = ... ---@type RestockerAddon
+local TOCNAME, _ADDONPRIVATE = ... ---@type RestockerAddon
 local RS = RS_ADDON ---@type RestockerAddon
 
 ---@class RsMainFrameModule
@@ -23,12 +23,8 @@ RS.hiddenFrame:Hide()
 ---@field title RsControl
 ---@field reactionBox RsControl
 
-function mainFrameModule:CreateMenu()
-  --[[
-    FRAME
-  ]]
+function mainFrameModule:CreateAddonFrame()
   local settings = restockerModule.settings
-
   local addonFrame = --[[---@type RsRestockerFrame]] CreateFrame("Frame", "RestockerMainFrame", UIParent, "BasicFrameTemplate");
   addonFrame.width = 350
   addonFrame.height = 400
@@ -43,30 +39,30 @@ function mainFrameModule:CreateMenu()
   addonFrame:RegisterForDrag("LeftButton")
   addonFrame:SetScript("OnDragStart", addonFrame.StartMoving)
   addonFrame:SetScript("OnDragStop", addonFrame.StopMovingOrSizing)
+  return addonFrame
+end
 
-  --[[
-    INSET
-  ]]
+function mainFrameModule:CreateListInset(addonFrame)
   local listInset = --[[---@type RsControl]] CreateFrame("Frame", nil, addonFrame, "InsetFrameTemplate3");
   listInset.width = addonFrame.width - 6
   listInset.height = addonFrame.height - 60
   listInset:SetSize(listInset.width, listInset.height);
   listInset:SetPoint("TOPLEFT", addonFrame, "TOPLEFT", 2, -22);
   addonFrame.listInset = listInset
+  return listInset
+end
 
-  --[[
-    SCROLL FRAME
-  ]]
+function mainFrameModule:CreateScrollFrame(addonFrame, listInset)
   local scrollFrame = --[[---@type RsControl]] CreateFrame("ScrollFrame", nil, addonFrame, "UIPanelScrollFrameTemplate")
   scrollFrame.width = addonFrame.listInset.width - 4
   scrollFrame.height = addonFrame.listInset.height - 32
   scrollFrame:SetSize(scrollFrame.width - 30, scrollFrame.height);
   scrollFrame:SetPoint("TOPLEFT", listInset, "TOPLEFT", 8, -6);
   addonFrame.scrollFrame = scrollFrame
+  return scrollFrame
+end
 
-  --[[
-    SCROLL CHILD
-  ]]
+function mainFrameModule:CreateScrollChild(scrollFrame, addonFrame)
   local scrollChild = --[[---@type RsControl]] CreateFrame("Frame", nil, ScrollFrame)
   scrollChild.width = scrollFrame:GetWidth()
   scrollChild.height = scrollFrame:GetHeight()
@@ -75,34 +71,29 @@ function mainFrameModule:CreateMenu()
   addonFrame.scrollChild = scrollChild
 
   scrollFrame:SetScrollChild(scrollChild)
+  return scrollChild
+end
 
-
-
-
-  --[[
-    TITLE
-  ]]
+function mainFrameModule:CreateTitle(addonFrame)
   local title = --[[---@type WowFontString]] addonFrame:CreateFontString(nil, "OVERLAY");
   title:SetFontObject("GameFontHighlightLarge");
   title:SetPoint("CENTER", addonFrame.TitleBg, "CENTER", 0, 0);
   title:SetText("Restocker");
   addonFrame.title = title
+  return title
+end
 
-
-  --[[
-    EDITBOX & ADD BUTTON GROUP
-  ]]
+function mainFrameModule:CreateAddGroup(addonFrame, listInset)
   local addGrp = --[[---@type RsControl]] CreateFrame("Frame", nil, addonFrame);
   addGrp:SetPoint("BOTTOM", addonFrame.listInset, "BOTTOM", 0, 2);
   addGrp:SetSize(listInset.width - 5, 25);
   addonFrame.addGrp = addGrp
+  return addGrp
+end
 
-
-
-
-  -- Add button
-  local addBtn = --[[---@type RsControl]] CreateFrame("Button", nil, addonFrame.addGrp, "GameMenuButtonTemplate");
-  addBtn:SetPoint("BOTTOMRIGHT", addonFrame.addGrp, "BOTTOMRIGHT");
+function mainFrameModule:CreateAddButton(addGrp)
+  local addBtn = --[[---@type RsControl]] CreateFrame("Button", nil, addGrp, "GameMenuButtonTemplate");
+  addBtn:SetPoint("BOTTOMRIGHT", addGrp, "BOTTOMRIGHT");
   addBtn:SetSize(60, 25);
   addBtn:SetText("Add");
   addBtn:SetNormalFontObject("GameFontNormal");
@@ -116,9 +107,10 @@ function mainFrameModule:CreateMenu()
     editBox:SetText("")
     editBox:ClearFocus()
   end);
+  return addBtn
+end
 
-
-  -- Text field
+function mainFrameModule:CreateEditbox(addonFrame, addBtn)
   local editBox = CreateFrame("EditBox", nil, addonFrame.addGrp, "InputBoxTemplate");
   editBox:SetPoint("RIGHT", addBtn, "LEFT", 3);
   editBox:SetAutoFocus(false);
@@ -157,63 +149,25 @@ function mainFrameModule:CreateMenu()
 
   addonFrame.editBox = editBox
   addonFrame.addBtn = addBtn
+  return editBox
+end
 
-  -- END OF GROUP
+function mainFrameModule:CreateSettingsButton(addonFrame)
+  local settingsBtn = --[[---@type RsControl]] CreateFrame("Button", nil, addonFrame, "GameMenuButtonTemplate");
+  settingsBtn:SetPoint("BOTTOMRIGHT", addonFrame, "BOTTOMRIGHT", -8, 8);
+  settingsBtn:SetSize(80, 25);
+  settingsBtn:SetText("Settings");
+  settingsBtn:SetNormalFontObject("GameFontNormal");
+  settingsBtn:SetHighlightFontObject("GameFontHighlight");
 
+  settingsBtn:SetScript("OnClick", function(self, button, down)
+    LibStub("AceConfigDialog-3.0"):Open(TOCNAME)
+  end);
+  return settingsBtn
+end
 
-
-  ----[[
-  --  AUTOBUY CHECKBOX
-  --]]
-  --
-  ---- Checkbox for autobuy
-  --local checkbox = CreateFrame("CheckButton", nil, addonFrame, "UICheckButtonTemplate");
-  --checkbox:SetPoint("TOPLEFT", addonFrame.listInset, "BOTTOMLEFT", 2, -1)
-  --checkbox:SetSize(25, 25)
-  --checkbox:SetChecked(settings.autoBuy);
-  --checkbox:SetScript("OnClick", function(self, button, down)
-  --  settings.autoBuy = checkbox:GetChecked()
-  --end);
-  --addonFrame.checkbox = checkbox
-  --
-  ---- Auto buy text
-  --local checkboxText = addonFrame:CreateFontString(nil, "OVERLAY");
-  --checkboxText:SetFontObject("GameFontHighlight");
-  --checkboxText:SetPoint("LEFT", checkbox, "RIGHT", 1, 1);
-  --checkboxText:SetText("Auto buy items");
-  --addonFrame.checkboxText = checkboxText
-  ---- // AUTOBUY
-
-
-  ----[[
-  --  AUTO RESTOCK FROM BANK
-  --]]
-  ---- Checkbox for auto restock from bank
-  --local checkboxBank = CreateFrame("CheckButton", nil, addonFrame, "UICheckButtonTemplate");
-  --checkboxBank:SetPoint("LEFT", addonFrame.checkbox, "RIGHT", 100, 0)
-  --checkboxBank:SetSize(25, 25)
-  --checkboxBank:SetChecked(settings.restockFromBank);
-  --checkboxBank:SetScript("OnClick", function(self, button, down)
-  --  settings.restockFromBank = checkboxBank:GetChecked()
-  --end);
-  --addonFrame.checkboxBank = checkboxBank
-  --
-  ---- Auto restock from bank text
-  --local checkboxBankText = addonFrame:CreateFontString(nil, "OVERLAY");
-  --checkboxBankText:SetFontObject("GameFontHighlight");
-  --checkboxBankText:SetPoint("LEFT", checkboxBank, "RIGHT", 1, 1);
-  --checkboxBankText:SetText("Restock from bank");
-  --addonFrame.checkboxBank = checkboxBankText
-  ---- // AUTOBUY
-
-
-
-
-
-
-  --[[
-    PROFILES
-  ]]
+function mainFrameModule:CreateProfilesDropdown(addonFrame)
+  local settings = restockerModule.settings
   local profileText = addonFrame:CreateFontString(nil, "OVERLAY")
   profileText:SetPoint("BOTTOMLEFT", addonFrame, "BOTTOMLEFT", 10, 12)
   profileText:SetFontObject("GameFontNormal")
@@ -244,6 +198,20 @@ function mainFrameModule:CreateMenu()
   end
 
   addonFrame.profileDropDownMenu = Restocker_ProfileDropDownMenu
+end
+
+function mainFrameModule:CreateMenu()
+  local addonFrame = self:CreateAddonFrame()
+  local listInset = self:CreateListInset(addonFrame)
+  local scrollFrame = self:CreateScrollFrame(addonFrame, listInset)
+  local scrollChild = self:CreateScrollChild(scrollFrame, addonFrame)
+  local title = self:CreateTitle(addonFrame)
+  local addGrp = self:CreateAddGroup(addonFrame, listInset)
+  local addBtn = self:CreateAddButton(addGrp)
+  local editBox = self:CreateEditbox(addonFrame, addBtn)
+
+  self:CreateProfilesDropdown(addonFrame)
+  local settingsBtn = self:CreateSettingsButton(addonFrame)
 
   table.insert(UISpecialFrames, "RestockerMainFrame")
   addonFrame:Hide()
