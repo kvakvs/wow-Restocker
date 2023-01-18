@@ -1,3 +1,7 @@
+## Restocker 2023.1.1
+
+- `C_Container` API change in the new patch for `GetContainer[NumSlots/ItemInfo]`
+
 ## Restocker 2023.1.0
 
 - Restored the manage profiles functionality: create profile, delete profile 

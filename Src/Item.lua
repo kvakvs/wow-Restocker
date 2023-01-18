@@ -49,7 +49,7 @@ end
 
 ---@return RsContainerItemInfo
 function itemModule:GetContainerItemInfo(bag, slot)
-  local icon, slotCount, slotLocked, _, _, _, slotItemLink, _, _, slotItemId = GetContainerItemInfo(bag, slot)
+  local icon, slotCount, slotLocked, _, _, _, slotItemLink, _, _, slotItemId = C_Container.GetContainerItemInfo(bag, slot)
   local itemName = slotItemLink and string.match(slotItemLink, "%[(.*)%]")
 
   local i = --[[---@type RsContainerItemInfo]] {}

@@ -2,11 +2,12 @@
 ---@param slot number
 function PickupContainerItem(bag, slot)
 end
----@param bag number
----@return number
-function GetContainerNumSlots(bag)
-  return 0
-end
+
+---@class WowCContainer
+---@field GetContainerNumSlots fun(bag: number): number
+---@field GetContainerItemInfo fun(b: number, s: number): string, number, boolean, any, any, any, string, any, any, number
+C_Container = {}
+
 ---@return number, boolean
 function GetInventoryItemID(u, slot)
   return 0, false
@@ -22,13 +23,7 @@ end
 function GetInventorySlotInfo(slot)
   return 0
 end
----https://wowpedia.fandom.com/wiki/API_GetContainerItemInfo
----@param b number bag
----@param s number slot
----@return string, number, boolean, any, any, any, string, any, any, number {icon, itemCount, locked, quality, readable, lootable, itemLink, isFiltered, noValue, itemID, isBound}
-function GetContainerItemInfo(b, s)
-  return "", 0, false, nil, nil, nil, "", nil, nil, 0
-end
+
 ---@param name number|string Item id or item name or link
 ---@param includeBank boolean
 ---@param includeCharges boolean

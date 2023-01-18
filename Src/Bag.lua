@@ -94,8 +94,8 @@ end
 
 function bagModule:IsSomethingLocked()
   for _, bag in ipairs(self.PLAYER_BAGS) do
-    for slot = 1, GetContainerNumSlots(bag) do
-      local _, _, locked = GetContainerItemInfo(bag, slot)
+    for slot = 1, C_Container.GetContainerNumSlots(bag) do
+      local _, _, locked = C_Container.GetContainerItemInfo(bag, slot)
       if locked then
         return true
       end
@@ -103,8 +103,8 @@ function bagModule:IsSomethingLocked()
   end
 
   for _, bag in ipairs(self.BANK_BAGS_REVERSED) do
-    for slot = 1, GetContainerNumSlots(bag) do
-      local _, _, locked = GetContainerItemInfo(bag, slot)
+    for slot = 1, C_Container.GetContainerNumSlots(bag) do
+      local _, _, locked = C_Container.GetContainerItemInfo(bag, slot)
       if locked then
         return true
       end
@@ -120,8 +120,8 @@ function bagModule:GetItemsInBags(predicate)
   local result = self:NewInventory()
 
   for bag = self.BACKPACK_CONTAINER, NUM_BAG_SLOTS do
-    for slot = 1, GetContainerNumSlots(bag) do
-      local _, itemCount, locked, _, _, _, itemLink, _, _, itemID = GetContainerItemInfo(bag, slot)
+    for slot = 1, C_Container.GetContainerNumSlots(bag) do
+      local _, itemCount, locked, _, _, _, itemLink, _, _, itemID = C_Container.GetContainerItemInfo(bag, slot)
       if itemID and itemLink then
         local itemName = --[[---@type string]] (string.match(itemLink, "%[(.*)%]"))
 
@@ -144,8 +144,8 @@ end
 function bagModule:ForEachBagItem(handler)
   local result = --[[---@type RsInventoryCountByItemName]] {}
   for bag = self.BACKPACK_CONTAINER, NUM_BAG_SLOTS do
-    for slot = 1, GetContainerNumSlots(bag) do
-      local _, itemCount, locked, _, _, _, itemLink, _, _, itemID = GetContainerItemInfo(bag, slot)
+    for slot = 1, C_Container.GetContainerNumSlots(bag) do
+      local _, itemCount, locked, _, _, _, itemLink, _, _, itemID = C_Container.GetContainerItemInfo(bag, slot)
       if itemID and itemLink then
         local itemName = --[[---@type string]] (string.match(itemLink, "%[(.*)%]"))
         handler(bag, slot, itemName, itemID, itemCount)
@@ -161,8 +161,8 @@ function bagModule:GetItemsInBank(predicate)
   local result = self:NewInventory()
 
   for _, bag in ipairs(self.BANK_BAGS_REVERSED) do
-    for slot = 1, GetContainerNumSlots(bag) do
-      local _, itemCount, locked, _, _, _, itemLink, _, _, itemID = GetContainerItemInfo(bag, slot)
+    for slot = 1, C_Container.GetContainerNumSlots(bag) do
+      local _, itemCount, locked, _, _, _, itemLink, _, _, itemID = C_Container.GetContainerItemInfo(bag, slot)
       if itemID then
         local itemName = --[[---@type string]] string.match(itemLink, "%[(.*)%]")
 
@@ -186,8 +186,8 @@ end
 ---@return RsInventorySlotNumber|nil Returns bag, slot where drop happened
 function bagModule:DropCursorItemIntoBag(dropItem, bag)
   -- Search through the bag for an empty slot
-  for slot = 1, GetContainerNumSlots(bag) do
-    local _, itemCount, locked, _, _, _, _, _, _, itemID = GetContainerItemInfo(bag, slot)
+  for slot = 1, C_Container.GetContainerNumSlots(bag) do
+    local _, itemCount, locked, _, _, _, _, _, _, itemID = C_Container.GetContainerItemInfo(bag, slot)
 
     if not locked and not itemCount then
       PickupContainerItem(bag, slot)
@@ -244,7 +244,7 @@ function bagModule:ScanBagsFor(bags, predicate)
   local itemCandidates = --[[---@type RsContainerItemInfo[] ]] {}
 
   for _, bag in ipairs(bags) do
-    for slot = 1, GetContainerNumSlots(bag), 1 do
+    for slot = 1, C_Container.GetContainerNumSlots(bag), 1 do
       local containerItemInfo = itemModule:GetContainerItemInfo(bag, slot)
 
       if containerItemInfo.locked then
