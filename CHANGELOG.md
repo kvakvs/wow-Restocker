@@ -1,6 +1,7 @@
-## Restocker 2023.1.1
+## Restocker 2023.1.2
 
 - `C_Container` API change in the new patch for `GetContainer[NumSlots/ItemInfo]`
+- Grand rework of the restacking logic, picking best fit for stackable goods
 
 ## Restocker 2023.1.0
 

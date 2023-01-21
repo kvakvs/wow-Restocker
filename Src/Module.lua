@@ -5,6 +5,7 @@
 ---@field buyCommandModule RsBuyCommandModule
 ---@field buyIngredientsModule RsBuyIngredientsModule
 ---@field eventsModule RsEventsModule
+---@field inventoryModule RsInventoryModule
 ---@field itemModule RsItemModule
 ---@field mainFrameModule RsMainFrameModule
 ---@field merchantModule RsMerchantModule
@@ -19,6 +20,7 @@ local rsModule = {
   buyIngredientsModule = {},
   eventsModule = {},
   itemModule = {},
+  inventoryModule = {},
   mainFrameModule = {},
   merchantModule = {},
   recipeModule = {},

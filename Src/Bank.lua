@@ -15,34 +15,8 @@ local bagModule = RsModule.bagModule ---@type RsBagModule
 
 bankModule.didBankStuff = false
 
--- -@shape RsInventorySlot
--- -@field bag number
--- -@field slot number
--- -@field itemName string
--- -@field itemID WowItemId
--- -@field count number
--- -@field maxStack number
-
----@class RsInventorySlotNumber
----@field bag number
----@field slot number
-
----@class RsSlot
----@field bag number
----@field slot number
----@field count number
-
----@alias RsInventoryCountByItemName {[string]: number} Items in the bag by name
----@alias RsInventorySlotByItemName {[string]: RsSlot[]} Items in the bag by name
----@alias RsMoveItemTask {[string]: number} Item name is key, amount to buy is value
-
----Collection of items in the inventory or bank with their precise slot locations and counts, and summaries
----@class RsInventory
----@field summary RsInventoryCountByItemName
----@field slots RsInventorySlotByItemName
-
 ---@class BankRestockState
----@field bagInventory RsInventory How many items in bags, summary and per slot
+---@field playerInventory RsInventory How many items in character bags, summary and per slot
 ---@field bankInventory RsInventory How many items in bank, summary and per slot
 ---@field currentProfile RsTradeCommand[]
 ---@field task RsMoveItemTask What item, and how many to move (negative = move to bank)
@@ -79,7 +53,7 @@ function bankModule.StashToBank()
   for moveName, moveAmount in pairs(state.task) do
     -- Negative for take from bag, positive for take from bank
     if moveAmount < 0 then
-      if bagModule:MoveFromPlayerToBank(state.task, moveName, math.abs(moveAmount)) then
+      if bagModule:MoveFromPlayerToBank(state.bankInventory, state.task, moveName, math.abs(moveAmount)) then
         return -- DONE one step, yield is done above in the caller coro
       end
     end
@@ -93,7 +67,7 @@ function bankModule.RestockFromBank()
   for moveName, moveAmount in pairs(state.task) do
     -- Negative for take from bag, positive for take from bank
     if moveAmount > 0 then
-      if bagModule:MoveFromBankToPlayer(state.task, moveName, moveAmount) then
+      if bagModule:MoveFromBankToPlayer(state.playerInventory, state.task, moveName, moveAmount) then
         return -- DONE one step, yield is done above in the caller coro
       end
     end
@@ -115,7 +89,7 @@ function stateClass:UpdateInventory()
     return false
   end
 
-  self.bagInventory = bagModule:GetItemsInBags(itemExistsFn)
+  self.playerInventory = bagModule:GetItemsInBags(itemExistsFn)
   self.bankInventory = bagModule:GetItemsInBank(itemExistsFn)
 end
 
@@ -123,7 +97,7 @@ end
 function stateClass:CountItemsTooMany()
   -- TODO: Calculate optimal stack size and block those stacks from moving
   for i, eachItem in pairs(self.currentProfile) do
-    local haveInBackpack = self.bagInventory.summary[eachItem.itemName] or 0
+    local haveInBackpack = self.playerInventory.summary[eachItem.itemName] or 0
 
     --If have more than in restocker config, move excess to bank
     if eachItem.amount < haveInBackpack
@@ -143,7 +117,7 @@ end
 function stateClass:CountItemsTooFew()
   -- TODO: Calculate optimal stack size and block those stacks from moving
   for i, eachItem in pairs(self.currentProfile) do
-    local haveInBackpack = self.bagInventory.summary[eachItem.itemName] or 0
+    local haveInBackpack = self.playerInventory.summary[eachItem.itemName] or 0
     local haveInBank = self.bankInventory.summary[eachItem.itemName] or 0
 
     if eachItem.amount > haveInBackpack
@@ -215,6 +189,7 @@ local theCoroutineObject = coroutine.create(restockCoro)
 --- /console scriptErrors 1
 --- /run RS_ADDON.Test()
 function RS.Test()
+  bankModule.bankIsOpen = true
   bankModule:RestartRestocking()
   for i = 1, 10 do
     if bankModule:RunRestockLogic() == true then

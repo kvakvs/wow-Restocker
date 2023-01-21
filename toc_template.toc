@@ -38,6 +38,7 @@ Src\Item.lua
 Src\Cache.lua
 Src\Inspect.lua
 Src\Bag.lua
+Src\Inventory.lua
 
 
 #

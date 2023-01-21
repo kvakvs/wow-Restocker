@@ -154,7 +154,7 @@ function RS:Update()
 
   ---@param item RsTradeCommand
   for _, item in ipairs(restockItemList) do
-    RS:Debug("Update row for item: " .. item.itemName)
+    --RS:Debug("Update row for item: " .. item.itemName)
 
     local f = RS:GetFirstEmpty(item)
 

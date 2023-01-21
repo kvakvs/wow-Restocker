@@ -10,6 +10,7 @@ local RS = RS_ADDON ---@type RestockerAddon
 local bagModule = RsModule.bagModule ---@type RsBagModule
 local itemModule = RsModule.itemModule ---@type RsItemModule
 local kvEnvModule = KvModuleManager.envModule
+local inventoryModule = RsModule.inventoryModule ---@type RsInventoryModule
 
 bagModule.PLAYER_BAGS = {}
 bagModule.PLAYER_BAGS_REVERSED = {}
@@ -27,47 +28,6 @@ bagDefClass.__index = bagDefClass
 
 bagModule.BANK_BAGS = --[[---@type RsBagDef[] ]] {} -- set up in RS.SetupBankConstants
 bagModule.BANK_BAGS_REVERSED = --[[---@type RsBagDef[] ]] {} -- set up in RS.SetupBankConstants
-
-local inventoryClass = {}
-inventoryClass.__index = inventoryClass
-
-local slotClass = {}
-slotClass.__index = slotClass
-
----@return RsInventory
-function bagModule:NewInventory()
-  local inv = --[[---@type RsInventory]] {
-    summary = {},
-    slots = {},
-  }
-  setmetatable(inv, inventoryClass)
-  return inv
-end
-
----Sorts bag slots for each item, with smallest stacks first
----@param self RsInventory
-function inventoryClass.SortSlots(self)
-  local sortFn = function(a, b)
-    return a.count < b.count
-  end
-  for _key, eachItemSlots in pairs(self.slots) do
-    table.sort(eachItemSlots, sortFn)
-  end
-end
-
----@return RsSlot
----@param bag number
----@param slot number
----@param itemCount number
-function bagModule:NewSlot(bag, slot, itemCount)
-  local slotObj = --[[---@type RsSlot]] {
-    bag = bag,
-    slot = slot,
-    count = itemCount,
-  }
-  setmetatable(slotObj, slotClass)
-  return slotObj
-end
 
 local function bagSlotFromBag(bag)
   RS:Debug("bagSlotFromBag bag=" .. bag)
@@ -95,12 +55,13 @@ end
 
 ---@return RsBagDef
 local function createBankMainBag()
-  return bagModule:NewBagDef("bank", BANK_CONTAINER, BankButtonIDToInvSlotID(0, true))
+  return bagModule:NewBagDef("bank", BANK_CONTAINER, nil)
 end
 
 local function createBankBag(bag)
-  -- bank bags go from 5 to 11
-  return bagModule:NewBagDef("bag", bag + NUM_BAG_SLOTS, BankButtonIDToInvSlotID(bag, true))
+  -- bank bags go from 5 to 11, but BankButtonIDToInvSlotID parameter is 0.. (we use 1.. range because 0 is default bank)
+  local bagId = bag + NUM_BAG_SLOTS
+  return bagModule:NewBagDef("bag", bagId, C_Container.ContainerIDToInventoryID(bagId))
 end
 
 function bagModule.OnModuleInit()
@@ -116,19 +77,24 @@ function bagModule.OnModuleInit()
                                      createBackpack() }
 end
 
+function bagDefClass:NumSlots()
+  return C_Container.GetContainerNumSlots(self.bagId)
+end
+
+  ---@return boolean
 function bagDefClass:HasSpace()
   local numberOfFreeSlots, _bagType = C_Container.GetContainerNumFreeSlots(self.bagId)
   return numberOfFreeSlots > 0
 end
 
+---Can't fail, assumes that free space was checked by the caller
 function bagDefClass:PutCursorItem()
+  RS:Debug("PutCursorItem(" .. self.location .. ") bag=" .. self.bagId .. " invslot=" .. tostring(self.containerSlotId))
+
   if self.location == "backpack" then
-    RS:Debug("PutCursorItem(backpack) bag=" .. self.bagId .. " invslot=" .. tostring(self.containerSlotId))
     PutItemInBackpack()
   end
   if self.location == "bank" then
-    RS:Debug("PutCursorItem(bank) bag=" .. self.bagId .. " invslot=" .. tostring(self.containerSlotId))
-
     -- Find a free slot in the bank
     for slot = 1, C_Container.GetContainerNumSlots(self.bagId) do
       local link = C_Container.GetContainerItemLink(self.bagId, slot)
@@ -142,7 +108,6 @@ function bagDefClass:PutCursorItem()
     end
   else
     -- Drop in the bag provided that HasSpace() is true (checked by the caller)
-    RS:Debug("PutCursorItem(bag) bag=" .. self.bagId .. " invslot=" .. tostring(self.containerSlotId))
     PutItemInBag(self.containerSlotId)
   end
 end
@@ -188,7 +153,7 @@ end
 ---@param predicate fun(s: string): boolean|nil
 ---@return RsInventory
 function bagModule:GetItemsInBags(predicate)
-  local result = self:NewInventory()
+  local result = inventoryModule:NewInventory()
 
   for _, bag in ipairs(self.PLAYER_BAGS) do
     for slot = 1, C_Container.GetContainerNumSlots(bag.bagId) do
@@ -204,7 +169,9 @@ function bagModule:GetItemsInBags(predicate)
               or itemInfo.stackCount
 
           result.slots[itemName] = result.slots[itemName] or {}
-          table.insert(result.slots[itemName], self:NewSlot(bag.bagId, slot, itemInfo.stackCount))
+
+          local newSlot = inventoryModule:NewSlot(bag.bagId, slot, itemInfo.stackCount)
+          table.insert(result.slots[itemName], newSlot)
         end
       end
     end
@@ -234,7 +201,7 @@ end
 ---@param predicate fun(s: string): boolean|nil
 ---@return RsInventory
 function bagModule:GetItemsInBank(predicate)
-  local result = self:NewInventory()
+  local result = inventoryModule:NewInventory()
 
   for _, bag in ipairs(self.BANK_BAGS_REVERSED) do
     for slot = 1, C_Container.GetContainerNumSlots(bag.bagId) do
@@ -249,7 +216,9 @@ function bagModule:GetItemsInBank(predicate)
               or itemInfo.stackCount
 
           result.slots[itemName] = result.slots[itemName] or {}
-          table.insert(result.slots[itemName], self:NewSlot(bag.bagId, slot, itemInfo.stackCount))
+
+          local newSlot = inventoryModule:NewSlot(bag.bagId, slot, itemInfo.stackCount)
+          table.insert(result.slots[itemName], newSlot)
         end
       end
     end
@@ -300,13 +269,25 @@ end
 --end
 
 ---Takes cursor item. Drops it into one of the bank bags.
+---@param bankInventory RsInventory
+---@param itemInfo GIICacheItem
+---@param amount number
 ---@return boolean Success
-function bagModule:PutItemInBank()
+function bagModule:PutItemInBank(bankInventory, itemInfo, amount)
   if not CursorHasItem() then
     return false
   end
   --C_NewItems.ClearAll() -- don't show item is new?
 
+  -- Find an incomplete existing stack best fit
+  local bestFit = bankInventory:FindBestFit(itemInfo, amount, self.BANK_BAGS)
+  if bestFit then
+    C_Container.PickupContainerItem(
+        (--[[---@not nil]] bestFit).bag, (--[[---@not nil]] bestFit).slot)
+    return true
+  end
+
+  -- Doesn't matter, drop in any available
   for _, bag in ipairs(self.BANK_BAGS) do
     if bag:HasSpace() then
       bag:PutCursorItem()
@@ -314,17 +295,30 @@ function bagModule:PutItemInBank()
     end
   end
 
+  RS:Debug("PutItemInBank: Could not drop item to bank for some reason")
+  ClearCursor()
   return false
 end
 
 ---Takes cursor item. Drops it into one of the bank bags.
+---@param playerInventory RsInventory
+---@param itemInfo GIICacheItem
 ---@return boolean Success
-function bagModule:PutItemInPlayerBag()
+---@param amount number
+function bagModule:PutItemInPlayerBag(playerInventory, itemInfo, amount)
   if not CursorHasItem() then
     return false
   end
   --C_NewItems.ClearAll() -- don't show item is new?
 
+  -- Find an incomplete existing stack best fit
+  local bestFit = playerInventory:FindBestFit(itemInfo, amount, self.PLAYER_BAGS)
+  if bestFit then
+    C_Container.PickupContainerItem((--[[---@not nil]] bestFit).bag, (--[[---@not nil]] bestFit).slot)
+    return true
+  end
+
+  -- Doesn't matter, drop in any available
   for _, bag in ipairs(self.PLAYER_BAGS) do
     if bag:HasSpace() then
       bag:PutCursorItem()
@@ -332,6 +326,7 @@ function bagModule:PutItemInPlayerBag()
     end
   end
 
+  RS:Debug("PutItemInPlayerBag: Could not drop item to bag for some reason")
   return false
 end
 
@@ -395,9 +390,11 @@ local function rsContainerItemInfoMatchNameAndIs1Item(name, moveAmount)
   end
 end
 
+---@param playerInventory RsInventory
+---@param task RsMoveItemTask
 ---@param candidates RsContainerItemInfo[]
 ---@param moveAmount number
-function bagModule:MoveFromBankToPlayer_1(task, candidates, moveAmount)
+function bagModule:MoveFromBankToPlayer_1(playerInventory, task, candidates, moveAmount)
   for _index, moveCandidate in ipairs(candidates) do
 
     -- Move if entire stack found which fits
@@ -409,14 +406,15 @@ function bagModule:MoveFromBankToPlayer_1(task, candidates, moveAmount)
     end
 
     if moveCandidate.count > moveAmount then
-      local itemInfo = RS.GetItemInfo(moveCandidate.itemId)
+      -- Can't be nil we know item exists
+      local itemInfo = --[[---@not nil]] RS.GetItemInfo(moveCandidate.itemId)
       RS:Debug("Split " .. moveCandidate.name .. " from bank, bag=" .. moveCandidate.bag .. ", slot=" .. moveCandidate.slot)
 
       -- Split and take
       C_Container.SplitContainerItem(moveCandidate.bag, moveCandidate.slot, moveAmount)
       --coroutine.yield()
 
-      bagModule:PutItemInPlayerBag()
+      bagModule:PutItemInPlayerBag(playerInventory, itemInfo, moveAmount)
 
       task[moveCandidate.name] = task[moveCandidate.name] - moveAmount -- deduct
       return true -- DONE one step
@@ -426,10 +424,11 @@ function bagModule:MoveFromBankToPlayer_1(task, candidates, moveAmount)
   return false
 end
 
----@param task table<string, number>
+---@param playerInventory RsInventory
+---@param task RsMoveItemTask
 ---@param moveName string
 ---@param moveAmount number Negative for take from bag, positive for take from bank
-function bagModule:MoveFromBankToPlayer(task, moveName, moveAmount)
+function bagModule:MoveFromBankToPlayer(playerInventory, task, moveName, moveAmount)
   local bankBagsReverse = self:GetBankBags(true)
 
   -------------------------------------------
@@ -446,7 +445,7 @@ function bagModule:MoveFromBankToPlayer(task, moveName, moveAmount)
 
     table.sort(moveCandidates, itemModule.CompareByStacksizeAscending)
 
-    if self:MoveFromBankToPlayer_1(task, moveCandidates, moveAmount) then
+    if self:MoveFromBankToPlayer_1(playerInventory, task, moveCandidates, moveAmount) then
       return true
     end
   end -- for bank bags in reverse order
@@ -454,8 +453,9 @@ function bagModule:MoveFromBankToPlayer(task, moveName, moveAmount)
   return false -- did not move
 end
 
+---@param bankInventory RsInventory
 ---@param candidates RsContainerItemInfo[] Sorted by stack size move candidates in different bag slots
-function bagModule:MoveFromPlayerToBank_1(task, candidates, moveAmount)
+function bagModule:MoveFromPlayerToBank_1(bankInventory, task, candidates, moveAmount)
   for _index, containerItemInfo in ipairs(candidates) do
     -- Found something to move and its smaller than what we need to move
     if containerItemInfo.count <= moveAmount then
@@ -466,12 +466,13 @@ function bagModule:MoveFromPlayerToBank_1(task, candidates, moveAmount)
 
     -- Found something to move, but its bigger than how many we need to move
     if containerItemInfo.count > moveAmount then
+      -- No checking for nil as the item exists
       local itemInfo = RS.GetItemInfo(containerItemInfo.itemId)
 
       C_Container.SplitContainerItem(containerItemInfo.bag, containerItemInfo.slot, moveAmount)
       --coroutine.yield()
 
-      bagModule:PutItemInBank()
+      bagModule:PutItemInBank(bankInventory, --[[---@not nil]] itemInfo, moveAmount)
 
       task[containerItemInfo.name] = task[containerItemInfo.name] + moveAmount -- add
       return true -- DONE one step
@@ -481,10 +482,11 @@ function bagModule:MoveFromPlayerToBank_1(task, candidates, moveAmount)
   return false
 end
 
+---@param bankInventory RsInventory
 ---@param task table<string, number> How many items should arrive or depart to player bags
 ---@param moveName string
 ---@param moveAmount number Negative for take from bag, positive for take from bank
-function bagModule:MoveFromPlayerToBank(task, moveName, moveAmount)
+function bagModule:MoveFromPlayerToBank(bankInventory, task, moveName, moveAmount)
   local playerBags = self:GetPlayerBags(false)
 
   -------------------------------------------
@@ -506,7 +508,7 @@ function bagModule:MoveFromPlayerToBank(task, moveName, moveAmount)
 
     table.sort(moveCandidates, itemModule.CompareByStacksizeAscending)
 
-    if self:MoveFromPlayerToBank_1(task, moveCandidates, moveAmount) then
+    if self:MoveFromPlayerToBank_1(bankInventory, task, moveCandidates, moveAmount) then
       return true
     end
   end -- for all player bags starting from main bag

@@ -23,6 +23,7 @@
 ---@field UseContainerItem fun(bag: number, slot: number, target: string|nil, reagentBankAccessible: boolean|nil)
 ---@field SplitContainerItem fun(bag: number, slot: number, amount: number)
 ---@field UseContainerItem fun(bag: number, slot: number)
+---@field ContainerIDToInventoryID fun(bag: number): number
 C_Container = {}
 
 ---@return number, boolean
