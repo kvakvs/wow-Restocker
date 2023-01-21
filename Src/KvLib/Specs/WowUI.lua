@@ -86,14 +86,12 @@
 ---@param name string
 function SendChatMessage(s, msg, lang, name)
 end
-function SetTracking(...)
-end
-function GetNumTrackingTypes(...)
-end
----@return string, string, boolean, string, number, WowSpellId
-function GetTrackingInfo(...)
-  return "", "", false, "", 0, 0
-end
+---@class C_Minimap
+---@field GetNumTrackingTypes fun(...): number
+---@field GetTrackingInfo fun(i: number): string, string, boolean, string, number, WowSpellId
+---@field SetTracking fun(...)
+C_Minimap = {}
+
 ---@param a string
 ---@param b string
 function GetAddOnMetadata(a, b)

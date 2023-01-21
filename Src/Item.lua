@@ -40,26 +40,30 @@ end
 ---@class RsContainerItemInfo
 ---@field bag number Bag number where the item is found
 ---@field slot number Slot number in the bag
----@field icon string
+---@field icon WowIconId
 ---@field count number
 ---@field itemId number
 ---@field locked boolean
 ---@field link string
 ---@field name string Extracted from item link, localized name
 
----@return RsContainerItemInfo
-function itemModule:GetContainerItemInfo(bag, slot)
-  local icon, slotCount, slotLocked, _, _, _, slotItemLink, _, _, slotItemId = C_Container.GetContainerItemInfo(bag, slot)
-  local itemName = slotItemLink and string.match(slotItemLink, "%[(.*)%]")
+---@return RsContainerItemInfo|nil
+function itemModule:GetContainerItemInfo(bagId, slot)
+  --local icon, slotCount, slotLocked, _, _, _, slotItemLink, _, _, slotItemId =
+  local itemInfo = C_Container.GetContainerItemInfo(bagId, slot)
+  if not itemInfo then
+    return nil
+  end
+  local itemName = string.match(itemInfo.hyperlink, "%[(.*)%]")
 
   local i = --[[---@type RsContainerItemInfo]] {}
-  i.bag = bag
+  i.bag = bagId
   i.slot = slot
-  i.icon = icon
-  i.count = slotCount
-  i.locked = slotLocked
-  i.link = slotItemLink
-  i.itemId = slotItemId
+  i.icon = itemInfo.iconFileID
+  i.count = itemInfo.stackCount
+  i.locked = itemInfo.isLocked
+  i.link = itemInfo.hyperlink
+  i.itemId = itemInfo.itemID
   i.name = --[[---@type string]] itemName
   return i
 end

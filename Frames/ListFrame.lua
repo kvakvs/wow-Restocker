@@ -167,18 +167,21 @@ end
 
 ---Create a button to toggle buying from merchants
 ---@param item RsTradeCommand
+---@return RsItemButton
 local function rsBuyFromMerchantButton(frame, chainTo, item)
-  local btn = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
+  local btn = --[[---@type RsItemButton]] CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
 
   btn:SetPoint("RIGHT", chainTo, "LEFT", 3, 0);
   btn:SetSize(24, 24)
-  btn:SetScript("OnClick", function()
-    if item.buyFromMerchant == nil then
-      item.buyFromMerchant = false -- nil default to true, so toggle to false
+  btn.item = item
+
+  btn:SetScript("OnClick", function(self)
+    if self.item.buyFromMerchant == nil then
+      self.item.buyFromMerchant = false -- nil default to true, so toggle to false
     else
-      item.buyFromMerchant = not item.buyFromMerchant
+      self.item.buyFromMerchant = not self.item.buyFromMerchant
     end
-    RS:UpdateRestockListRow(frame, item)
+    RS:UpdateRestockListRow(frame, self.item)
   end)
   rsTooltip(btn, restockerModule:Color("ffffff", "Buy from merchant") .. "|n"
       .. "Buy necessary quantity from merchant, when merchant window is open")
@@ -187,14 +190,17 @@ end
 
 ---Create a button to toggle storing to bank
 ---@param item RsTradeCommand
+---@return RsItemButton
 local function rsStashToBankButton(frame, chainTo, item)
-  local btn = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
+  local btn = --[[---@type RsItemButton]] CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
 
   btn:SetPoint("RIGHT", chainTo, "LEFT", 3, 0);
   btn:SetSize(36, 24)
-  btn:SetScript("OnClick", function()
-    item.stashTobank = not item.stashTobank
-    RS:UpdateRestockListRow(frame, item)
+  btn.item = item
+
+  btn:SetScript("OnClick", function(self)
+    self.item.stashTobank = not self.item.stashTobank
+    RS:UpdateRestockListRow(frame, self.item)
   end)
   rsTooltip(btn, restockerModule:Color("ffffff", "Stash to bank") .. "|n"
       .. "Store extra items in bank, when bank is open. Use 0 to store all")
@@ -203,14 +209,17 @@ end
 
 ---Create a button to toggle restocking from bank
 ---@param item RsTradeCommand
+---@return RsItemButton
 local function rsRestockFromBankButton(frame, chainTo, item)
-  local btn = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
+  local btn = --[[---@type RsItemButton]] CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
 
   btn:SetPoint("RIGHT", chainTo, "LEFT", 3, 0);
   btn:SetSize(36, 24)
-  btn:SetScript("OnClick", function()
-    item.restockFromBank = not item.restockFromBank
-    RS:UpdateRestockListRow(frame, item)
+  btn.item = item
+
+  btn:SetScript("OnClick", function(self)
+    self.item.restockFromBank = not self.item.restockFromBank
+    RS:UpdateRestockListRow(frame, self.item)
   end)
   rsTooltip(btn, restockerModule:Color("ffffff", "Restock from bank") .. "|n"
       .. "Take necessary items items from bank, when bank is open")
@@ -232,15 +241,19 @@ function RS:CreateFrame()
   return frame
 end
 
+---@shape RsItemButton: WowControl
+---@field item RsTradeCommand
+
 ---@shape RsRestockingListRow: RsControl
 ---@field text WowFontString
 ---@field editBox WowInputBox
----@field delBtn WowControl
----@field buyBtn WowControl
----@field toBankBtn WowControl
----@field fromBankBtn WowControl
+---@field delBtn RsItemButton
+---@field buyBtn RsItemButton
+---@field toBankBtn RsItemButton
+---@field fromBankBtn RsItemButton
 ---@field amountBox WowControl
 ---@field reactionBox WowControl
+---@field item RsTradeCommand
 
 ---Create UI row for items
 ---@return RsRestockingListRow
@@ -271,6 +284,10 @@ end
 ---@param row RsRestockingListRow
 ---@param item RsTradeCommand
 function RS:UpdateRestockListRow(row, item)
+  row.buyBtn.item = item
+  row.fromBankBtn.item = item
+  row.toBankBtn.item = item
+
   if item.buyFromMerchant == nil or item.buyFromMerchant then
     -- nil default to true
     row.buyBtn:SetText("$")
@@ -288,9 +305,9 @@ function RS:UpdateRestockListRow(row, item)
     row.fromBankBtn:SetText("-")
   end
 
+  row.text:SetText(item.itemName)
   row.editBox:SetText(tostring(item.amount or 0))
   row.reactionBox:SetText(tostring(item.reaction or 0))
-  row.text:SetText(item.itemName)
 end
 
 function RS:addListFrames()

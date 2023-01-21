@@ -154,7 +154,10 @@ function RS:Update()
 
   ---@param item RsTradeCommand
   for _, item in ipairs(restockItemList) do
+    RS:Debug("Update row for item: " .. item.itemName)
+
     local f = RS:GetFirstEmpty(item)
+
     f:SetParent(RS.MainFrame.scrollChild)
     f.isInUse = true
     self:UpdateRestockListRow(f, item)
@@ -162,11 +165,13 @@ function RS:Update()
   end
 
   local height = 0
+
   for _, f in ipairs(RS.framepool) do
     if f.isInUse then
       height = height + 15
     end
   end
+
   RS.MainFrame.scrollChild:SetHeight(height)
 end
 
@@ -174,8 +179,8 @@ end
 --[[
   GET FIRST UNUSED SCROLLCHILD FRAME
 ]]
----@return RsRestockingListRow
 ---@param item RsTradeCommand
+---@return RsRestockingListRow
 function RS:GetFirstEmpty(item)
   for i, frame in ipairs(RS.framepool) do
     if not frame.isInUse then

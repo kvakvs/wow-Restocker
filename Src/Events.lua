@@ -57,10 +57,10 @@ function eventsModule.OnBankOpen(isMinor)
   else
     RS.minorChange = false
   end
+
   bankModule.didBankStuff = false
   bankModule.bankIsOpen = true
-  bankModule.currentlyRestocking = true
-  RS.onUpdateFrame:Show()
+  bankModule:RestartRestocking()
 end
 
 function eventsModule.OnBankClose()

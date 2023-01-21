@@ -195,7 +195,6 @@ function merchantModule:Restock()
     numPurchases = self:PurchaseMerchantItem(i, purchaseOrders, numPurchases)
   end -- for loop GetMerchantNumItems()
 
-
   if numPurchases > 0 then
     RS:Print("Finished restocking (" .. numPurchases .. " purchase orders done)")
   end
