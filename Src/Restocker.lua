@@ -359,11 +359,13 @@ function RS:OnEnable()
   end
 
   local f = InterfaceOptionsFrame
-  f:SetMovable(true);
-  f:EnableMouse(true);
-  f:SetUserPlaced(true);
-  f:SetScript("OnMouseDown", f.StartMoving);
-  f:SetScript("OnMouseUp", f.StopMovingOrSizing);
+  if f then
+    f:SetMovable(true);
+    f:EnableMouse(true);
+    f:SetUserPlaced(true);
+    f:SetScript("OnMouseDown", f.StartMoving);
+    f:SetScript("OnMouseUp", f.StopMovingOrSizing);
+  end
 
   SLASH_RESTOCKER1 = "/restocker";
   SLASH_RESTOCKER2 = "/rs";

@@ -1,3 +1,9 @@
+## Restocker 2023.1.3
+
+- First version compatible with Dragonflight (mainline WoW).
+- Sometimes an error appears "Couldn't split those stacks" when taking from bank - Temporary workaround: manually move more 
+items than you require from the bank, and reopen the bank it will balance the counts.
+
 ## Restocker 2023.1.2
 
 - `C_Container` API change in the new patch for `GetContainer[NumSlots/ItemInfo]`

@@ -185,19 +185,6 @@ end
 
 local theCoroutineObject = coroutine.create(restockCoro)
 
---- For debugging restocking coroutine do the scriptErrors once, then run xxx() like so
---- /console scriptErrors 1
---- /run RS_ADDON.Test()
-function RS.Test()
-  bankModule.bankIsOpen = true
-  bankModule:RestartRestocking()
-  for i = 1, 10 do
-    if bankModule:RunRestockLogic() == true then
-      return
-    end
-  end
-end
-
 function bankModule:MaintainAndResumeCoro()
   if theCoroutineObject == nil then
     RS:Debug("Maintain: create coro")
@@ -218,6 +205,11 @@ function bankModule:MaintainAndResumeCoro()
 end
 
 function bankModule.BankUpdateFn(self, elapsed)
+  if bankModule.bankIsOpen == false then
+    RS.onUpdateFrame:Hide() -- stop the periodic timer in the update frame
+    return -- nope
+  end
+
   bankModule.updateTimer = bankModule.updateTimer + elapsed
 
   -- Ping x 3 defines the click frequency. But never go faster than 140 ms
@@ -246,3 +238,16 @@ end
 
 RS.onUpdateFrame = CreateFrame("Frame")
 RS.onUpdateFrame:SetScript("OnUpdate", bankModule.BankUpdateFn)
+
+--- For debugging restocking coroutine do the scriptErrors once, then run xxx() like so
+--- /console scriptErrors 1
+--- /run RS_ADDON.Test()
+function RS.Test()
+  bankModule.bankIsOpen = true
+  bankModule:RestartRestocking()
+  for i = 1, 10 do
+    if bankModule:RunRestockLogic() == true then
+      return
+    end
+  end
+end

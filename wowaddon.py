@@ -10,16 +10,18 @@ import subprocess
 import sys
 import zipfile
 
-VERSION = '2023.1.2'  # year.month.build_num
+VERSION = '2023.1.3'  # year.month.build_num
 
 ADDON_NAME = 'Restocker'  # Directory and zip name
 ADDON_NAME_CLASSIC = ADDON_NAME  # Directory and zip name
 ADDON_TITLE_CLASSIC = ADDON_NAME  # Title field in TOC
+ADDON_TITLE_MAINLINE = ADDON_NAME  # Title field in Retail mainline
 # LEGACY_OVERRIDE_ADDON = f"{ADDON_NAME_CLASSIC}TBC" # subdirectory with dummy addon
 
 UI_VERSION_CLASSIC = '11403'  # patch 1.14.3
 UI_VERSION_CLASSIC_TBC = '20504'  # patch 2.5.4 Phase 4 and 5 TBC
 UI_VERSION_CLASSIC_WOTLK = '30401'  # patch 3.4.1 WotLK (Ulduar)
+UI_VERSION_CLASSIC_MAINLINE = '100002'  # patch 10.0.2
 
 COPY_DIRS = ['Frames', 'Classes', 'Src', 'Ace3']
 COPY_FILES = ['embeds.xml']
@@ -34,21 +36,25 @@ class BuildTool:
         self.create_toc(dst=f'{ADDON_NAME_CLASSIC}.toc',
                         ui_version=UI_VERSION_CLASSIC,
                         title=ADDON_TITLE_CLASSIC)
-        self.create_toc(dst=f'{ADDON_NAME_CLASSIC}-Classic.toc',
+        self.create_toc(dst=f'{ADDON_NAME_CLASSIC}-Vanilla.toc',
                         ui_version=UI_VERSION_CLASSIC,
                         title=ADDON_TITLE_CLASSIC)
-        self.create_toc(dst=f'{ADDON_NAME_CLASSIC}-BCC.toc',
+        self.create_toc(dst=f'{ADDON_NAME_CLASSIC}-TBC.toc',
                         ui_version=UI_VERSION_CLASSIC_TBC,
                         title=ADDON_TITLE_CLASSIC)
-        self.create_toc(dst=f'{ADDON_NAME_CLASSIC}-WOTLKC.toc',
+        self.create_toc(dst=f'{ADDON_NAME_CLASSIC}-Wrath.toc',
                         ui_version=UI_VERSION_CLASSIC_WOTLK,
                         title=ADDON_TITLE_CLASSIC)
+        self.create_toc(dst=f'{ADDON_NAME_CLASSIC}-Mainline.toc',
+                        ui_version=UI_VERSION_CLASSIC_MAINLINE,
+                        title=ADDON_TITLE_MAINLINE)
 
     def do_install(self, toc_name: str):
         self.copy_files.append(f'{toc_name}.toc')
-        self.copy_files.append(f'{toc_name}-Classic.toc')
-        self.copy_files.append(f'{toc_name}-BCC.toc')
-        self.copy_files.append(f'{toc_name}-WOTLKC.toc')
+        self.copy_files.append(f'{toc_name}-Vanilla.toc')
+        self.copy_files.append(f'{toc_name}-TBC.toc')
+        self.copy_files.append(f'{toc_name}-Wrath.toc')
+        self.copy_files.append(f'{toc_name}-Mainline.toc')
         dst_path = f'{self.args.dst}/{toc_name}'
 
         if os.path.isdir(dst_path):
@@ -91,9 +97,10 @@ class BuildTool:
 
     def do_zip(self, toc_name: str):
         self.copy_files.append(f'{toc_name}.toc')
-        self.copy_files.append(f'{toc_name}-Classic.toc')
-        self.copy_files.append(f'{toc_name}-BCC.toc')
-        self.copy_files.append(f'{toc_name}-WOTLKC.toc')
+        self.copy_files.append(f'{toc_name}-Vanilla.toc')
+        self.copy_files.append(f'{toc_name}-TBC.toc')
+        self.copy_files.append(f'{toc_name}-Wrath.toc')
+        self.copy_files.append(f'{toc_name}-Mainline.toc')
         zip_name = f'{self.args.dst}/{toc_name}-{VERSION}.zip'
 
         with zipfile.ZipFile(zip_name, "w", zipfile.ZIP_DEFLATED,

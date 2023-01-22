@@ -81,7 +81,7 @@ end
 function inventoryClass:FindBestFit(cachedItem, amount, bags)
   local containingSlots = self.slots[cachedItem.itemName]
   if not containingSlots then
-    RS:Debug("Inv:FindBestFit: No existing stacks for merging " .. cachedItem.itemName.. " x" .. amount)
+    RS:Debug("BestFit: No existing stacks for merging " .. cachedItem.itemName.. " x" .. amount)
     return nil
   end
 
@@ -98,7 +98,7 @@ function inventoryClass:FindBestFit(cachedItem, amount, bags)
   end
 
   if #mergeDestinations == 0 then
-    RS:Debug("Inv:FindBestFit: Have stacks but no candidates for merging " .. cachedItem.itemName.. " x" .. amount)
+    RS:Debug("BestFit: Found stacks but no candidates for merging " .. cachedItem.itemName.. " x" .. amount)
     return nil
   end
 
@@ -112,8 +112,8 @@ function inventoryClass:FindBestFit(cachedItem, amount, bags)
 
   -- First element should be lowest, i.e. closest to the perfection of a full stack
   local bestDestination = mergeDestinations[1]
-  RS:Debug("Inv:FindBestFit: Candidate for merging "
-      .. cachedItem.itemName .. " x" .. bestDestination.count
+  RS:Debug("BestFit: Candidate for merging "
+      .. cachedItem.itemName .. " x" .. amount
       .. " is " .. bestDestination.bag .. ":" .. bestDestination.slot)
   return inventoryModule:NewSlotNumber(bestDestination.bag, bestDestination.slot)
 end

@@ -22,10 +22,6 @@ function eventsModule.OnMerchantShow()
 
   RS.buying = true
 
-  if not restockerModule.settings.autoBuy then
-    return
-  end -- If not autobuying then return
-
   if IsShiftKeyDown() then
     return
   end -- If shiftkey is down return
@@ -43,7 +39,6 @@ function eventsModule.OnBankOpen(isMinor)
   local settings = restockerModule.settings
 
   if IsShiftKeyDown()
-      or not settings.restockFromBank
       or settings.profiles[settings.currentProfile] == nil then
     return
   end

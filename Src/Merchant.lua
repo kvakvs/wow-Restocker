@@ -123,35 +123,6 @@ end
 
 ---@alias RsTradeCommandsByName {[string]: RsTradeCommand}
 
--- ---@param sell RsTradeCommand
---function merchantModule:TrySellItem(sell)
---  bagModule:ForEachBagItem(function(bag, slot, itemName, itemID, count)
---    if itemID == sell.itemID or itemName == sell.itemName then
---      --UseContainerItem(bag, slot)
---      --RS:Print(string.format("Sold %s", sell.itemName))
---    end
---  end)
---end
-
---function merchantModule:SellExtras()
---  local settings = restockerModule.settings
---  if self:CountTableItems(settings.profiles[settings.currentProfile]) == 0 then
---    return
---  end -- If profile is emtpy then return
---
---  local restockList = settings.profiles[settings.currentProfile]
---  local sellOrders = --[[---@type RsTradeCommandsByName]] {}
---
---  -- Build the Purchase Orders table used for buying items
---  for _, eachRestockRecord in ipairs(--[[---@not nil]] restockList) do
---    self:BuildSellOrder(sellOrders, eachRestockRecord)
---  end
---
---  for _, eachSell in pairs(sellOrders) do
---    self:TrySellItem(eachSell)
---  end
---end
-
 function merchantModule:Restock()
   local settings = restockerModule.settings
   if self:CountTableItems(settings.profiles[settings.currentProfile]) == 0 then

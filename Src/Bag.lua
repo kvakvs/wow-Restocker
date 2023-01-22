@@ -29,6 +29,8 @@ bagDefClass.__index = bagDefClass
 bagModule.BANK_BAGS = --[[---@type RsBagDef[] ]] {} -- set up in RS.SetupBankConstants
 bagModule.BANK_BAGS_REVERSED = --[[---@type RsBagDef[] ]] {} -- set up in RS.SetupBankConstants
 
+---Converts bag indexes 1..4 (bags after the backpack) to inventory slot indexes
+---(example retail Dragonflight 31..34)
 local function bagSlotFromBag(bag)
   RS:Debug("bagSlotFromBag bag=" .. bag)
   local bagSlot, _icon, _ = GetInventorySlotInfo("BAG" .. (bag - 1) .. "SLOT")
@@ -157,7 +159,6 @@ function bagModule:GetItemsInBags(predicate)
 
   for _, bag in ipairs(self.PLAYER_BAGS) do
     for slot = 1, C_Container.GetContainerNumSlots(bag.bagId) do
-      -- local _, itemCount, locked, _, _, _, itemLink, _, _, itemID
       local itemInfo = C_Container.GetContainerItemInfo(bag.bagId, slot)
 
       if itemInfo and itemInfo.itemID and itemInfo.hyperlink then
@@ -227,46 +228,6 @@ function bagModule:GetItemsInBank(predicate)
   result:SortSlots()
   return result
 end
-
------@param dropItem RsItem
------@param bag number BagID https://wowwiki-archive.fandom.com/wiki/BagId
------@return RsInventorySlotNumber|nil Returns bag, slot where drop happened
---function bagModule:DropCursorItemIntoBag(dropItem, bag)
---  if not CursorHasItem() then
---    RS:Debug("DropCursorItemIntoBag: Cursor doesn't have item!")
---    return nil
---  end
---
---  -- Search through the bag for an empty slot
---  for slot = 1, C_Container.GetContainerNumSlots(bag) do
---    local itemInfo = C_Container.GetContainerItemInfo(bag, slot)
---
---    if not itemInfo then
---      -- must be empty where we drop!
---      C_Container.UseContainerItem(bag, slot, nil, nil)
---      RS:Debug("DropCursorItemIntoBag: to bag " .. bag .. " slot " .. slot)
---      return --[[---@type RsInventorySlotNumber]] { bag = bag, slot = slot }
---    end
---  end -- for all bag slots
---  return nil
---end
-
---function bagModule:BagSlotFromBag(bag)
---  if tContains(self.PLAYER_BAGS, bag) then
---    local bagSlot, _icon, _ = GetInventorySlotInfo("BAG" .. (bag - 1) .. "SLOT")
---    return bagSlot
---  else
---    if bag == self.BANK_CONTAINER then
---      -- Handle the bank main bag (-1) special value
---      local bagSlot, _icon, _ = GetInventorySlotInfo("BAG1")
---      return bagSlot
---    else
---      -- Handle the bank other bags 5..11 become BAG2...
---      local bagSlot, _icon, _ = GetInventorySlotInfo("BAG" .. (bag - 3))
---      return bagSlot
---    end
---  end
---end
 
 ---Takes cursor item. Drops it into one of the bank bags.
 ---@param bankInventory RsInventory
