@@ -10,7 +10,7 @@ import subprocess
 import sys
 import zipfile
 
-VERSION = '2023.1.3'  # year.month.build_num
+VERSION = '2023.6.0'  # year.month.build_num
 
 ADDON_NAME = 'Restocker'  # Directory and zip name
 ADDON_NAME_CLASSIC = ADDON_NAME  # Directory and zip name
@@ -20,7 +20,7 @@ ADDON_TITLE_MAINLINE = ADDON_NAME  # Title field in Retail mainline
 
 UI_VERSION_CLASSIC = '11403'  # patch 1.14.3
 UI_VERSION_CLASSIC_TBC = '20504'  # patch 2.5.4 Phase 4 and 5 TBC
-UI_VERSION_CLASSIC_WOTLK = '30401'  # patch 3.4.1 WotLK (Ulduar)
+UI_VERSION_CLASSIC_WOTLK = '30402'  # patch 3.4.1 WotLK (TotGC)
 UI_VERSION_CLASSIC_MAINLINE = '100002'  # patch 10.0.2
 
 COPY_DIRS = ['Frames', 'Classes', 'Src', 'Ace3']

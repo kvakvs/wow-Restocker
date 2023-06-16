@@ -19,7 +19,7 @@ slotClass.__index = slotClass
 
 ---@alias RsInventoryCountByItemName {[string]: number} Items in the bag by name
 ---@alias RsInventorySlotByItemName {[string]: RsSlot[]} Items in the bag by name
----@alias RsMoveItemTask {[string]: number} Item name is key, amount to buy is value
+---@alias RsMoveItemTask table<string, number> Item name is key, amount to buy is value
 
 ---Collection of items in the inventory or bank with their precise slot locations and counts, and summaries
 ---@class RsInventory
