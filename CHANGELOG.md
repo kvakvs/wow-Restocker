@@ -1,3 +1,7 @@
+## Restocker 2023.11.0
+
+- Updated the copy of KvLib for classic compatibility. Was using Windows directory Junctions before and that didn't go well.
+
 ## Restocker 2023.1.3
 
 - First version compatible with Dragonflight (mainline WoW).
