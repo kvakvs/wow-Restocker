@@ -62,6 +62,7 @@ RS.commands = {
     delete = RS.defaults.slash .. "profile delete [name] - Deletes profile with [name]",
     rename = RS.defaults.slash .. "profile rename [name] - Renames current profile to [name]",
     copy = RS.defaults.slash .. "profile copy [name] - Copies profile [name] into current profile.",
+    use = RS.defaults.slash .. "profile use [name] - Switches active profile to [name].",
     config = RS.defaults.slash .. "config - Opens the interface options menu."
   }
 }
@@ -94,6 +95,9 @@ function RS:SlashCommand(args)
 
     elseif subcommand == "rename" then
       RS:RenameCurrentProfile(name)
+
+    elseif subcommand == "use" then
+      RS:ChangeProfile(name)
 
     elseif subcommand == "copy" then
       RS:CopyProfile(name)
@@ -264,8 +268,8 @@ function RS:ChangeProfile(newProfile)
   settings.currentProfile = newProfile
 
   UIDropDownMenu_SetText(RS.MainFrame.profileDropDownMenu, settings.currentProfile)
-  --print(RS.defaults.prefix .. "current profile: ".. Restocker.currentProfile)
   RS:Update()
+  RS:Print("Current profile: ".. newProfile)
 
   if bankModule.bankIsOpen then
     eventsModule.OnBankOpen(true)

@@ -1,3 +1,7 @@
+## Restocker 2023.12.0
+
+- Console command `/rs profile use xxx` will switch the active profile to `xxx`.
+
 ## Restocker 2023.11.0
 
 - Updated the copy of KvLib for classic compatibility. Was using Windows directory Junctions before and that didn't go well.
