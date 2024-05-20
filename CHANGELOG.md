@@ -1,3 +1,7 @@
+## Restocker 2024.5.0
+
+- [Cataclysm] Minor version update. Functionality looks like it is not broken.
+
 ## Restocker 2023.12.0
 
 - Console command `/rs profile use xxx` will switch the active profile to `xxx`.

@@ -10,21 +10,27 @@ import subprocess
 import sys
 import zipfile
 
-VERSION = '2023.12.0'  # year.month.build_num
+VERSION = '2024.5.0'  # year.month.build_num
 
 ADDON_NAME = 'Restocker'  # Directory and zip name
 ADDON_NAME_CLASSIC = ADDON_NAME  # Directory and zip name
 ADDON_TITLE_CLASSIC = ADDON_NAME  # Title field in TOC
 ADDON_TITLE_MAINLINE = ADDON_NAME  # Title field in Retail mainline
-# LEGACY_OVERRIDE_ADDON = f"{ADDON_NAME_CLASSIC}TBC" # subdirectory with dummy addon
 
 UI_VERSION_CLASSIC = '11403'  # patch 1.14.3
 UI_VERSION_CLASSIC_TBC = '20504'  # patch 2.5.4 Phase 4 and 5 TBC
 UI_VERSION_CLASSIC_WOTLK = '30402'  # patch 3.4.1 WotLK (TotGC)
+UI_VERSION_CLASSIC_CATA = '40400'  # patch 4.4.0 Cataclysm Classic
 UI_VERSION_CLASSIC_MAINLINE = '100105'  # patch 10.1.5 whatever that is
 
 COPY_DIRS = ['Frames', 'Classes', 'Src', 'Ace3']
 COPY_FILES = ['embeds.xml']
+
+SUFFIX_CLASSIC = "-Classic" # "_Vanilla"
+SUFFIX_TBC = "-BCC" # "_TBC"
+SUFFIX_WRATH = "-WOTLKC" # "_Wrath"
+SUFFIX_CATA = "-Cata" # "_Cata???"
+SUFFIX_RETAIL = "-Mainline"
 
 
 class BuildTool:
@@ -36,25 +42,29 @@ class BuildTool:
         self.create_toc(dst=f'{ADDON_NAME_CLASSIC}.toc',
                         ui_version=UI_VERSION_CLASSIC,
                         title=ADDON_TITLE_CLASSIC)
-        self.create_toc(dst=f'{ADDON_NAME_CLASSIC}-Vanilla.toc',
+        self.create_toc(dst=f'{ADDON_NAME_CLASSIC}{SUFFIX_CLASSIC}.toc',
                         ui_version=UI_VERSION_CLASSIC,
                         title=ADDON_TITLE_CLASSIC)
-        self.create_toc(dst=f'{ADDON_NAME_CLASSIC}-TBC.toc',
+        self.create_toc(dst=f'{ADDON_NAME_CLASSIC}{SUFFIX_TBC}.toc',
                         ui_version=UI_VERSION_CLASSIC_TBC,
                         title=ADDON_TITLE_CLASSIC)
-        self.create_toc(dst=f'{ADDON_NAME_CLASSIC}-Wrath.toc',
+        self.create_toc(dst=f'{ADDON_NAME_CLASSIC}{SUFFIX_WRATH}.toc',
                         ui_version=UI_VERSION_CLASSIC_WOTLK,
                         title=ADDON_TITLE_CLASSIC)
-        self.create_toc(dst=f'{ADDON_NAME_CLASSIC}-Mainline.toc',
+        self.create_toc(dst=f'{ADDON_NAME_CLASSIC}{SUFFIX_CATA}.toc',
+                        ui_version=UI_VERSION_CLASSIC_CATA,
+                        title=ADDON_TITLE_CLASSIC)
+        self.create_toc(dst=f'{ADDON_NAME_CLASSIC}{SUFFIX_RETAIL}.toc',
                         ui_version=UI_VERSION_CLASSIC_MAINLINE,
                         title=ADDON_TITLE_MAINLINE)
 
     def do_install(self, toc_name: str):
         self.copy_files.append(f'{toc_name}.toc')
-        self.copy_files.append(f'{toc_name}-Vanilla.toc')
-        self.copy_files.append(f'{toc_name}-TBC.toc')
-        self.copy_files.append(f'{toc_name}-Wrath.toc')
-        self.copy_files.append(f'{toc_name}-Mainline.toc')
+        self.copy_files.append(f'{toc_name}{SUFFIX_CLASSIC}.toc')
+        self.copy_files.append(f'{toc_name}{SUFFIX_TBC}.toc')
+        self.copy_files.append(f'{toc_name}{SUFFIX_WRATH}.toc')
+        self.copy_files.append(f'{toc_name}{SUFFIX_CATA}.toc')
+        self.copy_files.append(f'{toc_name}{SUFFIX_RETAIL}.toc')
         dst_path = f'{self.args.dst}/{toc_name}'
 
         if os.path.isdir(dst_path):
@@ -97,10 +107,11 @@ class BuildTool:
 
     def do_zip(self, toc_name: str):
         self.copy_files.append(f'{toc_name}.toc')
-        self.copy_files.append(f'{toc_name}-Vanilla.toc')
-        self.copy_files.append(f'{toc_name}-TBC.toc')
-        self.copy_files.append(f'{toc_name}-Wrath.toc')
-        self.copy_files.append(f'{toc_name}-Mainline.toc')
+        self.copy_files.append(f'{toc_name}{SUFFIX_CLASSIC}.toc')
+        self.copy_files.append(f'{toc_name}{SUFFIX_TBC}.toc')
+        self.copy_files.append(f'{toc_name}{SUFFIX_WRATH}.toc')
+        self.copy_files.append(f'{toc_name}{SUFFIX_CATA}.toc')
+        self.copy_files.append(f'{toc_name}{SUFFIX_RETAIL}.toc')
         zip_name = f'{self.args.dst}/{toc_name}-{VERSION}.zip'
 
         with zipfile.ZipFile(zip_name, "w", zipfile.ZIP_DEFLATED,
